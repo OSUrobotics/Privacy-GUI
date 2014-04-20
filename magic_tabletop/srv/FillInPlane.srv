@@ -1,0 +1,6 @@
+sensor_msgs/PointCloud2 cloud_in
+float32 top
+float32 bottom
+---
+sensor_msgs/PointCloud2 cloud_out
+sensor_msgs/Image image_out
