@@ -1,16 +1,15 @@
 <launch>
 
-	<!-- Main Python Script for Magic Floor Demo -->
-	<node type="magic_floor.py" pkg="magic_tabletop" name="magic_floor" output="screen" />
+	<!-- Main Python Script for Magic Mat Demo -->
+	<node type="magic_mat.py" pkg="magic_tabletop" name="magic_mat" output="screen" />
 
 	<!-- Kinect Driver -->
 	<include file="$(find openni_launch)/launch/openni.launch" />
 
-	<!-- SERVICES -->
-	<node type="fit_plane"		   pkg="magic_tabletop" name="fit_plane"	       output="screen" />
-	<node type="publish_plane_tf.py"   pkg="magic_tabletop" name="publish_plane_tf"        output="screen" />
-	<node type="transform_PointCloud2" pkg="magic_tabletop" name="transform_PointCloud2"   output="screen" />
-	<node type="fill_in_plane"  	   pkg="magic_tabletop" name="fill_in_plane"           output="screen" />
-	
+	<!-- Image Viewer Window -->
+	<node type="image_view" pkg="image_view" name="image_view" output="screen">
+	      <remap from="image" to="/camera/rgb/image_color_filtered"/>
+	</node>
+
 
 </launch>
