@@ -128,3 +128,11 @@ target_link_libraries(fill_in_plane
  )
 add_dependencies(fill_in_plane magic_tabletop_gencpp)
 
+## Declare another cpp executable
+add_executable(unpack_PointCloud2 src/unpack_PointCloud2.cpp)
+target_link_libraries(unpack_PointCloud2 
+  ${PCL_LIBRARIES}  
+  ${catkin_LIBRARIES} 
+ )
+add_dependencies(unpack_PointCloud2 magic_tabletop_gencpp)
+
