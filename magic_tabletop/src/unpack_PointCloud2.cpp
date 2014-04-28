@@ -4,6 +4,7 @@
 // ROS
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <std_msgs/Float32.h>
 #include <std_msgs/Float32MultiArray.h>
 
 // PCL
@@ -22,46 +23,78 @@ using namespace pcl;
 using namespace ros;
 
 
-void unpack_cloud(const sensor_msgs::PointCloud2ConstPtr& cloud_in)
+class CloudUnpacker
 {
-  // Unpack point cloud message into PCL data type
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-  fromROSMsg(*cloud_in, *cloud);
+public:
 
-  // Iterator for PCL point cloud data structure
-  pcl::PointCloud<pcl::PointXYZRGB>::iterator it;
+  ros::Publisher pub;
 
-  // Turn all points near the plane to green
-  std_msgs::Float32MultiArray x, y, z, r, g, b;
+  //! Constructor.
+  CloudUnpacker()
+  {
+  }
 
-  for ( it = (*cloud).begin(); it != (*cloud).end(); ++it )
-    {
-      x.data.push_back(it -> x);
-      y.data.push_back(it -> y);
-      z.data.push_back(it -> z);
-      r.data.push_back(it -> r);
-      g.data.push_back(it -> g);
-      b.data.push_back(it -> b);
+  //! Destructor.
+  ~CloudUnpacker()
+  {
+  }
 
-    }
+  void load_publisher(ros::Publisher pub_in)
+  {
+    pub = pub_in;
+  }
 
-  ROS_INFO("Processed a cloud.");
+  void unpack_cloud(const sensor_msgs::PointCloud2ConstPtr& cloud_in)
+  {
+    // Unpack point cloud message into PCL data type
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+    fromROSMsg(*cloud_in, *cloud);
+    
+    // Iterator for PCL point cloud data structure
+    pcl::PointCloud<pcl::PointXYZRGB>::iterator it;
+    
+    // Turn all points near the plane to green
+    std_msgs::Float32MultiArray xyzrgb;
+    
+    for ( it = (*cloud).begin(); it != (*cloud).end(); ++it )
+      {
+	xyzrgb.data.push_back(it -> x);
+	xyzrgb.data.push_back(it -> y);
+	xyzrgb.data.push_back(it -> z);
+	xyzrgb.data.push_back(it -> r);
+	xyzrgb.data.push_back(it -> g);
+	xyzrgb.data.push_back(it -> b);
+      }
+    
+    ROS_INFO("Processed a cloud.");
+    
+    pub.publish(xyzrgb);
 
-  //toROSMsg(*cloud, response.cloud_out);
+    return;
+  }
 
-  //toROSMsg(response.cloud_out, response.image_out);
+};
 
-  return;
-}
+
+
 
 int main (int argc, char** argv)
 {
+
   // Initialize ROS
   ros::init (argc, argv, "unpack_PointCloud2");
   ros::NodeHandle nh;
 
-  ros::Subscriber sub = nh.subscribe("/camera/depth_registered/points", 1, unpack_cloud);
-  
+  CloudUnpacker *unpacker = new CloudUnpacker();
+
+  // Publisher of unpacked points
+  ros::Publisher pub = nh.advertise<std_msgs::Float32MultiArray>("/camera/depth_registered/points_unpacked", 1);
+
+  unpacker->load_publisher(pub);
+
+  // Subscriber to PointCloud2 msg
+  ros::Subscriber sub = nh.subscribe("/camera/depth_registered/points", 1, &CloudUnpacker::unpack_cloud, unpacker);
+
   ros::spin();
   
 }
