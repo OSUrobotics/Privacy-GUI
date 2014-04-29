@@ -2,12 +2,16 @@
 
 import rospy
 from std_msgs.msg import Float32MultiArray
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, PointCloud2
 import numpy
 import cv
 from cv_bridge import CvBridge
 
 import code # FOR TESTING
+
+import roslib; roslib.load_manifest('pr2_python')
+from pr2_python import pointclouds
+
 
 class CloudNumpyer():
     def __init__(self, topic):
@@ -42,14 +46,28 @@ class ImageNumpyer():
         image_cv = self.bridge.imgmsg_to_cv(image_in)
         self.image = numpy.asarray(image_cv)
         rospy.loginfo('Converted an image to numpy!')
+
+class Cloud2Numpyer():
+    def __init__(self, topic):
+        self.bridge = CvBridge()
+        rospy.Subscriber(topic, PointCloud2, self.cloud_callback)
+        self.pub = rospy.Publisher(topic+'_image', Image)
+
+    def cloud_callback(self, cloud_in):
+        """ Convert PointCloud2 msg to numpy array. """
+        cloud_full = pointclouds.pointcloud2_to_array(cloud_in)
+        cloud_xyz = pointclouds.pointcloud2_to_xyz_array(cloud_in, remove_nans=False)
+        
         
 
 if __name__ == '__main__':
 
     rospy.init_node('numpyize_PointCloud2')
 
-    cloudNumpyer = CloudNumpyer('/camera/depth_registered/points_unpacked')
+    #cloudNumpyer = CloudNumpyer('/camera/depth_registered/points_unpacked')
 
     #imageNumpyer = ImageNumpyer('/camera/rgb/image_color')
+
+    cloud2Numpyer = Cloud2Numpyer('/camera/depth_registered/points')
 
     rospy.spin()
