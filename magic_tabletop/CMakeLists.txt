@@ -72,16 +72,17 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES magic_tabletop
-#  CATKIN_DEPENDS 
+  CATKIN_DEPENDS 
 #  roscpp 
 #  rospy 
-#  std_msgs
+  std_msgs
+  sensor_msgs
 #  sensor_msgs
 #  geometry_msgs 
 #  pcl_conversions
 #  pcl_ros
-#  message_runtime
-#  DEPENDS system_lib
+  message_runtime
+#  DEPENDS message_runtime
 )
 
 ###########
