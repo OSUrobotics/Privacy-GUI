@@ -1,0 +1,26 @@
+<!--This launch file remaps everything through the restamper for use with Rviz. -->
+<launch>
+   <!--Launch the bag file with the robot description  -->
+   <!--clock -q -r 1.0 -->
+  <param name="use_sim_true" command="rosparam set use_sim_time false"/>  
+  <param name="robot_description" command=" $(find xacro)/xacro.py $(find turtlebot_description)/robots/kobuki_hexagons_kinect.urdf.xacro" />
+  
+  <arg name="bagfile" default="/home/ahubers/bagfiles/slowAngular.bag" />
+  <node pkg="rosbag" type="play" name="rosbagplay" args="--clock -q $(arg bagfile)">
+
+  <!--remap from <topic> to <topic>_old so that restamper.py can pick up <topic>_old and republish <topic> with new timestamps-->
+  	<remap from="tf" to="tf_old"/>
+  	<remap from="camera/depth/image_raw" to="camera/depth/image_raw_old"/>
+  	<!--<remap from="camera/rgb/image_raw" to="camera/rgb/image_raw_old"/>-->
+
+  	<!--<remap from="camera/rgb/camera_info" to="camera/rgb/camera_info_old"/>-->
+  	
+  	<!--<remap from="/odom" to="/odom_old"/>-->
+  	<!--<remap from="/scan" to="/scan_old"/>-->
+  	<!--<remap from="camera/depth/camera_info" to="camera/depth/camera_info_old"/>-->
+
+  </node>
+  <!-- restamper picks up tf_old and changes every message's timestamp to the current timestamp-->
+   <node pkg="privacy" type="restamper.py" name="restamper" />
+  
+</launch>
