@@ -15,7 +15,7 @@ these frames so that privacy.py can pick it up.  -->
   </node>
   
   <!--Run our privacy node, which takes data from the topics ar_kinect publishes -->
-  <node pkg="privacy" type="privacy.py" name="privacy" >
+  <node pkg="privacy" type="livePrivacy.py" name="privacy" >
 	<!--What is our default manipulation technique? -->
 	<param name="defaultManip" value="REDACT" />
 	<!--Will record the video to a file if True. -->

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import roslib
-roslib.load_manifest('privacy')
+# roslib.load_manifest('privacy')
 #NOTES -------------------------------------------------------------------------------
 # change master_uri to the workstation:
 # export ROS_MASTER_URI=http://10.214.152.11:11311
@@ -28,7 +28,7 @@ import message_filters
 from sensor_msgs.msg import Image, CameraInfo
 from cv_bridge import CvBridge, CvBridgeError
 from image_geometry import PinholeCameraModel
-
+# from privacy.msg import PoseMarkers
 from privacy.msg import PoseMarkers
 
 

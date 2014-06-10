@@ -6,8 +6,8 @@
 #single topic published by my bag file, changing its header to NOW, and then republishing it.
 #Lord have mercy on my soul.
 
-import roslib
-roslib.load_manifest('privacy')
+# import roslib
+# roslib.load_manifest('privacy')
 import rospy
 import tf
 from sensor_msgs.msg import Image, CameraInfo, LaserScan

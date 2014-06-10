@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import roslib
-roslib.load_manifest('privacy')
+# import roslib
+# roslib.load_manifest('privacy')
 # export ROS_MASTER_URI=http://10.214.152.11:11311
 
 import rospy
@@ -8,7 +8,6 @@ import sys
 import csv 
 import time
 import tf
-
 	
 
 #This node only publishes frames, which are picked up by frameControl for further processing.

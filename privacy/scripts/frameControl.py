@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import roslib
-roslib.load_manifest('privacy')
+# roslib.load_manifest('privacy')
 # export ROS_MASTER_URI=http://10.214.152.11:11311
 
 import rospy
@@ -9,13 +9,14 @@ import sys
 import csv 
 import time
 import tf
+
 from copy import copy
-#just an array of of poseStamped's
-from privacy.msg import PoseMarkers
 from sensor_msgs.msg import Image, CameraInfo
 from geometry_msgs.msg import PoseStamped
 from image_geometry import PinholeCameraModel
 from cv_bridge import CvBridge
+#just an array of of poseStamped's
+from privacy.msg import PoseMarkers
 
 #rosparam set /framePublisher/frameLocations /home/ahubers/catkin_ws/src/privacy/config/frames/slowAngular2.csv
 #rosparam set /framePublisher/frameControl /home/ahubers/catkin_ws/src/privacy/config/frames/slowAngular2.csv
