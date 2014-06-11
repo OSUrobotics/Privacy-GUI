@@ -148,6 +148,6 @@ if __name__ == '__main__':
 	rospy.init_node('frameControl', log_level=rospy.DEBUG)
 	frameLocations = rospy.get_param('frameControl/frameLocations', "/home/ahubers/catkin_ws/src/privacy/config/frames/test.csv")
 	threshold = rospy.get_param('frameControl/depthThreshold', "1.0")
-	image_topic = rospy.get_param('privacy/image_topic');
+	image_topic = rospy.get_param('imageFilter/image_topic');
 	myFrameControl = frameControl(threshold, image_topic)		
 	rospy.spin()

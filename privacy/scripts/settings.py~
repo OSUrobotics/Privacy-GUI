@@ -1,4 +1,0 @@
-#!/usr/bin/env python
-#This dictionary is imported by privacy.py and instructs the script how to censor which ar tags.
-#follows format of settings["AR tag name"] = 'manipulation type'.
-settings = {"4x4_1":'BLUR',"4x4_2":'BLUR', "4x4_3":None} 

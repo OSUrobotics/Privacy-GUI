@@ -28,7 +28,6 @@ import message_filters
 from sensor_msgs.msg import Image, CameraInfo
 from cv_bridge import CvBridge, CvBridgeError
 from image_geometry import PinholeCameraModel
-# from privacy.msg import PoseMarkers
 from privacy.msg import PoseMarkers
 
 
@@ -109,7 +108,7 @@ class privacy:
 		middleman = self.bridge.imgmsg_to_cv(image, "bgr8")
 		self.image = numpy.asarray(middleman)
 		
-		self.defaultManip = rospy.get_param('privacy/defaultManip', "REDACT")
+		self.defaultManip = rospy.get_param('imageFilter/defaultManip', "REDACT")
 		#Find our markers and act on them.
 		try:
 	  		for myMarker in self.markers:
@@ -278,10 +277,10 @@ class privacy:
 #MAIN -----------------------------------------------------------------------------------
 if __name__ == '__main__':
 	rospy.init_node('privacy', log_level=rospy.DEBUG)
-   	defaultManip = rospy.get_param('privacy/defaultManip', "REDACT")
-   	doRecord = rospy.get_param('privacy/doRecord', False)
-	config = rospy.get_param('privacy/config', "/home/ahubers/catkin_ws/src/privacy/config/offsets/test1.csv")
-	image_topic = rospy.get_param('privacy/image_topic');
+   	defaultManip = rospy.get_param('imageFilter/defaultManip', "REDACT")
+   	doRecord = rospy.get_param('imageFilter/doRecord', False)
+	config = rospy.get_param('imageFilter/config', "/home/ahubers/catkin_ws/src/privacy/config/offsets/test1.csv")
+	image_topic = rospy.get_param('imageFilter/image_topic');
 	myPrivacy = privacy(config, defaultManip, doRecord, image_topic)
 	
   

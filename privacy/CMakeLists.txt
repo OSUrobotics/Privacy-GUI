@@ -71,7 +71,6 @@ find_package(catkin REQUIRED COMPONENTS
  generate_messages(
    DEPENDENCIES
    geometry_msgs
-   std_msgs
 
  )
 
@@ -87,7 +86,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES privacy
-  CATKIN_DEPENDS cv_bridge image_geometry rospy sensor_msgs message_runtime geometry_msgs std_msgs
+  CATKIN_DEPENDS cv_bridge image_geometry rospy sensor_msgs message_runtime geometry_msgs
 #DEPENDS system_lib 
   )
 

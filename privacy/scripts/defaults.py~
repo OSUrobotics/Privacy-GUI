@@ -1,6 +1,0 @@
-#This dictionary is imported by privacy.py and instructs the file how to censor which ar tags.
-
-settings = []
-
-settings["4x4_1"] = 'BLUR'
-settings["4x4_2"] = 'blur'
