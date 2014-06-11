@@ -1,0 +1,36 @@
+<launch>
+
+  <!--csv file that specifies locations of frames in 3d map. -->
+  <arg name="frameLocations" default="$(find privacy)/config/frames/takeFive.csv" />
+  <!--csv file that specifies the offset manipulations from their frames -->
+  <arg name="offsetConfig" default="$(find privacy)/config/offsets/takeFive.csv"/>
+  <!--The maximum depth difference between marker depth and depth_image depth allowed for occlusion
+   (if occlusion's allowed). -->
+  <arg name="depthThreshold" default="1.0"/>
+  <!--Image topic. The default image topic. Just an image topic.  -->
+   <arg name="image_topic" default="/camera/rgb/image_color"/>
+  
+  <!--Publishes frames at the locations set in frameLocations -->
+  <node name="framePublisher" pkg="privacy" type="framePublisher.py">
+    <param name="frameLocations" value="$(arg frameLocations)"/>
+  </node>
+  
+<!--Looks up transforms from the frames published by framePublisher to the camera's frame_id, then publishes
+these frames so that imageFilter.py can pick it up.  -->
+  <node name="frameControl" pkg="privacy" type="frameControl.py">
+    <param name="frameLocations" value="$(arg frameLocations)"/>
+    <param name="depthThreshold" value="$(arg depthThreshold)"/>
+    <param name="image_topic" value="$(arg image_topic)"/>
+  </node>
+  
+  <!--Run our privacy node, which takes data from the topics ar_kinect publishes -->
+  <node pkg="privacy" type="imageFilter.py" name="imageFilter" >
+	<!--What is our default manipulation technique? -->
+	<param name="defaultManip" value="BLUR"/>
+	<!--Will record the video to a file if True. -->
+	<param name="doRecord" value="false" type="bool"/>
+	<param name="config" value="$(arg offsetConfig)" />
+
+  <param name="image_topic" value="$(arg image_topic)"/>
+  </node>
+</launch>
