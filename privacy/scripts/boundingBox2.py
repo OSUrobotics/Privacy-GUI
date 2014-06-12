@@ -24,15 +24,10 @@ class Bound():
 
         # Import and convert
         image_cv2 = self.rcv.toCv2(image_in)
-        image_hsv = cv2.cvtColor(image_cv2, cv2.COLOR_BGR2HSV)
-        image_hsv = cv2.blur(image_hsv, (5, 5))
 
-        # Make binary image of pinkness
-        is_pink = cv2.inRange(image_hsv, numpy.array((130, 50, 0)), numpy.array((175, 255, 255)))
-        pink = copy.deepcopy(image_cv2)
-
-        # Manipulate binary image
-        contours, hierarchy = cv2.findContours(is_pink, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        lowerb = numpy.array((130, 50, 0))
+        upperb = numpy.array((175, 255, 255))
+        contours = self.rcv.colorContours(image_cv2, lowerb, upperb)
 
         #Just finds the best contour.
         max_area = 0
@@ -52,8 +47,11 @@ class Bound():
 
         topLeft = (minCntTuple[0], minCntTuple[1])
         bottomRight = (maxCntTuple[0], maxCntTuple[1])
-
-        image_cv2 = self.rcv.npr(image_cv2,topLeft,bottomRight)
+        faces = self.rcv.findFaces(image_cv2)
+        for x1, y1, x2, y2 in faces:
+            topLeft = (x1, y1)
+            bottomRight = (x2, y2)
+            image_cv2 = self.rcv.redact(image_cv2,topLeft,bottomRight)
         self.rcv.imshow(image_cv2)
 
         # Convert back to ROS Image msg

@@ -21,6 +21,23 @@ class rosCV():
 	def imshow(self,image):
 		cv2.imshow("image", image)
 		cv2.waitKey(3)
+#Contour Stuff ---------
+
+	#returns an array of contours in an image of matched colors within the range (lowerb, upperb)
+	def colorContours(self, image, lowerb, upperb):
+		image_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+		image_hsv = cv2.blur(image_hsv, (5, 5))
+		is_color = cv2.inRange(image_hsv, lowerb, upperb)
+		contours, hierarchy = cv2.findContours(is_color, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+		return contours
+#Facial recognition stuff
+
+	#Pass it the image and the haar xml file and it finds faces accordingly.
+	def findFaces(self, image, haar="/nfs/attic/smartw/users/reume02/catkin_ws/src/privacy-interfaces/privacy/config/haar/haarcascade_frontalface_alt.xml"):
+		cascade = cv2.CascadeClassifier(haar)
+		rects = cascade.detectMultiScale(image, 1.3, 4, cv2.cv.CV_HAAR_SCALE_IMAGE, (20,20))
+		return rects
+
 
 #IMAGE MANIPULATION FUNCTIONS
 	#takes a cv2 numpy array and two 2-tuples and creates a black box.
