@@ -18,8 +18,8 @@ class rosCV():
 		image_cv = cv.fromarray(image_cv2)
 		image_out = self.bridge.cv_to_imgmsg(image_cv, 'bgr8')   
 		return image_out
-	def imshow(self,image):
-		cv2.imshow("image", image)
+	def imshow(self,image, title="image"):
+		cv2.imshow(title, image)
 		cv2.waitKey(3)
 #Contour Stuff ---------
 
@@ -32,10 +32,20 @@ class rosCV():
 		return contours
 #Facial recognition stuff
 
-	#Pass it the image and the haar xml file and it finds faces accordingly.
-	def findFaces(self, image, haar="/nfs/attic/smartw/users/reume02/catkin_ws/src/privacy-interfaces/privacy/config/haar/haarcascade_frontalface_alt.xml"):
+# 	#Pass it the image and the haar xml file and it finds faces accordingly. Not working very well right now.
+	def findFaces(self, image, scale=1, haar="/nfs/attic/smartw/users/reume02/catkin_ws/src/privacy-interfaces/privacy/config/haar/haarcascade_frontalface_default.xml"):
+		#Factor by which we scale the image down in order for faster processing.
+
 		cascade = cv2.CascadeClassifier(haar)
-		rects = cascade.detectMultiScale(image, 1.3, 4, cv2.cv.CV_HAAR_SCALE_IMAGE, (20,20))
+		image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+		img = cv2.resize(image_gray,(0,0),fx=scale,fy=scale)
+		rects = cascade.detectMultiScale(img, scaleFactor=1.1, minNeighbors=1,
+flags=cv.CV_HAAR_SCALE_IMAGE)
+		# for x, y, w, h in rects:
+		# 	x = x * (1/scale)
+		# 	y = y * (1/scale)
+		# 	w = w * (1/scale)
+		# 	h = h * (1/scale)
 		return rects
 
 
@@ -62,18 +72,21 @@ class rosCV():
 		except (TypeError):
 			pass
 		return image
-	#takes a cv2 nupy array and two points and performs an inpainting filter.
-	def inpaint(self, image, topLeft, bottomRight):
-		x1 = topLeft[0]
-		x2 = bottomRight[0]
+	#takes a cv2 nupy array and two points and performs an inpainting filter. Takes a mask optionally
+	def inpaint(self, image, topLeft=None, bottomRight=None,mask=None):
+		if(mask is None):
+			x1 = topLeft[0]
+			x2 = bottomRight[0]
 
-		y1 = topLeft[1]
-		y2 = bottomRight[1]
+			y1 = topLeft[1]
+			y2 = bottomRight[1]
 
-		mask = numpy.zeros((image.shape[0], image.shape[1]), numpy.uint8)
-		mask[y1:y2, x1:x2] = 1
-		
-		image = cv2.inpaint(image, mask, 3, cv2.INPAINT_TELEA)
+			mask = numpy.zeros((image.shape[0], image.shape[1]), numpy.uint8)
+			mask[y1:y2, x1:x2] = 1
+			
+			image = cv2.inpaint(image, mask, 3, cv2.INPAINT_TELEA)
+		else:
+			image = cv2.inpaint(image, mask, 3, cv2.INPAINT_NS)
 		return image
 	#performs a blur operation on the selected square.
 	def blur(self, image, topLeft, bottomRight):

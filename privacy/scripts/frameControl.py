@@ -53,7 +53,8 @@ class frameControl:
 			reader = csv.reader(csvfile, delimiter=',', quotechar="'")
 			for row in reader:
 				newMarker = PoseStamped()
-				newMarker.header.frame_id = row[0]
+				newMarker.header.frame_id = row[0] 
+				newMarker.header.frame_id = newMarker.header.frame_id.replace("/", "")
 				try:
 					(trans, rot) = self.listener.lookupTransform(self.cameraInfo.header.frame_id, newMarker.header.frame_id, rospy.Time(0))
 					newMarker.pose.position.x = trans[0]
@@ -84,6 +85,7 @@ class frameControl:
 							
 				except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException, AttributeError):
 					rospy.logdebug("transform failed for {0}".format(newMarker.header.frame_id))
+			rospy.logdebug(len(self.markers.markers))
 			self.marker_pub.publish(self.markers)	
 				
 	#we want the frame_id of the camera.

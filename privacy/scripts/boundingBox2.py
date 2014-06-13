@@ -25,9 +25,11 @@ class Bound():
         # Import and convert
         image_cv2 = self.rcv.toCv2(image_in)
 
-        lowerb = numpy.array((130, 50, 0))
-        upperb = numpy.array((175, 255, 255))
-        contours = self.rcv.colorContours(image_cv2, lowerb, upperb)
+        pinklowerb = numpy.array((130, 50, 0))
+        pinkupperb = numpy.array((175, 255, 255))
+        greenlowerb = numpy.array((16,72,32))
+        greenupperb = numpy.array((112,219,136))
+        contours = self.rcv.colorContours(image_cv2, pinklowerb, pinkupperb)
 
         #Just finds the best contour.
         max_area = 0
@@ -47,11 +49,16 @@ class Bound():
 
         topLeft = (minCntTuple[0], minCntTuple[1])
         bottomRight = (maxCntTuple[0], maxCntTuple[1])
-        faces = self.rcv.findFaces(image_cv2)
-        for x1, y1, x2, y2 in faces:
-            topLeft = (x1, y1)
-            bottomRight = (x2, y2)
-            image_cv2 = self.rcv.redact(image_cv2,topLeft,bottomRight)
+        # cv2.rectangle(image_cv2, topLeft, bottomRight, (127, 255, 0), 2)
+
+
+        image_hsv = cv2.cvtColor(image_cv2, cv2.COLOR_BGR2HSV)
+        image_hsv = cv2.blur(image_hsv, (5, 5))
+
+        # Make binary image of pinkness
+        is_pink = cv2.inRange(image_hsv, greenlowerb, greenupperb)
+        cv2.drawContours(image_cv2, contours, best_index, tuple([130, 50, 0]), thickness=-1)  # fill in the largest pink blob
+        # image_cv2 = self.rcv.redact(image_cv2,topLeft,bottomRight)
         self.rcv.imshow(image_cv2)
 
         # Convert back to ROS Image msg
