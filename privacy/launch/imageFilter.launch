@@ -10,27 +10,29 @@
   <!--Image topic. The default image topic. Just an image topic.  -->
    <arg name="image_topic" default="/camera/rgb/image_color"/>
   
+<node name="republish" pkg="image_transport" type="republish" args="compressed in:=$(arg image_topic) out:=$(arg image_topic)_repub"></node>
+
   <!--Publishes frames at the locations set in frameLocations -->
   <node name="framePublisher" pkg="privacy" type="framePublisher.py">
     <param name="frameLocations" value="$(arg frameLocations)"/>
   </node>
-  
+
 <!--Looks up transforms from the frames published by framePublisher to the camera's frame_id, then publishes
 these frames so that imageFilter.py can pick it up.  -->
   <node name="frameControl" pkg="privacy" type="frameControl.py">
     <param name="frameLocations" value="$(arg frameLocations)"/>
     <param name="depthThreshold" value="$(arg depthThreshold)"/>
-    <param name="image_topic" value="$(arg image_topic)"/>
+    <param name="image_topic" value="$(arg image_topic)_repub"/>
   </node>
   
   <!--Run our privacy node, which takes data from the topics ar_kinect publishes -->
   <node pkg="privacy" type="imageFilter.py" name="imageFilter" >
 	<!--What is our default manipulation technique? -->
-	<param name="defaultManip" value="REDACT"/>
+	<param name="defaultManip" value="CONTROL"/>
 	<!--Will record the video to a file if True. -->
 	<param name="doRecord" value="false" type="bool"/>
 	<param name="config" value="$(arg offsetConfig)" />
 
-  <param name="image_topic" value="$(arg image_topic)"/>
+  <param name="image_topic" value="$(arg image_topic)_repub"/>
   </node>
 </launch>

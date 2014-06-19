@@ -81,6 +81,7 @@ class privacy:
 	def __init__(self, config, defaultManip=REDACT, doRecord=False, image_topic="/camera/rgb/image_raw"):
 		#subscribe to image info to manipulate and camera_info to get the details needed to perform 
 		#3d position to 2d point projections.
+		self.image_topic = image_topic
 		self.image_sub = rospy.Subscriber(image_topic, Image, self.image_callback)
 		self.info_sub  = rospy.Subscriber("/camera/rgb/camera_info", CameraInfo, self.camera_callback)
 		self.marker_sub = rospy.Subscriber("pose_markers", PoseMarkers, self.marker_callback)
@@ -132,7 +133,7 @@ class privacy:
 			self.inc += 1
 
 		#SHOW ZE IMAGE!
-		cv2.imshow("canvas", self.image)
+		cv2.imshow(self.image_topic, self.image)
 		cv2.waitKey(3)
 
 	#Just update camModel to use the most recent cameraInfo.
