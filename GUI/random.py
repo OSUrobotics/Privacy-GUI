@@ -4,7 +4,7 @@
 """
 ZetCode PySide tutorial 
 
-This program creates a statusbar.
+This program creates a toolbar.
 
 author: Jan Bodnar
 website: zetcode.com 
@@ -23,10 +23,15 @@ class Example(QtGui.QMainWindow):
         
     def initUI(self):               
         
-        self.statusBar().showMessage('Ready')
+        exitAction = QtGui.QAction(QtGui.QIcon('exit.png'), 'Exit', self)
+        exitAction.setShortcut('Ctrl+Q')
+        exitAction.triggered.connect(self.close)
         
-        self.setGeometry(300, 300, 250, 150)
-        self.setWindowTitle('Statusbar')    
+        self.toolbar = self.addToolBar('Exit')
+        self.toolbar.addAction(exitAction)
+        
+        self.setGeometry(300, 300, 350, 250)
+        self.setWindowTitle('Toolbar')    
         self.show()
         
         

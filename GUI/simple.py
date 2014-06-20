@@ -12,11 +12,31 @@ class Example(QtGui.QMainWindow):
 
     def initUI(self):
         #Creating status messages
-        self.statusBar().showMessage('Ready')
         QtGui.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
         self.setToolTip('Click the arrows or the map to move')
 
+        #Setting up the toolbar for quick image commands
+        exitAction = QtGui.QAction(QtGui.QIcon('exit.png'), 'Exit', self)
+        exitAction.setShortcut('Ctrl+Q')
+        exitAction.triggered.connect(self.close)
+        
+        #Now for the zoom tool
+        zoomAction = QtGui.QAction(QtGui.QIcon('zoomIn.png'), 'Zoom In', self)
+        zoomAction.setShortcut('Ctrl+Z')
+        zoomAction.triggered.connect(self.close)
 
+
+        #Adding them to the main toolbar
+        self.toolbar = self.addToolBar('Exit')
+        self.toolbar.addAction(exitAction)
+        self.toolbar.addAction(zoomAction)
+
+        self.statusBar()
+
+        #Adding the menu bar at the top
+        menubar = self.menuBar()
+        fileMenu = menubar.addMenu('&File')
+        fileMenu.addAction(exitAction)
 
         #Creating the stop button
         stop = QtGui.QPushButton('STOP', self)
@@ -24,17 +44,16 @@ class Example(QtGui.QMainWindow):
         stop.resize(stop.sizeHint()) #provides a recommended size for the button
         stop.move(50, 100)
 
-        #Creating the quit button
-        Qbtn = QtGui.QPushButton('Quit', self)
-        Qbtn.clicked.connect(QtCore.QCoreApplication.instance().quit)
-        Qbtn.setToolTip('Quit the program')
-        Qbtn.resize(Qbtn.sizeHint()) #provides a recommended size for the button
-        Qbtn.move(50, 50)
+        #Adding a text editor
+        textEdit = QtGui.QTextEdit()
+        self.setCentralWidget(textEdit)
+
+
 
        #Setting up the Window
-        self.setGeometry(300,300,250,150)  #Xpos, Ypos, Width, Height
-        #self.resize(250,150)
-        #self.center()
+        #self.setGeometry(300,300,250,150)  #Xpos, Ypos, Width, Height
+        self.resize(250,150)
+        self.center()
         self.setWindowTitle('Remote Nav') # Window Title
         self.setWindowIcon(QtGui.QIcon('icon.png')) #Window Icon
 
