@@ -1,7 +1,7 @@
 <launch>
 
 	<!-- Main Python Script for Magic Mat Demo -->
-	<node type="numpyer.py" pkg="magic_tabletop" name="magic_mat" output="screen" />
+	<node type="numpyer.py" pkg="magic_tabletop" name="numpyer" output="screen" />
 
 	<!-- Kinect Driver -->
 	<include file="$(find openni_launch)/launch/openni.launch" />

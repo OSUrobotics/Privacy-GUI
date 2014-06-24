@@ -9,8 +9,8 @@ from cv_bridge import CvBridge
 
 import code # FOR TESTING
 
-import roslib; roslib.load_manifest('pr2_python')
-from pr2_python import pointclouds
+#import roslib; roslib.load_manifest('pr2_python')
+#from pr2_python import python_pointclouds
 
 
 class CloudNumpyer():
@@ -64,10 +64,10 @@ if __name__ == '__main__':
 
     rospy.init_node('numpyize_PointCloud2')
 
-    #cloudNumpyer = CloudNumpyer('/camera/depth_registered/points_unpacked')
+    cloudNumpyer = CloudNumpyer('/camera/depth_registered/points_unpacked')
 
     #imageNumpyer = ImageNumpyer('/camera/rgb/image_color')
 
-    cloud2Numpyer = Cloud2Numpyer('/camera/depth_registered/points')
+    #cloud2Numpyer = Cloud2Numpyer('/camera/depth_registered/points')
 
     rospy.spin()
