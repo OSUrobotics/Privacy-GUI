@@ -25,10 +25,8 @@ class Bound():
         # Import and convert
         image_cv2 = self.rcv.toCv2(image_in)
 
-        pinklowerb = numpy.array((130, 50, 0))
-        pinkupperb = numpy.array((175, 255, 255))
-        greenlowerb = numpy.array((16,72,32))
-        greenupperb = numpy.array((112,219,136))
+        greenlowerb = numpy.array((120,100,40))
+        greenupperb = numpy.array((112,219,100))
         contours = self.rcv.colorContours(image_cv2, pinklowerb, pinkupperb)
 
         #Just finds the best contour.
