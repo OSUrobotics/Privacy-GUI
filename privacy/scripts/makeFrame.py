@@ -33,7 +33,8 @@ POSSIBILITY OF SUCH DAMAGE.
 import rospy
 import copy
 import csv
-
+from visualization_msgs.msg import InteractiveMarkerControl
+from visualization_msgs.msg import Marker
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
 from geometry_msgs.msg import Point

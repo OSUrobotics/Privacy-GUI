@@ -1,8 +1,8 @@
 <launch>
   <!--args; can be passed from command line-->
-  <arg name="parentFrame" default="/map"/>
+  <arg name="parentFrame" default="/odom"/>
   <arg name="frame_name" default="/test"/> 
-  <arg name="framesCsv"  default="$(find privacy)/config/frames/takeFive.csv" />
+  <arg name="framesCsv"  default="$(find privacy)/config/frames/newThing.csv" />
 
   <!--Runs a makeFrame server that brings up an interactive marker and saves its placement. -->
   <node pkg="privacy" type="makeFrame.py" name="makeFrame">
