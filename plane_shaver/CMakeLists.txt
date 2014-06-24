@@ -4,11 +4,15 @@ project(plane_shaver)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+find_package(PCL REQUIRED)
+
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   roscpp
   rospy
   sensor_msgs
+  pcl_conversions
+  pcl_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -96,6 +100,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
 
 ## Declare a cpp library
@@ -104,7 +109,12 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-# add_executable(plane_shaver_node src/plane_shaver_node.cpp)
+add_executable(redact_plane src/redact_plane.cpp)
+target_link_libraries(redact_plane
+  ${PCL_LIBRARIES}  
+  ${catkin_LIBRARIES} 
+ )
+add_dependencies(redact_plane plane_shaver_gencpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
