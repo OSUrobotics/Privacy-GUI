@@ -55,9 +55,10 @@ public:
     // Convert to PCL
 
     // Transform to AR Tag frame
-    sensor_msgs::PointCloud2 cloud_out;
+    sensor_msgs::PointCloud2 cloud_tf, cloud_out;
     string frame_new = "/ar_marker_3";
-    cloud_out = transform_cloud(*cloud_in, frame_new);
+    cloud_tf = transform_cloud(*cloud_in, frame_new);
+    cloud_out = filter_cloud(cloud_tf, -0.10, 10);
 
     // Turn all points above the plane to black
     // Convert to ROS Image msg
@@ -84,17 +85,41 @@ public:
     }
   }
 
-  /*
-  void filter_cloud()
+  sensor_msgs::PointCloud2 filter_cloud(sensor_msgs::PointCloud2 cloud_in, float lower, float upper)
   {
-  }
-  */
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+    fromROSMsg(cloud_in, *cloud);
+    
+    // Iterator for PCL point cloud data structure
+    pcl::PointCloud<pcl::PointXYZRGB>::iterator it;
+    
+    // Turn all points near the plane to BLACK
+    unsigned long count = 0;
 
-  
+    for ( it = (*cloud).begin(); it != (*cloud).end(); ++it )
+      {
+	// Choose all points near the plane
+	if (((it -> z) > lower & (it -> z) < upper)) {// | isnan(it -> x)) {
+	  
+	  // Change color to BLACK
+	  it -> r = 0;
+	  it -> g = 0;
+	  it -> b = 0;
+
+	  count++;
+	}
+
+      }
+    
+    ROS_INFO("Filled in %lu points.", count);
+    
+    sensor_msgs::PointCloud2 cloud_out;
+    toROSMsg(*cloud, cloud_out);
+
+    return cloud_out;
+  }
 
 };
-
-
 
 
 int main (int argc, char** argv)
