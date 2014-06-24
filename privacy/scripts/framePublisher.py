@@ -18,7 +18,7 @@ if __name__ == '__main__':
 	
 	broadcaster = tf.TransformBroadcaster()
 	while not rospy.is_shutdown():
-		frameLocations = rospy.get_param('framePublisher/frameLocations', "/home/local/CORNELL-COLLEGE/ahubers15/Documents/workspace/privacy-interfacing/src/privacy/config/frames/tanAlex.csv")
+		frameLocations = rospy.get_param('framePublisher/frameLocations', "/nfs/attic/smartw/users/reume02/catkin_ws/src/privacy-interfaces/privacy/config/frames/newThing.csv")
 		#frameLocations is the location of a csv file that has each row containing the name and 
 		#pose of our objects relative to /map.
 		with open(frameLocations, 'rb') as csvfile:

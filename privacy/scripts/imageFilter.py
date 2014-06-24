@@ -78,13 +78,15 @@ class marker:
 
 #This class censors objects according to the above manipulation types.
 class privacy:
-	def __init__(self, config, defaultManip=REDACT, doRecord=False, image_topic="/camera/rgb/image_raw"):
+	def __init__(self, config, defaultManip=REDACT, doRecord=False, image_topic="/camera/rgb/image_color"):
 		#subscribe to image info to manipulate and camera_info to get the details needed to perform 
 		#3d position to 2d point projections.
 		self.image_topic = image_topic
 		self.image_sub = rospy.Subscriber(image_topic, Image, self.image_callback)
 		self.info_sub  = rospy.Subscriber("/camera/rgb/camera_info", CameraInfo, self.camera_callback)
 		self.marker_sub = rospy.Subscriber("pose_markers", PoseMarkers, self.marker_callback)
+
+		self.image_pub = rospy.Publisher("thing", Image)
 	
 		#store our record boolean and defaultManipulation style.
 		self.doRecord = doRecord
@@ -107,7 +109,7 @@ class privacy:
 	def image_callback(self, image):
 		#convert from a ROS Image message to a cvMAT image to a numpy array.
 		middleman = self.bridge.imgmsg_to_cv(image, "bgr8")
-		self.image = numpy.asarray(middleman)
+		self.image = numpy.array(middleman,  dtype=numpy.uint8)
 		
 		self.defaultManip = rospy.get_param('imageFilter/defaultManip', "REDACT")
 		#Find our markers and act on them.
@@ -134,7 +136,7 @@ class privacy:
 
 		#SHOW ZE IMAGE!
 		cv2.imshow(self.image_topic, self.image)
-		cv2.waitKey(3)
+		cv2.waitKey(1000)
 
 	#Just update camModel to use the most recent cameraInfo.
 	def camera_callback(self, cameraInfo):
