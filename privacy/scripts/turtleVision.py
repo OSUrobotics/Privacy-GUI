@@ -49,7 +49,8 @@ class turtleViz():
 		# Import and convert
 		image_cv2 = self.rcv.toCv2(image_in)
 		try:
-			newPose = self.listener.transformPose(self.cameraInfo.header.frame_id, newMarker)
+			# newPose = self.listener.transformPose(self.cameraInfo.header.frame_id, newMarker)
+			newPose = self.listener.transformPose('/cam_pos', newMarker)
 			position = (newPose.pose.position.x, newPose.pose.position.y, newPose.pose.position.z)
 			projected = self.camModel.project3dToPixel(position)
 			rospy.logdebug(projected)
@@ -62,8 +63,8 @@ class turtleViz():
 			self.pub.publish(image_out)
 		# except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException, AttributeError):
 		except ():
-			# rospy.logdebug("transform failed")
-			pass
+			rospy.logdebug("transform failed")
+			# pass
 		self.rcv.imshow(image_cv2)
 
 
@@ -71,6 +72,6 @@ if __name__ == '__main__':
 
 	rospy.init_node('turtleVision', log_level=rospy.DEBUG)
 
-	tv = turtleViz('/camera/rgb/image_color_repub')
+	tv = turtleViz('/camera/rgb/image_color')
 
 	rospy.spin()
