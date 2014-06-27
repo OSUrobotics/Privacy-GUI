@@ -1,0 +1,4 @@
+sensor_msgs/PointCloud2 cloud_in
+string frame_new
+---
+sensor_msgs/PointCloud2 cloud_out

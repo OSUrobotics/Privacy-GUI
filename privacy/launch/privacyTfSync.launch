@@ -1,0 +1,23 @@
+<launch>
+<!--Publishes frames at the locations set in frameLocations -->
+  <node name="framePublisher" pkg="privacy" type="framePublisher.py">
+    <param name="frameLocations" value="$(find privacy)/config/frames/finalcut.csv"/>
+  </node>
+
+
+  
+<!--Looks up transforms from the frames published by framePublisher to the camera's frame_id, then publishes
+these frames so that privacy.py can pick it up.  -->
+  <node name="frameControl" pkg="privacy" type="frameControl.py">
+    <param name="frameLocations" value="$(find privacy)/config/frames/finalcut.csv"/>
+  </node>
+  
+  <!--Run our privacy node, which takes data from the topics ar_kinect publishes -->
+  <node pkg="privacy" type="privacyTfSync.py" name="privacy" >
+	<!--What is our default manipulation technique? -->
+	<param name="defaultManip" value="BLUR" />ro
+	<!--Will record the video to a file if True. -->
+	<param name="doRecord" value="false" type="bool"/>
+	<param name="config" value="$(find privacy)/config/offsets/finalcut.csv" />
+  </node>
+</launch>

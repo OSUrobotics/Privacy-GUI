@@ -1,0 +1,7 @@
+sensor_msgs/PointCloud2 cloud_in
+float32[] limits_x
+float32[] limits_y
+float32[] limits_z
+---
+sensor_msgs/PointCloud2 cloud_out
+sensor_msgs/Image image_out
