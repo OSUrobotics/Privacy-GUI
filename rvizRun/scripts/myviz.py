@@ -21,7 +21,8 @@ from python_qt_binding.QtGui import *
 from python_qt_binding.QtCore import *
 
 #Get moving!
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, PoseStamped
+from goal import Goal
 
 ## Finally import the RViz bindings themselves.
 import rviz
@@ -35,6 +36,21 @@ class MyViz( QWidget ):
     #The twist commands
         self.pub = rospy.Publisher('mobile_base/commands/velocity', Twist) 
         self.zero_cmd_sent = False
+
+    #For sending nav goals.
+        self.nav_pub = rospy.Publisher('/move_base_simple/goal', PoseStamped)
+    #Initialize our goal as on the start frame.
+        goal = PoseStamped()
+        goal.header.frame_id = "/start"
+        goal.header.stamp = rospy.Time.now()
+
+        goal.pose.position.x = 0.0
+        goal.pose.position.y = 0.0
+        goal.pose.position.z = 0.0
+        goal.pose.orientation.w = 1.0
+        self._send_nav_goal(goal)
+    #Initialize our Goal object accordingly.
+        self.goal = Goal(length=4,pose=goal)
 
     #The visualizer
         QWidget.__init__(self)
@@ -118,6 +134,8 @@ class MyViz( QWidget ):
 
     def onFwdButtonClick(self):
         self._send_twist(0.3)
+        # pose = self.goal.inc(1.0)
+        # self._send_nav_goal(pose)
 
     def onStopButtonClick(self):
         self.send_twist(0.0)
@@ -153,6 +171,10 @@ class MyViz( QWidget ):
         else:
             self.zero_cmd_sent = False
             self.pub.publish(twist)
+    # Sends a nav goal to the bot. This is like sending it a position in space.
+    def _send_nav_goal(self, pose):
+        self.nav_pub.publish(pose)
+
 
 ## Start the Application
 ## ^^^^^^^^^^^^^^^^^^^^^
