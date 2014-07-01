@@ -160,6 +160,7 @@ class MyViz( QWidget ):
         self.turnAround()
 
     def turnAround(self):
+        
         command = Twist()
         command.angular.z = 0.5
         now = rospy.Time.now()
