@@ -33,6 +33,22 @@ class MyViz( QWidget ):
     ## MyViz Constructor
     def __init__(self):
 
+    #The visualizer
+        QWidget.__init__(self)
+
+        self.frame = rviz.VisualizationFrame()
+        self.frame.setSplashPath( "" )
+        self.frame.initialize()
+
+        ## The reader reads config file data into the config object.
+        ## VisualizationFrame reads its data from the config object.
+        reader = rviz.YamlConfigReader()
+        config = rviz.Config()
+        reader.readFile( config, "map_and_img.rviz" )
+        self.frame.load( config )
+
+        self.setWindowTitle( config.mapGetChild( "Title" ).getValue() )
+
     #The twist commands
         self.pub = rospy.Publisher('mobile_base/commands/velocity', Twist) 
         self.zero_cmd_sent = False
@@ -52,21 +68,7 @@ class MyViz( QWidget ):
     #Initialize our Goal object accordingly.
         self.goal = Goal(length=4,pose=goal)
 
-    #The visualizer
-        QWidget.__init__(self)
-
-        self.frame = rviz.VisualizationFrame()
-        self.frame.setSplashPath( "" )
-        self.frame.initialize()
-
-        ## The reader reads config file data into the config object.
-        ## VisualizationFrame reads its data from the config object.
-        reader = rviz.YamlConfigReader()
-        config = rviz.Config()
-        reader.readFile( config, "map_and_img.rviz" )
-        self.frame.load( config )
-
-        self.setWindowTitle( config.mapGetChild( "Title" ).getValue() )
+    
 
 #Disable unneeded views
         self.frame.setMenuBar( None )
@@ -93,6 +95,10 @@ class MyViz( QWidget ):
         stop_button = QPushButton( "STOP" )
         stop_button.clicked.connect( self.onStopButtonClick )
         h_layout.addWidget( stop_button )
+
+        debug_button = QPushButton( "Move Forward [NAV DEBUG]" )
+        debug_button.clicked.connect( self.onDebugButtonClick )
+        h_layout.addWidget( debug_button )
         
         fwd_button = QPushButton( "Move Forward" )
         fwd_button.clicked.connect( self.onFwdButtonClick )
@@ -134,8 +140,11 @@ class MyViz( QWidget ):
 #BUTTON CALLBACKS -------------------------------------------
     def onFwdButtonClick(self):
         self._send_twist(0.3)
-        # pose = self.goal.inc(1.0)
-        # self._send_nav_goal(pose)
+
+    def onDebugButtonClick(self):
+    #Sends a nav goal 1m away. Alex, you can continue editing here. 
+        pose=self.goal.inc(0.0)
+        self._send_nav_goal(pose)
 
     def onStopButtonClick(self):
         self.send_twist(0.0)
@@ -192,7 +201,7 @@ if __name__ == '__main__':
     rospy.init_node('move')
 
     myviz = MyViz()
-    myviz.resize( 500, 500 )
+    myviz.resize( 1000, 500 )
     myviz.show()
 
     app.exec_()
