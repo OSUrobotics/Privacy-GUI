@@ -1,0 +1,9 @@
+<launch>
+
+  <!--Publishes our "/start" frame at a constant rate. -->
+  <node name="startFrame" pkg="rvizRun" type="startFrame.py">
+  </node>
+
+  <node name="myviz" pkg="rvizRun" type="myviz.py" >
+  </node>
+</launch>
