@@ -96,7 +96,7 @@ class MyViz( QWidget ):
         stop_button.clicked.connect( self.onStopButtonClick )
         h_layout.addWidget( stop_button )
 
-        debug_button = QPushButton( "Move Forward [NAV DEBUG]" )
+        debug_button = QPushButton( "Reset Position" )
         debug_button.clicked.connect( self.onDebugButtonClick )
         h_layout.addWidget( debug_button )
         
@@ -143,8 +143,15 @@ class MyViz( QWidget ):
 
     def onDebugButtonClick(self):
     #Sends a nav goal 1m away. Alex, you can continue editing here. 
-        pose=self.goal.inc(0.0)
-        self._send_nav_goal(pose)
+        goal = PoseStamped()
+        goal.header.frame_id = "/start"
+        goal.header.stamp = rospy.Time.now()
+
+        goal.pose.position.x = 0.0
+        goal.pose.position.y = 0.0
+        goal.pose.position.z = 0.0
+        goal.pose.orientation.w = 1.0
+        self._send_nav_goal(goal)
 
     def onStopButtonClick(self):
         self.send_twist(0.0)
