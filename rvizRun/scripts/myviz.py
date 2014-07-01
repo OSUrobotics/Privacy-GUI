@@ -47,7 +47,7 @@ class MyViz( QWidget ):
         ## VisualizationFrame reads its data from the config object.
         reader = rviz.YamlConfigReader()
         config = rviz.Config()
-        reader.readFile( config, "imageOnly.rviz" )
+        reader.readFile( config, "map_and_img.rviz" )
         self.frame.load( config )
 
         self.setWindowTitle( config.mapGetChild( "Title" ).getValue() )
