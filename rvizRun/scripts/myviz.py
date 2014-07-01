@@ -96,11 +96,11 @@ class MyViz( QWidget ):
         stop_button.clicked.connect( self.onStopButtonClick )
         h_layout.addWidget( stop_button )
 
-        debug_button = QPushButton( "Move Forward [NAV DEBUG]" )
+        debug_button = QPushButton( "Reset Position [NAV DEBUG]" )
         debug_button.clicked.connect( self.onDebugButtonClick )
         h_layout.addWidget( debug_button )
         
-        fwd_button = QPushButton( "Move Forward" )
+        fwd_button = QPushButton( "Move Forward[TWIST]" )
         fwd_button.clicked.connect( self.onFwdButtonClick )
         h_layout.addWidget( fwd_button )
 
@@ -147,12 +147,14 @@ class MyViz( QWidget ):
         self._send_nav_goal(pose)
 
     def onStopButtonClick(self):
-        self.send_twist(0.0)
+        self._send_twist(0.0)
 
     def onTurnButtonClick(self):
         self.turnAround()
 
     def turnAround(self):
+        if self.pub is None:
+            return
         command = Twist()
         command.angular.z = 0.5
         now = rospy.Time.now()
