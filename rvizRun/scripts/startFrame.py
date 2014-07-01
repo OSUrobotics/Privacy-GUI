@@ -19,8 +19,8 @@ if __name__ == '__main__':
 			frame = "/start"
 			parentFrame = "/map"
 			#TODO: figure out correct placement and orientation math.
-			position = (1.0, 0.0, 0.0)
-			rotation = (0.0, 0.0, 0.0, 1.0)
+			position = (-0.498853027821, 0.0277761220932, 0.0)
+			rotation = (0.0, 0.0, -0.0041319729078, 1.0)
 			broadcaster.sendTransform(position,rotation,rospy.Time.now(),frame,parentFrame)	
 		except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException, LookupError):
 			continue	

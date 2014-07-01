@@ -131,7 +131,7 @@ class MyViz( QWidget ):
                 view_man.setCurrentFrom( view_man.getViewAt( i ))
                 return
         print( "Did not find view named %s." % view_name )
-
+#BUTTON CALLBACKS -------------------------------------------
     def onFwdButtonClick(self):
         self._send_twist(0.3)
         # pose = self.goal.inc(1.0)
@@ -151,7 +151,12 @@ class MyViz( QWidget ):
         while rospy.Time.now() - now < rospy.Duration(2*math.pi):
             self.pub.publish(command)
 
+    def moveAhead(self, distance):
+        pass
+        # xVel = math.tanh(5 * ( - distance)) * 0.5
+        # self._send_twist(self, xVel)
 
+#PRIVATE COMMANDS ---------------------------------------------
     def _send_twist(self, x_linear):
         if self.pub is None:
             return
@@ -171,7 +176,7 @@ class MyViz( QWidget ):
         else:
             self.zero_cmd_sent = False
             self.pub.publish(twist)
-    # Sends a nav goal to the bot. This is like sending it a position in space.
+    # Sends a nav goal to the bot. This is like sending it a position in space to go
     def _send_nav_goal(self, pose):
         self.nav_pub.publish(pose)
 
