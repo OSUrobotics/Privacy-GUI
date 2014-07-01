@@ -32,7 +32,7 @@ class MyViz( QWidget ):
 
     ## MyViz Constructor
     def __init__(self):
-
+#A comment for Alex
     #The visualizer
         QWidget.__init__(self)
 
