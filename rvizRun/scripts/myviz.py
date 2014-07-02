@@ -26,6 +26,7 @@ from goal import Goal
 
 ## Finally import the RViz bindings themselves.
 import rviz
+import tf
 
 ## The MyViz class is the main container widget.
 class MyViz( QWidget ):
@@ -55,6 +56,7 @@ class MyViz( QWidget ):
 
     #For sending nav goals.
         self.nav_pub = rospy.Publisher('/move_base_simple/goal', PoseStamped)
+        self.listener = tf.TransformListener()
     #Initialize our goal as on the start frame.
         goal = PoseStamped()
         goal.header.frame_id = "/start"
@@ -65,8 +67,6 @@ class MyViz( QWidget ):
         goal.pose.position.z = 0.0
         goal.pose.orientation.w = 1.0
         self._send_nav_goal(goal)
-    #Initialize our Goal object accordingly.
-        self.goal = Goal(length=4,pose=goal)
 
     
 
@@ -96,11 +96,11 @@ class MyViz( QWidget ):
         stop_button.clicked.connect( self.onStopButtonClick )
         h_layout.addWidget( stop_button )
 
-        debug_button = QPushButton( "Reset Position" )
+        debug_button = QPushButton( "Reset Position [NAV DEBUG]" )
         debug_button.clicked.connect( self.onDebugButtonClick )
         h_layout.addWidget( debug_button )
         
-        fwd_button = QPushButton( "Move Forward" )
+        fwd_button = QPushButton( "Move Forward[TWIST]" )
         fwd_button.clicked.connect( self.onFwdButtonClick )
         h_layout.addWidget( fwd_button )
 
@@ -142,7 +142,7 @@ class MyViz( QWidget ):
         self._send_twist(0.3)
 
     def onDebugButtonClick(self):
-    #Sends a nav goal 1m away. Alex, you can continue editing here. 
+    #Tells robot to return to home base. Alex, you can continue editing here. 
         goal = PoseStamped()
         goal.header.frame_id = "/start"
         goal.header.stamp = rospy.Time.now()
@@ -164,14 +164,18 @@ class MyViz( QWidget ):
         command = Twist()
         command.angular.z = 0.5
         now = rospy.Time.now()
-
+        r = rospy.Rate(50) 
         while rospy.Time.now() - now < rospy.Duration(2*math.pi):
             self.pub.publish(command)
+            r.sleep()
 
-    def moveAhead(self, distance):
-        pass
-        # xVel = math.tanh(5 * ( - distance)) * 0.5
-        # self._send_twist(self, xVel)
+    def moveAhead(self, stopDist):
+        # I used calculus here.
+        movingTime = (1/5) * acosh(exp(10*stopDist))
+        now = rospy.Time.now()
+        while rospy.Time.now() - now < movingTime:
+            xVel = math.tanh(5 * (dist - stopDist)) * 0.5
+            self._send_twist(xVel)
 
 #PRIVATE COMMANDS ---------------------------------------------
     def _send_twist(self, x_linear):
