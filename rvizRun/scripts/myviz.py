@@ -8,7 +8,7 @@
 ## First we start with the standard ros Python import line:
 import roslib; roslib.load_manifest('rviz_python_tutorial')
 import rospy
-import math
+from math import *
 ## Then load sys to get sys.argv.
 import sys
 
@@ -31,175 +31,212 @@ import tf
 ## The MyViz class is the main container widget.
 class MyViz( QWidget ):
 
-    ## MyViz Constructor
-    def __init__(self):
+	## MyViz Constructor
+	def __init__(self):
 #A comment for Alex
-    #The visualizer
-        QWidget.__init__(self)
+	#The visualizer
+		QWidget.__init__(self)
 
-        self.frame = rviz.VisualizationFrame()
-        self.frame.setSplashPath( "" )
-        self.frame.initialize()
+		self.frame = rviz.VisualizationFrame()
+		self.frame.setSplashPath( "" )
+		self.frame.initialize()
 
-        ## The reader reads config file data into the config object.
-        ## VisualizationFrame reads its data from the config object.
-        reader = rviz.YamlConfigReader()
-        config = rviz.Config()
-        reader.readFile( config, "map_and_img.rviz" )
-        self.frame.load( config )
+		## The reader reads config file data into the config object.
+		## VisualizationFrame reads its data from the config object.
+		reader = rviz.YamlConfigReader()
+		config = rviz.Config()
+		reader.readFile( config, "map_and_img.rviz" )
+		self.frame.load( config )
 
-        self.setWindowTitle( config.mapGetChild( "Title" ).getValue() )
+		self.setWindowTitle( config.mapGetChild( "Title" ).getValue() )
 
-    #The twist commands
-        self.pub = rospy.Publisher('mobile_base/commands/velocity', Twist) 
-        self.zero_cmd_sent = False
+	#The twist commands
+		self.pub = rospy.Publisher('mobile_base/commands/velocity', Twist) 
+		self.zero_cmd_sent = False
 
-    #For sending nav goals.
-        self.nav_pub = rospy.Publisher('/move_base_simple/goal', PoseStamped)
-        self.listener = tf.TransformListener()
-    #Initialize our goal as on the start frame.
-        goal = PoseStamped()
-        goal.header.frame_id = "/start"
-        goal.header.stamp = rospy.Time.now()
+	#For sending nav goals.
+		self.nav_pub = rospy.Publisher('/move_base_simple/goal', PoseStamped)
+		self.listener = tf.TransformListener()
+	#Initialize our goal as on the start frame.
+		goal = PoseStamped()
+		goal.header.frame_id = "/start"
+		goal.header.stamp = rospy.Time.now()
 
-        goal.pose.position.x = 0.0
-        goal.pose.position.y = 0.0
-        goal.pose.position.z = 0.0
-        goal.pose.orientation.w = 1.0
-        self._send_nav_goal(goal)
+		goal.pose.position.x = 0.0
+		goal.pose.position.y = 0.0
+		goal.pose.position.z = 0.0
+		goal.pose.orientation.w = 1.0
+		self._send_nav_goal(goal)
 
-    
+	
 
 #Disable unneeded views
-        self.frame.setMenuBar( None )
-        self.frame.setStatusBar( None )
-        self.frame.setHideButtonVisibility( False )
+		self.frame.setMenuBar( None )
+		self.frame.setStatusBar( None )
+		self.frame.setHideButtonVisibility( False )
 
-        self.manager = self.frame.getManager()
+		self.manager = self.frame.getManager()
 
-        self.grid_display = self.manager.getRootDisplayGroup().getDisplayAt( 0 )
-        
-        ## Here we create the layout and other widgets in the usual Qt way.
-        layout = QVBoxLayout()
-        layout.addWidget( self.frame )
-        
-       # speed_slider = QSlider( Qt.Horizontal )
-        #speed_slider.setTracking( True )
-       # speed_slider.setMinimum( 0.0 )
-       # speed_slider.setMaximum( 1.0)
-        #speed_slider.valueChanged.connect( self.onSpeedSliderChanged )
-        #layout.addWidget( speed_slider )
-        
-        h_layout = QHBoxLayout()
-        
-        stop_button = QPushButton( "STOP" )
-        stop_button.clicked.connect( self.onStopButtonClick )
-        h_layout.addWidget( stop_button )
+		self.grid_display = self.manager.getRootDisplayGroup().getDisplayAt( 0 )
+		
+		## Here we create the layout and other widgets in the usual Qt way.
+		layout = QVBoxLayout()
+		layout.addWidget( self.frame )
+		
+	   # speed_slider = QSlider( Qt.Horizontal )
+		#speed_slider.setTracking( True )
+	   # speed_slider.setMinimum( 0.0 )
+	   # speed_slider.setMaximum( 1.0)
+		#speed_slider.valueChanged.connect( self.onSpeedSliderChanged )
+		#layout.addWidget( speed_slider )
+		
+		h_layout = QHBoxLayout()
+		
+		stop_button = QPushButton( "STOP" )
+		stop_button.clicked.connect( self.onStopButtonClick )
+		h_layout.addWidget( stop_button )
 
-        debug_button = QPushButton( "Reset Position [NAV DEBUG]" )
-        debug_button.clicked.connect( self.onDebugButtonClick )
-        h_layout.addWidget( debug_button )
-        
-        fwd_button = QPushButton( "Move Forward[TWIST]" )
-        fwd_button.clicked.connect( self.onFwdButtonClick )
-        h_layout.addWidget( fwd_button )
+		debug_button = QPushButton( "Reset Position [NAV DEBUG]" )
+		debug_button.clicked.connect( self.onDebugButtonClick )
+		h_layout.addWidget( debug_button )
+		
+		fwd_button = QPushButton( "Move Forward[TWIST]" )
+		fwd_button.clicked.connect( self.onFwdButtonClick )
+		h_layout.addWidget( fwd_button )
 
-        turn_button = QPushButton( "Turn Around" )
-        turn_button.clicked.connect( self.onTurnButtonClick )
-        h_layout.addWidget( turn_button )
-        
-        layout.addLayout( h_layout )
-        
-        self.setLayout( layout )
+		turn_button = QPushButton( "Turn Around" )
+		turn_button.clicked.connect( self.onTurnButtonClick )
+		h_layout.addWidget( turn_button )
+		
+		layout.addLayout( h_layout )
+		
+		self.setLayout( layout )
 
-        
+		
 
-    ## Handle GUI events
-    ## ^^^^^^^^^^^^^^^^^
-    ##
-    ## After the constructor, for this example the class just needs to
-    ## respond to GUI events. Here is the slider callback.
-    ## rviz.Display is a subclass of rviz.Property. Each Property can
-    ## have sub-properties, forming a tree. To change a Property of a
-    ## Display, use the subProp() function to walk down the tree to
-    ## find the child you need.
+	## Handle GUI events
+	## ^^^^^^^^^^^^^^^^^
+	##
+	## After the constructor, for this example the class just needs to
+	## respond to GUI events. Here is the slider callback.
+	## rviz.Display is a subclass of rviz.Property. Each Property can
+	## have sub-properties, forming a tree. To change a Property of a
+	## Display, use the subProp() function to walk down the tree to
+	## find the child you need.
    
-    ## switchToView() works by looping over the views saved in the
-    ## ViewManager and looking for one with a matching name.
-    ##
-    ## view_man.setCurrentFrom() takes the saved view
-    ## instance and copies it to set the current view
-    ## controller.
-    def switchToView( self, view_name ):
-        view_man = self.manager.getViewManager()
-        for i in range( view_man.getNumViews() ):
-            if view_man.getViewAt( i ).getName() == view_name:
-                view_man.setCurrentFrom( view_man.getViewAt( i ))
-                return
-        print( "Did not find view named %s." % view_name )
+	## switchToView() works by looping over the views saved in the
+	## ViewManager and looking for one with a matching name.
+	##
+	## view_man.setCurrentFrom() takes the saved view
+	## instance and copies it to set the current view
+	## controller.
+	def switchToView( self, view_name ):
+		view_man = self.manager.getViewManager()
+		for i in range( view_man.getNumViews() ):
+			if view_man.getViewAt( i ).getName() == view_name:
+				view_man.setCurrentFrom( view_man.getViewAt( i ))
+				return
+		print( "Did not find view named %s." % view_name )
 #BUTTON CALLBACKS -------------------------------------------
-    def onFwdButtonClick(self):
-        self._send_twist(0.3)
+	def onFwdButtonClick(self):
+		# self._send_twist(0.3)
+		self.moveAhead(1.0, 0.3)
 
-    def onDebugButtonClick(self):
-    #Tells robot to return to home base. Alex, you can continue editing here. 
-        goal = PoseStamped()
-        goal.header.frame_id = "/start"
-        goal.header.stamp = rospy.Time.now()
+	def onDebugButtonClick(self):
+	#Tells robot to return to home base. Alex, you can continue editing here. 
+		goal = PoseStamped()
+		goal.header.frame_id = "/start"
+		goal.header.stamp = rospy.Time.now()
 
-        goal.pose.position.x = 0.0
-        goal.pose.position.y = 0.0
-        goal.pose.position.z = 0.0
-        goal.pose.orientation.w = 1.0
-        self._send_nav_goal(goal)
+		goal.pose.position.x = 0.0
+		goal.pose.position.y = 0.0
+		goal.pose.position.z = 0.0
+		goal.pose.orientation.w = 1.0
+		self._send_nav_goal(goal)
 
-    def onStopButtonClick(self):
-        self.send_twist(0.0)
+	def onStopButtonClick(self):
+		self._send_twist(0.0)
 
-    def onTurnButtonClick(self):
-        self.turnAround()
+	def onTurnButtonClick(self):
+		self.turnAround()
 
-    def turnAround(self):
-        
-        command = Twist()
-        command.angular.z = 0.5
-        now = rospy.Time.now()
-        r = rospy.Rate(50) 
-        while rospy.Time.now() - now < rospy.Duration(2*math.pi):
-            self.pub.publish(command)
-            r.sleep()
+	def turnAround(self):
+		
+		command = Twist()
+		command.angular.z = 0.5
+		now = rospy.Time.now()
+		r = rospy.Rate(50) 
+		while rospy.Time.now() - now < rospy.Duration(2*pi):
+			self.pub.publish(command)
+			r.sleep()
+			
+	#Turn around through nav goal.
+	def navTurnAround(self):
+		my_pos = self.listener.lookupTransform("/start", "/base_link", rospy.Time(0))
+		start_pos = self.listener.lookupTransform("/map", "/start", rospy.Time(0))
+		goal = PoseStamped()
+		goal.header.frame_id = "/start"
+		goal.header.stamp = rospy.Time.now()
 
-    def moveAhead(self, stopDist):
-        # I used calculus here.
-        movingTime = (1/5) * acosh(exp(10*stopDist))
-        now = rospy.Time.now()
-        while rospy.Time.now() - now < movingTime:
-            xVel = math.tanh(5 * (dist - stopDist)) * 0.5
-            self._send_twist(xVel)
+		goal.pose.position.x = my_pos[0][0]
+		goal.pose.position.y = my_pos[0][1]
+		goal.pose.position.z = my_pos[0][2]
+
+		goal.pose.orientation.z = 1.0
+		goal.pose.orientation.w = 0.0
+		self._send_nav_goal(goal)
+
+
+
+	def moveAhead(self, distance, velocity):
+		# By what facter we scale/lengthen the tanh function.
+		s = 1
+		# Integrate the x function below and set it equal to distance to find movingTime.
+		movingTime = 1.0/s * acosh( exp( s/velocity * distance ) )
+		now = rospy.get_time()
+		while rospy.get_time() - now < movingTime:
+			x = movingTime - (rospy.get_time() - now)            
+			xVel = tanh(s * x) * velocity
+			self._send_twist(xVel)
+
+		# realign orientation		
+		my_pos = self.listener.lookupTransform("/start", "/base_link", rospy.Time(0))
+		start_pos = self.listener.lookupTransform("/map", "/start", rospy.Time(0))
+		goal = PoseStamped()
+		goal.header.frame_id = "/start"
+		goal.header.stamp = rospy.Time.now()
+
+		goal.pose.position.x = my_pos[0][0]
+		goal.pose.position.y = my_pos[0][1]
+		goal.pose.position.z = my_pos[0][2]
+
+		goal.pose.orientation.w = 1.0
+		self._send_nav_goal(goal)
+
 
 #PRIVATE COMMANDS ---------------------------------------------
-    def _send_twist(self, x_linear):
-        if self.pub is None:
-            return
-        twist = Twist()
-        twist.linear.x = x_linear
-        twist.linear.y = 0
-        twist.linear.z = 0
-        twist.angular.x = 0
-        twist.angular.y = 0
-        twist.angular.z = 0
+	def _send_twist(self, x_linear):
+		if self.pub is None:
+			return
+		twist = Twist()
+		twist.linear.x = x_linear
+		twist.linear.y = 0
+		twist.linear.z = 0
+		twist.angular.x = 0
+		twist.angular.y = 0
+		twist.angular.z = 0
 
-        # Only send the zero command once so other devices can take control
-        if x_linear == 0:
-            if not self.zero_cmd_sent:
-                self.zero_cmd_sent = True
-                self.pub.publish(twist)
-        else:
-            self.zero_cmd_sent = False
-            self.pub.publish(twist)
-    # Sends a nav goal to the bot. This is like sending it a position in space to go
-    def _send_nav_goal(self, pose):
-        self.nav_pub.publish(pose)
+		# Only send the zero command once so other devices can take control
+		if x_linear == 0:
+			if not self.zero_cmd_sent:
+				self.zero_cmd_sent = True
+				self.pub.publish(twist)
+		else:
+			self.zero_cmd_sent = False
+			self.pub.publish(twist)
+	# Sends a nav goal to the bot. This is like sending it a position in space to go
+	def _send_nav_goal(self, pose):
+		self.nav_pub.publish(pose)
 
 
 ## Start the Application
@@ -209,11 +246,11 @@ class MyViz( QWidget ):
 ## top-level application code: create a QApplication, instantiate our
 ## class, and start Qt's main event loop (app.exec_()).
 if __name__ == '__main__':
-    app = QApplication( sys.argv )
-    rospy.init_node('move')
+	app = QApplication( sys.argv )
+	rospy.init_node('move')
 
-    myviz = MyViz()
-    myviz.resize( 1000, 500 )
-    myviz.show()
+	myviz = MyViz()
+	myviz.resize( 1000, 500 )
+	myviz.show()
 
-    app.exec_()
+	app.exec_()
