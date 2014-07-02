@@ -1,9 +1,0 @@
-<launch>
-    <!--csv file that specifies locations of frames in 3d map. -->
-  <arg name="frameLocations" default="$(find privacy)/config/frames/newThing.csv" />
-  
-    <!--Publishes frames at the locations set in frameLocations -->
-  <node name="framePublisher" pkg="privacy" type="framePublisher.py">
-    <param name="frameLocations" value="$(arg frameLocations)"/>
-  </node>
-</launch>
