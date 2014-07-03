@@ -175,8 +175,8 @@ class MyViz( QWidget ):
 	#Turn around through nav goal.
 	def navTurnAround(self):
 		now = rospy.Time.now()
-		self.listener.waitForTransform("/odom", "/base_footprint", now, rospy.Duration(1.0))
-		my_pos = self.listener.lookupTransform("/odom", "/base_footprint", rospy.Time(0))
+		self.listener.waitForTransform("/odom", "/base_link", now, rospy.Duration(1.0))
+		my_pos = self.listener.lookupTransform("/odom", "/base_link", rospy.Time(0))
 		# start_pos = self.listener.lookupTransform("/map", "/start", rospy.Time(0))
 		goal = PoseStamped()
 		goal.header.frame_id = "/odom"
@@ -199,6 +199,7 @@ class MyViz( QWidget ):
 		movingTime = 1.0/s * acosh( exp( s/velocity * distance ) )
 		now = rospy.get_time()
 		while rospy.get_time() - now < movingTime:
+			QApplication.processEvents()
 			x = movingTime - (rospy.get_time() - now)            
 			xVel = tanh(s * x) * velocity
 			self._send_twist(xVel)
