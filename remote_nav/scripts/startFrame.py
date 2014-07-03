@@ -12,10 +12,6 @@ if __name__ == '__main__':
 	
 	broadcaster = tf.TransformBroadcaster()
 	while not rospy.is_shutdown():
-## WARNING Do not use absolute directories. Please place this csv file in the package somewhere. It causes errors.
-		frameLocations = rospy.get_param('framePublisher/frameLocations', "/nfs/attic/smartw/users/reume02/catkin_ws/src/privacy-interfaces/privacy/config/frames/newThing.csv")
-		#frameLocations is the location of a csv file that has each row containing the name and 
-		#pose of our objects relative to /map.
 		try: 
 			frame = "/start"
 			parentFrame = "/map"

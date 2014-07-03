@@ -158,7 +158,8 @@ class MyViz( QWidget ):
 		self._send_twist(0.0)
 
 	def onTurnButtonClick(self):
-		self.turnAround()
+		# self.turnAround()
+		self.navTurnAround()
 
 	def turnAround(self):
 		
@@ -167,15 +168,18 @@ class MyViz( QWidget ):
 		now = rospy.Time.now()
 		r = rospy.Rate(50) 
 		while rospy.Time.now() - now < rospy.Duration(2*pi):
+			self.processEvent()
 			self.pub.publish(command)
 			r.sleep()
 			
 	#Turn around through nav goal.
 	def navTurnAround(self):
-		my_pos = self.listener.lookupTransform("/start", "/base_link", rospy.Time(0))
-		start_pos = self.listener.lookupTransform("/map", "/start", rospy.Time(0))
+		now = rospy.Time.now()
+		self.listener.waitForTransform("/odom", "/base_footprint", now, rospy.Duration(1.0))
+		my_pos = self.listener.lookupTransform("/odom", "/base_footprint", rospy.Time(0))
+		# start_pos = self.listener.lookupTransform("/map", "/start", rospy.Time(0))
 		goal = PoseStamped()
-		goal.header.frame_id = "/start"
+		goal.header.frame_id = "/odom"
 		goal.header.stamp = rospy.Time.now()
 
 		goal.pose.position.x = my_pos[0][0]
@@ -199,9 +203,11 @@ class MyViz( QWidget ):
 			xVel = tanh(s * x) * velocity
 			self._send_twist(xVel)
 
-		# realign orientation		
-		my_pos = self.listener.lookupTransform("/start", "/base_link", rospy.Time(0))
-		start_pos = self.listener.lookupTransform("/map", "/start", rospy.Time(0))
+		# realign orientation	
+		now = rospy.Time.now()
+		self.listener.waitForTransform("/start", "/base_footprint", now, rospy.Duration(1.0))
+		my_pos = self.listener.lookupTransform("/start", "/base_footprint", rospy.Time(0))
+		# start_pos = self.listener.lookupTransform("/map", "/start", rospy.Time(0))
 		goal = PoseStamped()
 		goal.header.frame_id = "/start"
 		goal.header.stamp = rospy.Time.now()
