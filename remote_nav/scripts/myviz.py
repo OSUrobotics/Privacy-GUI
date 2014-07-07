@@ -78,14 +78,18 @@ class MyViz( QWidget ):
 		# 1. Create Button
 		# 2. Connect Signal to Slot
 		# 3. Add to layout
-		
-		stop_button = QPushButton( "STOP" )
-		stop_button.clicked.connect( self.onStopButtonClick )
-		h_layout.addWidget( stop_button )
+
+		self.stop_button = QPushButton( "STOP" )
+		self.stop_button.clicked.connect( self.onStopButtonClick )
+		h_layout.addWidget( self.stop_button )
 
 		debug_button = QPushButton( "Reset Position" )
 		debug_button.clicked.connect( self.onDebugButtonClick )
 		h_layout.addWidget( debug_button )
+
+		reset_dir_btn = QPushButton( "Reset Orientation" )
+		reset_dir_btn.clicked.connect( self.onResetDirButtonClick )
+		h_layout.addWidget( reset_dir_btn )
 		
 		self.fwd_button = QPushButton( "Move Forward" )
 		self.fwd_button.pressed.connect( self.onFwdPress)
@@ -94,6 +98,8 @@ class MyViz( QWidget ):
 		turn_button = QPushButton( "Turn Around" )
 		turn_button.clicked.connect( self.onTurnButtonClick )
 		h_layout.addWidget( turn_button )
+
+
 		
 	#Finalizing layout and placing components
 		layout.addLayout( h_layout )
@@ -137,10 +143,14 @@ class MyViz( QWidget ):
 
 	def onStopButtonClick(self):
 		self._send_twist(0.0)
+		# Needs to interrupt the turnAround and navTurnAround functions
+
 
 	def onTurnButtonClick(self):
-		# self.turnAround()
 		self.turnAround()
+
+	def onResetDirButtonClick(self):
+		self.navTurnAround()
 
 	## NAVIGATION FUNCTIONS
 	## ^^^^^^^^^^^^^^^^^^^^
@@ -163,6 +173,9 @@ class MyViz( QWidget ):
 		r = rospy.Rate(50) 
 		while rospy.Time.now() - now < rospy.Duration(2*pi):
 			QApplication.processEvents()
+		#An attempt to stop it while it is in motion
+			if self.stop_button.isDown():
+				command.angular.z = 0.0
 			self.pub.publish(command)
 			r.sleep()
 			
