@@ -93,7 +93,7 @@ class MyViz( QWidget ):
 		h_layout.addWidget( reset_dir_btn )
 		
 		self.fwd_button = QPushButton( "Move Forward" )
-		self.fwd_button.pressed.connect( self.onFwdPress)
+		self.fwd_button.pressed.connect( self.onFwdPress )
 		h_layout.addWidget( self.fwd_button )
 
 		turn_button = QPushButton( "Turn Around" )
@@ -210,17 +210,23 @@ class MyViz( QWidget ):
 			x = rospy.get_time() - now            
 			xVel = tanh(x) * velocity
 			self._send_twist(xVel)
+			if self.stop_button.isDown():
+				break
 			if not self.fwd_button.isDown():
 				break
 		#Continue at max while pressed
 		while self.fwd_button.isDown():
 			QApplication.processEvents()
+			if self.stop_button.isDown():
+				break
 			xVel = velocity
 			self._send_twist(xVel)
 		#Slow down on button release
 		now = rospy.get_time()
 		while rospy.get_time() - now < 2:			
 			QApplication.processEvents()
+			if self.stop_button.isDown():
+				break
 			x = 2 - (rospy.get_time() - now) 
 			xVel = tanh(x) * velocity
 			self._send_twist(xVel)

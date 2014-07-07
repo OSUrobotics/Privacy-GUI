@@ -38,7 +38,7 @@ Visualization Manager:
       Name: Robot View
       Normalize Range: true
       Queue Size: 2
-      Transport Hint: theora
+      Transport Hint: compressed
       Value: true
     - Class: rviz/Axes
       Enabled: true
