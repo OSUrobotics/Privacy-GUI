@@ -204,10 +204,10 @@ class MyViz( QWidget ):
 	#Face 180 degrees from the forward position.
 	def faceBackward(self):
 		now = rospy.Time.now()
-		# self.listener.waitForTransform("/map", "/base_link",now, rospy.Duration(2.0))
+		#Grab where we currently are.
 		(trans, rot) = self.listener.lookupTransform("/map", "/base_link", rospy.Time(0))
-		# start_pos = self.listener.lookupTransform("/map", "/start", rospy.Time(0))
 
+		#Now we set new goal to be at. Our new pose.position is where we're standing.
 		goal = PoseStamped()
 		goal.header.frame_id = "/map"
 		goal.header.stamp = rospy.Time.now()
@@ -216,10 +216,23 @@ class MyViz( QWidget ):
 		goal.pose.position.y = trans[1]
 		goal.pose.position.z = trans[2]
 
-		goal.pose.orientation.z = self.start.pose.orientation.z
-		goal.pose.orientation.w = 0
+		#but our new orientation is 180 degrees around.
+		#However first we must convert from quartenions to euler angles. Because I am stupid.
+		quaternion = (self.start.pose.orientation.x,self.start.pose.orientation.y,self.start.pose.orientation.z,self.start.pose.orientation.w)
+		euler = tf.transformations.euler_from_quaternion(quaternion)
+		roll = euler[0]
+		pitch = euler[1]
+		yaw = euler[2]
+		print("roll, pitch, yaw: {0}, {1}, {2}.".format(roll,pitch,yaw))
+		yaw = yaw + pi
+
+		newQuat = tf.transformations.quaternion_from_euler(roll,pitch, yaw)
+		goal.pose.orientation.x = newQuat[0]
+		goal.pose.orientation.y = newQuat[1]
+		goal.pose.orientation.z = newQuat[2]
+		goal.pose.orientation.w = newQuat[3]
 		self._send_nav_goal(goal)
-		print ("Now facing backward. goal.pose.orientation.z = {0}".format(self.start.pose.orientation.z))
+		print ("Now facing backward. yaw: {0}".format(yaw))
 		self.isForward = False
 
 	#Moves the robot at a given max velocity whenever the forward button is pressed
