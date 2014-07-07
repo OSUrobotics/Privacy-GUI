@@ -82,30 +82,35 @@ class MyViz( QWidget ):
 
 		self.stop_button = QPushButton( "STOP" )
 		self.stop_button.clicked.connect( self.onStopButtonClick )
-		h_layout.addWidget( self.stop_button )
+		self.stop_button.setToolTip('Press this to immediately <b>STOP</b> the robot')
+		self.stop_button.setStyleSheet("background-color: #700000 ; font-weight: bold; color: white")
+		layout.addWidget( self.stop_button )
 
 		debug_button = QPushButton( "Reset Position" )
 		debug_button.clicked.connect( self.onDebugButtonClick )
+		debug_button.setToolTip('Set a navigation goal at the starting point')
 		h_layout.addWidget( debug_button )
 
 		reset_dir_btn = QPushButton( "Reset Orientation" )
 		reset_dir_btn.clicked.connect( self.onResetDirButtonClick )
+		reset_dir_btn.setToolTip('Reset to the original orientation')
 		h_layout.addWidget( reset_dir_btn )
 		
 		self.fwd_button = QPushButton( "Move Forward" )
 		self.fwd_button.pressed.connect( self.onFwdPress )
+		self.fwd_button.setToolTip('While held, the robot will move forward')
 		h_layout.addWidget( self.fwd_button )
 
 		turn_button = QPushButton( "Turn Around[ALEX DEBUG]" )
 		# turn_button.clicked.connect( self.onTurnButtonClick )
 		turn_button.clicked.connect( self.onTurnButtonClick )
+		turn_button.setToolTip('The robot will turn around 180 degrees')
 		h_layout.addWidget( turn_button )
 
 
 		
 	#Finalizing layout and placing components
-		layout.addLayout( h_layout )
-		
+		layout.addLayout( h_layout )	
 		self.setLayout( layout )
 
 
@@ -125,8 +130,6 @@ class MyViz( QWidget ):
 	# BUTTON CALLBACKS
 	# ^^^^^^^^^^^^^^^^
 	def onFwdPress(self):
-		# while self.fwd_button.isDown():
-		# self._send_twist(0.3)
 		self.moveWhilePressed(0.3)
 
 
