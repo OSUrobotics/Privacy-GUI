@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
-## BEGIN_TUTORIAL
-##
 ## Imports
 ## ^^^^^^^
-##
+
 ## First we start with the standard ros Python import line:
 import roslib; roslib.load_manifest('rviz_python_tutorial')
 import rospy
@@ -34,15 +32,14 @@ class MyViz( QWidget ):
 
 	## MyViz Constructor
 	def __init__(self):
-#A comment for Alex
-	#The visualizer
-		QWidget.__init__(self)
 
+		QWidget.__init__(self)
+	#The visualizer
 		self.frame = rviz.VisualizationFrame()
 		self.frame.setSplashPath( "" )
 		self.frame.initialize()
 
-		## The reader reads config file data into the config object.
+	## The reader reads config file data into the config object.
 		## VisualizationFrame reads its data from the config object.
 		reader = rviz.YamlConfigReader()
 		config = rviz.Config()
@@ -59,79 +56,55 @@ class MyViz( QWidget ):
 		self.nav_pub = rospy.Publisher('/move_base_simple/goal', PoseStamped)
 		self.listener = tf.TransformListener()
 
-	#Subscribe to initialpose.
+	#Subscribe to initialpose to find our start position
 		rospy.Subscriber("/initialpose", PoseWithCovarianceStamped, self.initialpose_callback)
 
 	
 
-#Disable unneeded views
+	#Disable unneeded views and more visualization setup
 		self.frame.setMenuBar( None )
 		self.frame.setStatusBar( None )
 		self.frame.setHideButtonVisibility( False )
-
 		self.manager = self.frame.getManager()
-
 		self.grid_display = self.manager.getRootDisplayGroup().getDisplayAt( 0 )
 		
-		## Here we create the layout and other widgets in the usual Qt way.
+	##--LAYOUT--
 		layout = QVBoxLayout()
 		layout.addWidget( self.frame )
 		
-	   # speed_slider = QSlider( Qt.Horizontal )
-		#speed_slider.setTracking( True )
-	   # speed_slider.setMinimum( 0.0 )
-	   # speed_slider.setMaximum( 1.0)
-		#speed_slider.valueChanged.connect( self.onSpeedSliderChanged )
-		#layout.addWidget( speed_slider )
-		
 		h_layout = QHBoxLayout()
+		
+	#Buttons and attached commands
+		# 1. Create Button
+		# 2. Connect Signal to Slot
+		# 3. Add to layout
 		
 		stop_button = QPushButton( "STOP" )
 		stop_button.clicked.connect( self.onStopButtonClick )
 		h_layout.addWidget( stop_button )
 
-		debug_button = QPushButton( "Reset Position [NAV DEBUG]" )
+		debug_button = QPushButton( "Reset Position" )
 		debug_button.clicked.connect( self.onDebugButtonClick )
 		h_layout.addWidget( debug_button )
 		
-		self.fwd_button = QPushButton( "Move Forward[TWIST]" )
+		self.fwd_button = QPushButton( "Move Forward" )
 		self.fwd_button.pressed.connect( self.onFwdPress)
-		# self.fwd_button.released.connect(self.onFwdRelease )
 		h_layout.addWidget( self.fwd_button )
 
 		turn_button = QPushButton( "Turn Around" )
 		turn_button.clicked.connect( self.onTurnButtonClick )
 		h_layout.addWidget( turn_button )
 		
+	#Finalizing layout and placing components
 		layout.addLayout( h_layout )
 		
 		self.setLayout( layout )
 
-	def initialpose_callback(self, initialpose):
-	#Initialize our goal as on the start frame.
-		self.start = PoseStamped()
-		self.start.header.frame_id = "/map"
-		self.start.header.stamp = rospy.Time.now()
 
-		self.start.pose.position = copy.copy(initialpose.pose.position)
-		self.start.pose.orientation = copy.copy(initialpose.pose.orientation)
 
 	## Handle GUI events
 	## ^^^^^^^^^^^^^^^^^
-	##
-	## After the constructor, for this example the class just needs to
-	## respond to GUI events. Here is the slider callback.
-	## rviz.Display is a subclass of rviz.Property. Each Property can
-	## have sub-properties, forming a tree. To change a Property of a
-	## Display, use the subProp() function to walk down the tree to
-	## find the child you need.
-   
-	## switchToView() works by looping over the views saved in the
-	## ViewManager and looking for one with a matching name.
-	##
-	## view_man.setCurrentFrom() takes the saved view
-	## instance and copies it to set the current view
-	## controller.
+
 	def switchToView( self, view_name ):
 		view_man = self.manager.getViewManager()
 		for i in range( view_man.getNumViews() ):
@@ -139,7 +112,9 @@ class MyViz( QWidget ):
 				view_man.setCurrentFrom( view_man.getViewAt( i ))
 				return
 		print( "Did not find view named %s." % view_name )
-#BUTTON CALLBACKS -------------------------------------------
+
+	# BUTTON CALLBACKS
+	# ^^^^^^^^^^^^^^^^
 	def onFwdPress(self):
 		# while self.fwd_button.isDown():
 		# self._send_twist(0.3)
@@ -167,6 +142,20 @@ class MyViz( QWidget ):
 		# self.turnAround()
 		self.turnAround()
 
+	## NAVIGATION FUNCTIONS
+	## ^^^^^^^^^^^^^^^^^^^^
+
+	#Initialize our goal as on the start frame.
+	def initialpose_callback(self, initialpose):
+
+		self.start = PoseStamped()
+		self.start.header.frame_id = "/map"
+		self.start.header.stamp = rospy.Time.now()
+
+		self.start.pose.position = copy.copy(initialpose.pose.position)
+		self.start.pose.orientation = copy.copy(initialpose.pose.orientation)
+
+	#Rotate the robot exactly 180 degrees with a twist command
 	def turnAround(self):
 		command = Twist()
 		command.angular.z = 0.5
@@ -177,7 +166,7 @@ class MyViz( QWidget ):
 			self.pub.publish(command)
 			r.sleep()
 			
-	#Turn around through nav goal.
+	#Turns the robot around using a nav goal
 	def navTurnAround(self):
 		now = rospy.Time.now()
 		# self.listener.waitForTransform("/odom", "/base_link", now, rospy.Duration(1.0))
@@ -197,10 +186,11 @@ class MyViz( QWidget ):
 		goal.pose.orientation.w = 0.0
 		self._send_nav_goal(goal)
 
-	#Function to be called as long as the move forward button is pressed. 
+	#Moves the robot at a given max velocity whenever the forward button is pressed
+	#It still works while the button is held down
 	def moveWhilePressed(self, velocity):
 		now = rospy.get_time()
-		#Speed up
+		#Speed up until max velocity
 		while rospy.get_time() - now < 2:
 			QApplication.processEvents()
 			x = rospy.get_time() - now            
@@ -208,12 +198,12 @@ class MyViz( QWidget ):
 			self._send_twist(xVel)
 			if not self.fwd_button.isDown():
 				break
-		#Go while pressed
+		#Continue at max while pressed
 		while self.fwd_button.isDown():
 			QApplication.processEvents()
 			xVel = velocity
 			self._send_twist(xVel)
-		#Slow down
+		#Slow down on button release
 		now = rospy.get_time()
 		while rospy.get_time() - now < 2:			
 			QApplication.processEvents()
@@ -252,7 +242,8 @@ class MyViz( QWidget ):
 		# self._send_nav_goal(goal)
 
 
-#PRIVATE COMMANDS ---------------------------------------------
+#PRIVATE FUNCTIONS
+#^^^^^^^^^^^^^^^^
 	def _send_twist(self, x_linear):
 		if self.pub is None:
 			return
@@ -279,10 +270,6 @@ class MyViz( QWidget ):
 
 ## Start the Application
 ## ^^^^^^^^^^^^^^^^^^^^^
-##
-## That is just about it. All that's left is the standard Qt
-## top-level application code: create a QApplication, instantiate our
-## class, and start Qt's main event loop (app.exec_()).
 if __name__ == '__main__':
 	app = QApplication( sys.argv )
 	rospy.init_node('move')
