@@ -96,7 +96,7 @@ class MyViz( QWidget ):
 		self.fwd_button.pressed.connect( self.onFwdPress )
 		h_layout.addWidget( self.fwd_button )
 
-		turn_button = QPushButton( "Turn Around" )
+		turn_button = QPushButton( "Turn Around[ALEX DEBUG]" )
 		# turn_button.clicked.connect( self.onTurnButtonClick )
 		turn_button.clicked.connect( self.onTurnButtonClick )
 		h_layout.addWidget( turn_button )
@@ -140,7 +140,7 @@ class MyViz( QWidget ):
 		self._send_twist(0.0)
 		# Needs to interrupt the turnAround and navTurnAround functions
 
-
+#
 	def onTurnButtonClick(self):
 		if self.isForward:
 			self.faceForward()
