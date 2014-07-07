@@ -98,7 +98,7 @@ class MyViz( QWidget ):
 
 		turn_button = QPushButton( "Turn Around" )
 		# turn_button.clicked.connect( self.onTurnButtonClick )
-		turn_button.clicked.connect( self.navTurnAround )
+		turn_button.clicked.connect( self.onTurnButtonClick )
 		h_layout.addWidget( turn_button )
 
 
@@ -143,12 +143,12 @@ class MyViz( QWidget ):
 
 	def onTurnButtonClick(self):
 		if self.isForward:
-			faceForward()
+			self.faceForward()
 		else:
-			faceBackward()
+			self.faceBackward()
 
 	def onResetDirButtonClick(self):
-		self.navTurnAround()
+		self.faceForward()
 
 	## NAVIGATION FUNCTIONS
 	## ^^^^^^^^^^^^^^^^^^^^
@@ -160,8 +160,8 @@ class MyViz( QWidget ):
 		self.start.header.frame_id = "/map"
 		self.start.header.stamp = rospy.Time.now()
 
-		self.start.pose.position = copy.copy(initialpose.pose.position)
-		self.start.pose.orientation = copy.copy(initialpose.pose.orientation)
+		self.start.pose.position = copy.copy(initialpose.pose.pose.position)
+		self.start.pose.orientation = copy.copy(initialpose.pose.pose.orientation)
 
 	#Rotate the robot exactly 180 degrees with a twist command
 	def turnAround(self):
@@ -198,7 +198,22 @@ class MyViz( QWidget ):
 		self._send_nav_goal(goal)
 	#Face 180 degrees from the forward position.
 	def faceBackward(self):
-		pass
+		now = rospy.Time.now()
+		# self.listener.waitForTransform("/map", "/base_link",now, rospy.Duration(2.0))
+		(trans, rot) = self.listener.lookupTransform("/map", "/base_link", rospy.Time(0))
+		# start_pos = self.listener.lookupTransform("/map", "/start", rospy.Time(0))
+
+		goal = PoseStamped()
+		goal.header.frame_id = "/map"
+		goal.header.stamp = rospy.Time.now()
+
+		goal.pose.position.x = trans[0]
+		goal.pose.position.y = trans[1]
+		goal.pose.position.z = trans[2]
+
+		goal.pose.orientation.z = -self.start.pose.orientation.z
+		goal.pose.orientation.w = self.start.pose.orientation.w
+		self._send_nav_goal(goal)
 
 	#Moves the robot at a given max velocity whenever the forward button is pressed
 	#It still works while the button is held down
