@@ -143,9 +143,9 @@ class MyViz( QWidget ):
 #
 	def onTurnButtonClick(self):
 		if self.isForward:
-			self.faceForward()
-		else:
 			self.faceBackward()
+		else:
+			self.faceForward()
 
 	def onResetDirButtonClick(self):
 		self.faceForward()
@@ -196,6 +196,8 @@ class MyViz( QWidget ):
 		goal.pose.orientation.z = self.start.pose.orientation.z
 		goal.pose.orientation.w = self.start.pose.orientation.w
 		self._send_nav_goal(goal)
+		print ("Now facing forward")
+		self.isForward = True
 	#Face 180 degrees from the forward position.
 	def faceBackward(self):
 		now = rospy.Time.now()
@@ -211,9 +213,11 @@ class MyViz( QWidget ):
 		goal.pose.position.y = trans[1]
 		goal.pose.position.z = trans[2]
 
-		goal.pose.orientation.z = -self.start.pose.orientation.z
-		goal.pose.orientation.w = self.start.pose.orientation.w
+		goal.pose.orientation.z = self.start.pose.orientation.z
+		goal.pose.orientation.w = 0
 		self._send_nav_goal(goal)
+		print ("Now facing backward. goal.pose.orientation.z = {0}".format(self.start.pose.orientation.z))
+		self.isForward = False
 
 	#Moves the robot at a given max velocity whenever the forward button is pressed
 	#It still works while the button is held down
