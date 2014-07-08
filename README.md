@@ -24,6 +24,6 @@ Authors:
 In order for remote_nav to run, several things need to be set up (this may be fixed with a future update)
 * turtlebot bringup
 * ROS_MASTER_URI must be set to the turtlebot
-* amcl must be running with a valid mapfile
+* Amcl must be running with a valid mapfile. This can be run on Blood by roslaunch custom_nav amcl_demo.launch, which uses betterMap.yaml by default.
 * If rviz doesn't see both the map and the video stream, remote_nav won't, either. 
 * If you want to send navigational goals, run the launchfile.  Twist commands do not require the launchfile

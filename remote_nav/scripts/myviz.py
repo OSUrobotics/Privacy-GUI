@@ -43,7 +43,8 @@ class MyViz( QWidget ):
 		## VisualizationFrame reads its data from the config object.
 		reader = rviz.YamlConfigReader()
 		config = rviz.Config()
-		reader.readFile( config, "map_and_img.rviz" )
+		config_file = rospy.get_param('remote_nav/rviz_config', "/nfs/attic/smartw/users/reume02/groovy-workspace/src/remote_nav/config/map_and_img.rviz")
+		reader.readFile( config, config_file )
 		self.frame.load( config )
 
 		self.setWindowTitle( config.mapGetChild( "Title" ).getValue() )
@@ -135,7 +136,7 @@ class MyViz( QWidget ):
 	# BUTTON CALLBACKS
 	# ^^^^^^^^^^^^^^^^
 	def onFwdPress(self):
-		self.moveNav(0.5)
+		self.moveNav(1.0)
 
 
 	def onDebugButtonClick(self):
@@ -245,6 +246,7 @@ class MyViz( QWidget ):
 				break
 			xVel = velocity
 			self._send_twist(xVel)
+
 		#Slow down on button release
 		now = rospy.get_time()
 		while rospy.get_time() - now < 2:			
@@ -270,27 +272,12 @@ class MyViz( QWidget ):
 			xVel = tanh(s * x) * velocity
 			self._send_twist(xVel)
 
-		# realign orientation	
-		# now = rospy.Time.now()
-		# self.listener.waitForTransform("/start", "/base_footprint", now, rospy.Duration(1.0))
-		# my_pos = self.listener.lookupTransform("/start", "/base_footprint", rospy.Time(0))
-		# # start_pos = self.listener.lookupTransform("/map", "/start", rospy.Time(0))
-		# goal = PoseStamped()
-		# goal.header.frame_id = "/start"
-		# goal.header.stamp = rospy.Time.now()
-
-		# goal.pose.position.x = my_pos[0][0]
-		# goal.pose.position.y = my_pos[0][1]
-		# goal.pose.position.z = my_pos[0][2]
-
-		# goal.pose.orientation.w = 1.0
-		# self._send_nav_goal(goal)
-
 	#Moves ahead via nav goals while the button is pressed.
 	def moveNav(self, dist):
 		# Keep track of how far we've travelled in order to only send new nav goals when need be. 
 		#How far we've travelled since last nav goal sent.
-		travelled = 0
+		travelled = 0.0
+		epsilon = 0.01
 		#oldX indicates our first nav x position.
 		goal = self._get_current_goal()
 		oldX = goal.pose.position.x
@@ -298,16 +285,26 @@ class MyViz( QWidget ):
 		while self.fwd_button.isDown():
 			QApplication.processEvents()
 			goal = self._get_current_goal()
-			travelled += abs(goal.pose.position.x - oldX)
-			if (travelled >= dist or travelled == 0):
-				#Reset our variables tracking our distance travelled.
-				oldX = goal.pose.position.x
-				travelled = 0
-				if (self.isForward):
-					goal.pose.position.x += dist
-				else:
-					goal.pose.position.x -= dist
-				self._send_nav_goal(goal)
+			# travelled += abs(goal.pose.position.x - oldX)
+			# if (travelled >= dist or travelled <= epsilon):
+			# 	#Reset our variables tracking our distance travelled.
+			# 	print "We gon send a nav goal now mofuckas"
+			# 	oldX = goal.pose.position.x
+			# 	travelled = 0
+			# 	if (self.isForward):
+			# 		goal.pose.position.x += dist
+			# 	else:
+			# 		goal.pose.position.x -= dist
+			# 	self._send_nav_goal(goal)
+			# 	# rate = rospy.Rate(2.0)
+			# 	# rate.sleep()			
+
+			if (self.isForward):
+				goal.pose.position.x += dist
+			else:
+				goal.pose.position.x -= dist
+			rate = rospy.Rate(1.0)
+			rate.sleep()
 
 		if self.isForward:
 			self.faceForward()
