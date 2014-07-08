@@ -101,12 +101,17 @@ class MyViz( QWidget ):
 		self.fwd_button.setToolTip('While held, the robot will move forward')
 		h_layout.addWidget( self.fwd_button )
 
-		turn_button = QPushButton( "Turn Around[ALEX DEBUG]" )
+		turn_button = QPushButton( "Turn Around[ALEX DEBUG - Nav Goals]" )
 		# turn_button.clicked.connect( self.onTurnButtonClick )
 		turn_button.clicked.connect( self.onTurnButtonClick )
 		turn_button.setToolTip('The robot will turn around 180 degrees')
 		h_layout.addWidget( turn_button )
 
+		turn_twist_button = QPushButton( "Turn Around[ALEX DEBUG - Twist message]" )
+		# turn_button.clicked.connect( self.onTurnButtonClick )
+		turn_twist_button.clicked.connect( self.onTurnTwistButtonClick)
+		turn_twist_button.setToolTip('The robot will turn around 180 degrees')
+		h_layout.addWidget( turn_twist_button )
 
 		
 	#Finalizing layout and placing components
@@ -130,7 +135,7 @@ class MyViz( QWidget ):
 	# BUTTON CALLBACKS
 	# ^^^^^^^^^^^^^^^^
 	def onFwdPress(self):
-		self.moveWhilePressed(0.3)
+		self.moveNav(0.5)
 
 
 	def onDebugButtonClick(self):
@@ -149,6 +154,8 @@ class MyViz( QWidget ):
 			self.faceBackward()
 		else:
 			self.faceForward()
+	def onTurnTwistButtonClick(self):
+		self.turnAround()
 
 	def onResetDirButtonClick(self):
 		self.faceForward()
@@ -172,51 +179,33 @@ class MyViz( QWidget ):
 		command.angular.z = 0.5
 		now = rospy.Time.now()
 		r = rospy.Rate(50) 
-		while rospy.Time.now() - now < rospy.Duration(2*pi):
+		while rospy.Time.now() - now <= rospy.Duration(2*pi):
 			QApplication.processEvents()
+			print (rospy.Time.now() - now)
 		#An attempt to stop it while it is in motion
 			if self.stop_button.isDown():
 				command.angular.z = 0.0
+				break
 			self.pub.publish(command)
 			r.sleep()
+		command.angular.z = 0.0
+		self.pub.publish(command)
 			
 
 	#Face forward along our track.
 	def faceForward(self):
-		now = rospy.Time.now()
-		# self.listener.waitForTransform("/map", "/base_link",now, rospy.Duration(2.0))
-		(trans, rot) = self.listener.lookupTransform("/map", "/base_link", rospy.Time(0))
-		# start_pos = self.listener.lookupTransform("/map", "/start", rospy.Time(0))
-
-		goal = PoseStamped()
-		goal.header.frame_id = "/map"
-		goal.header.stamp = rospy.Time.now()
-
-		goal.pose.position.x = trans[0]
-		goal.pose.position.y = trans[1]
-		goal.pose.position.z = trans[2]
-
-		goal.pose.orientation.z = self.start.pose.orientation.z
-		goal.pose.orientation.w = self.start.pose.orientation.w
+		goal = self._get_current_goal()
 		self._send_nav_goal(goal)
-		print ("Now facing forward")
 		self.isForward = True
+		print ("Now facing forward")
 	#Face 180 degrees from the forward position.
 	def faceBackward(self):
 		now = rospy.Time.now()
+
 		#Grab where we currently are.
-		(trans, rot) = self.listener.lookupTransform("/map", "/base_link", rospy.Time(0))
+		goal = self._get_current_goal()
 
-		#Now we set new goal to be at. Our new pose.position is where we're standing.
-		goal = PoseStamped()
-		goal.header.frame_id = "/map"
-		goal.header.stamp = rospy.Time.now()
-
-		goal.pose.position.x = trans[0]
-		goal.pose.position.y = trans[1]
-		goal.pose.position.z = trans[2]
-
-		#but our new orientation is 180 degrees around.
+		#but our new orientation is 180 degrees turned around.
 		#However first we must convert from quartenions to euler angles. Because I am stupid.
 		quaternion = (self.start.pose.orientation.x,self.start.pose.orientation.y,self.start.pose.orientation.z,self.start.pose.orientation.w)
 		euler = tf.transformations.euler_from_quaternion(quaternion)
@@ -297,6 +286,33 @@ class MyViz( QWidget ):
 		# goal.pose.orientation.w = 1.0
 		# self._send_nav_goal(goal)
 
+	#Moves ahead via nav goals while the button is pressed.
+	def moveNav(self, dist):
+		# Keep track of how far we've travelled in order to only send new nav goals when need be. 
+		#How far we've travelled since last nav goal sent.
+		travelled = 0
+		#oldX indicates our first nav x position.
+		goal = self._get_current_goal()
+		oldX = goal.pose.position.x
+		
+		while self.fwd_button.isDown():
+			QApplication.processEvents()
+			goal = self._get_current_goal()
+			travelled += abs(goal.pose.position.x - oldX)
+			if (travelled >= dist or travelled == 0):
+				#Reset our variables tracking our distance travelled.
+				oldX = goal.pose.position.x
+				travelled = 0
+				if (self.isForward):
+					goal.pose.position.x += dist
+				else:
+					goal.pose.position.x -= dist
+				self._send_nav_goal(goal)
+
+		if self.isForward:
+			self.faceForward()
+		else:
+			self.faceBackward()
 
 #PRIVATE FUNCTIONS
 #^^^^^^^^^^^^^^^^
@@ -322,6 +338,21 @@ class MyViz( QWidget ):
 	# Sends a nav goal to the bot. This is like sending it a position in space to go
 	def _send_nav_goal(self, pose):
 		self.nav_pub.publish(pose)
+	# Returns a nav goal at set to the current position of the robot.
+	def _get_current_goal(self):
+		(trans, rot) = self.listener.lookupTransform("/map", "/base_footprint", rospy.Time(0))
+
+		goal = PoseStamped()
+		goal.header.frame_id = "/map"
+		goal.header.stamp = rospy.Time.now()
+
+		goal.pose.position.x = trans[0]
+		goal.pose.position.y = trans[1]
+		goal.pose.position.z = trans[2]
+
+		goal.pose.orientation.z = self.start.pose.orientation.z
+		goal.pose.orientation.w = self.start.pose.orientation.w
+		return goal
 
 
 ## Start the Application
