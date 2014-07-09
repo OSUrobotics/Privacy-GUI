@@ -147,7 +147,7 @@ class MyViz( QWidget ):
 	# BUTTON CALLBACKS
 	# ^^^^^^^^^^^^^^^^
 	def onFwdPress(self):
-		self.moveNav(1.0)
+		self.moveNav(0.35)
 
 
 	def onDebugButtonClick(self):
@@ -157,7 +157,8 @@ class MyViz( QWidget ):
 
 	def onStopButtonClick(self):
 		QApplication.processEvents()
-		self._send_twist(0.0)
+		goal = self._get_current_goal()
+		self._send_nav_goal(goal)
 		# Needs to interrupt the turnAround and navTurnAround functions
 
 #
@@ -270,12 +271,16 @@ class MyViz( QWidget ):
 
 	#Moves ahead via nav goals while the button is pressed.
 	def moveNav(self, dist):
+
 		# Keep track of how far we've travelled in order to only send new nav goals when need be. 
 		# How far we've travelled since last nav goal sent.
 		travelled = 0.0
 		#oldX indicates our first nav x position.
 		goal = self._get_current_goal()
 		oldX = goal.pose.position.x
+		
+		#If we say "travel 1 meter" the robot will probably just travel ~0.9 meters. This trys to account for that by grabbing the x, y tolerance.
+		tolerance = rospy.get_param("/move_base/TrajectoryPlannerROS/xy_goal_tolerance", "0.25")
 		
 		i = 0
 		#give an initial command to go.
@@ -289,23 +294,23 @@ class MyViz( QWidget ):
 			QApplication.processEvents()
 			goal = self._get_current_goal()
 			travelled = abs(goal.pose.position.x - oldX)
-			print("{0}. travelled = {1}. Button is pressed, no nav sent. dist = {2} ".format(i, travelled, dist))
-			if (travelled >= dist):
+			# print("{0}. travelled = {1}. Button is pressed, no nav sent. dist = {2} ".format(i, travelled, dist))
+			if (travelled >= (dist - tolerance) ):
 				#Reset our variables tracking our distance travelled.
+				oldX = goal.pose.position.x
 				if (self.isForward):
 					goal.pose.position.x += dist
 				else:
 					goal.pose.position.x -= dist
 				self._send_nav_goal(goal)
 				print("{0}. sending nav goal: {1} ahead. travelled = {2} ".format(i,goal.pose.position.x, travelled))
-				oldX = goal.pose.position.x
 				travelled = 0
 			i += 1
 
-		# if self.isForward:
-		# 	self.faceForward()
-		# else:
-		# 	self.faceBackward()
+		if self.isForward:
+			self.faceForward()
+		else:
+			self.faceBackward()
 
 #PRIVATE FUNCTIONS
 #^^^^^^^^^^^^^^^^
