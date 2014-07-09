@@ -109,11 +109,12 @@ class MyViz( QWidget ):
 		reset_dir_btn.setToolTip('Reset to the original orientation')
 		h_layout.addWidget( reset_dir_btn )
 		
-		self.fwd_button = PicButton(QPixmap("images/forward.png"))
+		# self.fwd_button = PicButton(QPixmap("images/forward.png"))
+		self.fwd_button = QPushButton("Move Forward")
 		self.fwd_button.pressed.connect( self.onFwdPress )
 		self.fwd_button.setToolTip('While held, the robot will move forward')
 		layout.addWidget( self.fwd_button, 4, 1 )
-		layout.setAlignment(self.fwd_button, Qt.AlignHCenter)
+		# layout.setAlignment(self.fwd_button2, Qt.AlignHCenter)
 
 		turn_button = QPushButton( "Turn Around[ALEX DEBUG - Nav Goals]" )
 		# turn_button.clicked.connect( self.onTurnButtonClick )
