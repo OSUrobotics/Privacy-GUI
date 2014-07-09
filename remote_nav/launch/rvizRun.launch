@@ -6,6 +6,6 @@
 
   <arg name="rviz_config" default="$(find remote_nav)/config/map_and_img.rviz" />
   <node name="myviz" pkg="remote_nav" type="myviz.py" >
-  	<param name="rviz_config" default="$(arg rviz_config)"/>
+  	<param name="rviz_config" value="$(arg rviz_config)"/>
   </node>
 </launch>
