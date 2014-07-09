@@ -27,6 +27,8 @@ from goal import Goal
 import rviz
 import tf
 
+import rospkg
+
 ## The MyViz class is the main container widget.
 class MyViz( QWidget ):
 
@@ -43,7 +45,13 @@ class MyViz( QWidget ):
 		## VisualizationFrame reads its data from the config object.
 		reader = rviz.YamlConfigReader()
 		config = rviz.Config()
-		config_file = rospy.get_param('remote_nav/rviz_config', "/nfs/attic/smartw/users/reume02/groovy-workspace/src/remote_nav/config/map_and_img.rviz")
+
+		# We use rospack to find the filepath for remote_nav.
+		rospack = rospkg.RosPack()
+		config_path = rospack.get_path('remote_nav')
+		print config_path
+		#Now you can grab this filepath from either roslaunch remote_nav myviz and using the launch file or just rosrun.
+		config_file = rospy.get_param('remote_nav/rviz_config', config_path + "/config/map_and_img.rviz")
 		reader.readFile( config, config_file )
 		self.frame.load( config )
 
