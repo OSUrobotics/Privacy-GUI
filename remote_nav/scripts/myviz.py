@@ -109,7 +109,7 @@ class MyViz( QWidget ):
 		reset_dir_btn.setToolTip('Reset to the original orientation')
 		h_layout.addWidget( reset_dir_btn )
 		
-		self.fwd_button = PicButton(QPixmap(package_path + "images/forward.png"))
+		# self.fwd_button = PicButton(QPixmap(package_path + "images/forward.png"))
 		self.fwd_button = QPushButton("Move Forward")
 		self.fwd_button.pressed.connect( self.onFwdPress )
 		self.fwd_button.setToolTip('While held, the robot will move forward')
@@ -345,7 +345,7 @@ class MyViz( QWidget ):
 	# Sends a nav goal to the bot. This is like sending it a position in space to go
 	def _send_nav_goal(self, pose):
 		self.nav_pub.publish(pose)
-	# Returns a nav goal at set to the current position of the robot.
+	# Returns a nav goal set to the current position of the robot with orientation of /initialpose to keep it along ze track.
 	def _get_current_goal(self):
 		(trans, rot) = self.listener.lookupTransform("/map", "/base_footprint", rospy.Time(0))
 
