@@ -271,34 +271,36 @@ class MyViz( QWidget ):
 	#Moves ahead via nav goals while the button is pressed.
 	def moveNav(self, dist):
 		# Keep track of how far we've travelled in order to only send new nav goals when need be. 
-		#How far we've travelled since last nav goal sent.
+		# How far we've travelled since last nav goal sent.
 		travelled = 0.0
 		#oldX indicates our first nav x position.
 		goal = self._get_current_goal()
 		oldX = goal.pose.position.x
 		
+		i = 0
+		#give an initial command to go.
+		if (self.isForward):
+			goal.pose.position.x += dist
+		else:
+			goal.pose.position.x -= dist
+		self._send_nav_goal(goal)
+
 		while self.fwd_button.isDown():
 			QApplication.processEvents()
 			goal = self._get_current_goal()
-			travelled += abs(goal.pose.position.x - oldX)
-			if (travelled >= dist or travelled <= 0):
+			travelled = abs(goal.pose.position.x - oldX)
+			print("{0}. travelled = {1}. Button is pressed, no nav sent. dist = {2} ".format(i, travelled, dist))
+			if (travelled >= dist):
 				#Reset our variables tracking our distance travelled.
-				oldX = goal.pose.position.x
-				travelled = 0
 				if (self.isForward):
 					goal.pose.position.x += dist
 				else:
 					goal.pose.position.x -= dist
 				self._send_nav_goal(goal)
-				# rate = rospy.Rate(2.0)
-				# rate.sleep()			
-
-			if (self.isForward):
-				goal.pose.position.x += dist
-			else:
-				goal.pose.position.x -= dist
-		# rate = rospy.Rate(1.0)
-		# rate.sleep()
+				print("{0}. sending nav goal: {1} ahead. travelled = {2} ".format(i,goal.pose.position.x, travelled))
+				oldX = goal.pose.position.x
+				travelled = 0
+			i += 1
 
 		# if self.isForward:
 		# 	self.faceForward()
