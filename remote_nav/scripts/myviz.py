@@ -56,6 +56,7 @@ class MyViz( QWidget ):
 		self.frame.load( config )
 
 		self.setWindowTitle( config.mapGetChild( "Title" ).getValue() )
+		self.setWindowIcon(QIcon('images/icon.png'))
 
 	#The twist commands
 		self.pub = rospy.Publisher('mobile_base/commands/velocity', Twist) 
@@ -109,10 +110,11 @@ class MyViz( QWidget ):
 		reset_dir_btn.setToolTip('Reset to the original orientation')
 		h_layout.addWidget( reset_dir_btn )
 		
-		self.fwd_button = QPushButton( "Move Forward" )
+		self.fwd_button = PicButton(QPixmap("images/forward.png"))
 		self.fwd_button.pressed.connect( self.onFwdPress )
 		self.fwd_button.setToolTip('While held, the robot will move forward')
 		layout.addWidget( self.fwd_button, 4, 1 )
+		layout.setAlignment(self.fwd_button, Qt.AlignHCenter)
 
 		turn_button = QPushButton( "Turn Around[ALEX DEBUG - Nav Goals]" )
 		# turn_button.clicked.connect( self.onTurnButtonClick )
@@ -126,6 +128,13 @@ class MyViz( QWidget ):
 		turn_twist_button.setToolTip('The robot will turn around 180 degrees')
 		h_layout.addWidget( turn_twist_button )
 
+		look_left_btn = PicButton(QPixmap("images/turn_left.png"))
+		layout.addWidget(look_left_btn, 2, 0)
+		layout.setAlignment(look_left_btn, Qt.AlignLeft)
+
+		look_right_btn = PicButton(QPixmap("images/turn_right.png"))
+		layout.addWidget(look_right_btn, 2, 2)
+		layout.setAlignment(look_right_btn, Qt.AlignRight)
 		
 	#Finalizing layout and placing components
 		layout.addLayout( h_layout, 6, 0, 1, 3 )	
@@ -363,6 +372,20 @@ class MyViz( QWidget ):
 		goal.pose.orientation.w = self.start.pose.orientation.w
 		return goal
 
+class PicButton(QAbstractButton):
+    def __init__(self, pixmap, parent=None):
+        super(PicButton, self).__init__(parent)
+        self.pixmap = pixmap
+        if self.pixmap.width() > 50:
+        	self.pixmap = self.pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.drawPixmap(event.rect(), self.pixmap)
+
+
+    def sizeHint(self):
+        return self.pixmap.size()
 
 ## Start the Application
 ## ^^^^^^^^^^^^^^^^^^^^^
