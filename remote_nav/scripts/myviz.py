@@ -49,7 +49,6 @@ class MyViz( QWidget ):
 		# We use rospack to find the filepath for remote_nav.
 		rospack = rospkg.RosPack()
 		package_path = rospack.get_path('remote_nav')
-		print package_path
 		#Now you can grab this filepath from either roslaunch remote_nav myviz and using the launch file or just rosrun.
 		config_file = rospy.get_param('remote_nav/rviz_config', package_path + "/config/map_and_img.rviz")
 		reader.readFile( config, config_file )
@@ -112,11 +111,11 @@ class MyViz( QWidget ):
 		
 
 		self.fwd_button = PicButton(QPixmap(package_path + "/images/forward.png"))
-		self.fwd_button = QPushButton("Move Forward")
+		# self.fwd_button = QPushButton("Move Forward")
 		self.fwd_button.pressed.connect( self.onFwdPress )
 		self.fwd_button.setToolTip('While held, the robot will move forward')
 		layout.addWidget( self.fwd_button, 4, 1 )
-		# layout.setAlignment(self.fwd_button2, Qt.AlignHCenter)
+		layout.setAlignment(self.fwd_button, Qt.AlignHCenter)
 
 		turn_button = QPushButton( "Turn Around[ALEX DEBUG - Nav Goals]" )
 		turn_button.clicked.connect( self.onTurnButtonClick )
@@ -158,7 +157,7 @@ class MyViz( QWidget ):
 	# BUTTON CALLBACKS
 	# ^^^^^^^^^^^^^^^^
 	def onFwdPress(self):
-		self.moveNav(0.35)
+		self.moveNav(0.5)
 
 
 	def onDebugButtonClick(self):
