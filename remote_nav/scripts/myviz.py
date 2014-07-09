@@ -77,11 +77,15 @@ class MyViz( QWidget ):
 		self.manager = self.frame.getManager()
 		self.grid_display = self.manager.getRootDisplayGroup().getDisplayAt( 0 )
 		
-	##--LAYOUT--
-		layout = QVBoxLayout()
-		layout.addWidget( self.frame )
+	# ##--LAYOUT--
+	# 	layout = QVBoxLayout()
+	# 	layout.addWidget( self.frame )
+		layout = QGridLayout()
+		layout.setSpacing(10)
+
+		layout.addWidget(self.frame, 1, 0, 4, 3)
 		
-		h_layout = QHBoxLayout()
+	 	h_layout = QHBoxLayout()
 		
 	#Buttons and attached commands
 		# 1. Create Button
@@ -92,7 +96,7 @@ class MyViz( QWidget ):
 		self.stop_button.clicked.connect( self.onStopButtonClick )
 		self.stop_button.setToolTip('Press this to immediately <b>STOP</b> the robot')
 		self.stop_button.setStyleSheet("background-color: #700000 ; font-weight: bold; color: white")
-		layout.addWidget( self.stop_button )
+		layout.addWidget( self.stop_button, 5, 1 )
 
 		debug_button = QPushButton( "Reset Position" )
 		debug_button.clicked.connect( self.onDebugButtonClick )
@@ -107,7 +111,7 @@ class MyViz( QWidget ):
 		self.fwd_button = QPushButton( "Move Forward" )
 		self.fwd_button.pressed.connect( self.onFwdPress )
 		self.fwd_button.setToolTip('While held, the robot will move forward')
-		h_layout.addWidget( self.fwd_button )
+		layout.addWidget( self.fwd_button, 4, 1 )
 
 		turn_button = QPushButton( "Turn Around[ALEX DEBUG - Nav Goals]" )
 		# turn_button.clicked.connect( self.onTurnButtonClick )
@@ -123,7 +127,7 @@ class MyViz( QWidget ):
 
 		
 	#Finalizing layout and placing components
-		layout.addLayout( h_layout )	
+		layout.addLayout( h_layout, 6, 0, 1, 3 )	
 		self.setLayout( layout )
 
 
