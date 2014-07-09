@@ -49,7 +49,6 @@ class MyViz( QWidget ):
 		# We use rospack to find the filepath for remote_nav.
 		rospack = rospkg.RosPack()
 		config_path = rospack.get_path('remote_nav')
-		print config_path
 		#Now you can grab this filepath from either roslaunch remote_nav myviz and using the launch file or just rosrun.
 		config_file = rospy.get_param('remote_nav/rviz_config', config_path + "/config/map_and_img.rviz")
 		reader.readFile( config, config_file )
@@ -203,35 +202,20 @@ class MyViz( QWidget ):
 
 	#Face forward along our track.
 	def faceForward(self):
+		self.isForward = True
 		goal = self._get_current_goal()
 		self._send_nav_goal(goal)
-		self.isForward = True
 		print ("Now facing forward")
 	#Face 180 degrees from the forward position.
 	def faceBackward(self):
 		now = rospy.Time.now()
 
 		#Grab where we currently are.
-		goal = self._get_current_goal()
-
-		#but our new orientation is 180 degrees turned around.
-		#However first we must convert from quartenions to euler angles. Because I am stupid.
-		quaternion = (self.start.pose.orientation.x,self.start.pose.orientation.y,self.start.pose.orientation.z,self.start.pose.orientation.w)
-		euler = tf.transformations.euler_from_quaternion(quaternion)
-		roll = euler[0]
-		pitch = euler[1]
-		yaw = euler[2]
-		print("roll, pitch, yaw: {0}, {1}, {2}.".format(roll,pitch,yaw))
-		yaw = yaw + pi
-
-		newQuat = tf.transformations.quaternion_from_euler(roll,pitch, yaw)
-		goal.pose.orientation.x = newQuat[0]
-		goal.pose.orientation.y = newQuat[1]
-		goal.pose.orientation.z = newQuat[2]
-		goal.pose.orientation.w = newQuat[3]
-		self._send_nav_goal(goal)
-		print ("Now facing backward. yaw: {0}".format(yaw))
 		self.isForward = False
+		goal = self._get_current_goal()
+		self._send_nav_goal(goal)
+		print ("Now facing backward.")
+		
 
 	#Moves the robot at a given max velocity whenever the forward button is pressed
 	#It still works while the button is held down
@@ -285,7 +269,6 @@ class MyViz( QWidget ):
 		# Keep track of how far we've travelled in order to only send new nav goals when need be. 
 		#How far we've travelled since last nav goal sent.
 		travelled = 0.0
-		epsilon = 0.01
 		#oldX indicates our first nav x position.
 		goal = self._get_current_goal()
 		oldX = goal.pose.position.x
@@ -293,31 +276,30 @@ class MyViz( QWidget ):
 		while self.fwd_button.isDown():
 			QApplication.processEvents()
 			goal = self._get_current_goal()
-			# travelled += abs(goal.pose.position.x - oldX)
-			# if (travelled >= dist or travelled <= epsilon):
-			# 	#Reset our variables tracking our distance travelled.
-			# 	print "We gon send a nav goal now mofuckas"
-			# 	oldX = goal.pose.position.x
-			# 	travelled = 0
-			# 	if (self.isForward):
-			# 		goal.pose.position.x += dist
-			# 	else:
-			# 		goal.pose.position.x -= dist
-			# 	self._send_nav_goal(goal)
-			# 	# rate = rospy.Rate(2.0)
-			# 	# rate.sleep()			
+			travelled += abs(goal.pose.position.x - oldX)
+			if (travelled >= dist or travelled <= 0):
+				#Reset our variables tracking our distance travelled.
+				oldX = goal.pose.position.x
+				travelled = 0
+				if (self.isForward):
+					goal.pose.position.x += dist
+				else:
+					goal.pose.position.x -= dist
+				self._send_nav_goal(goal)
+				# rate = rospy.Rate(2.0)
+				# rate.sleep()			
 
 			if (self.isForward):
 				goal.pose.position.x += dist
 			else:
 				goal.pose.position.x -= dist
-			rate = rospy.Rate(1.0)
-			rate.sleep()
+		# rate = rospy.Rate(1.0)
+		# rate.sleep()
 
-		if self.isForward:
-			self.faceForward()
-		else:
-			self.faceBackward()
+		# if self.isForward:
+		# 	self.faceForward()
+		# else:
+		# 	self.faceBackward()
 
 #PRIVATE FUNCTIONS
 #^^^^^^^^^^^^^^^^
@@ -354,9 +336,22 @@ class MyViz( QWidget ):
 		goal.pose.position.x = trans[0]
 		goal.pose.position.y = trans[1]
 		goal.pose.position.z = trans[2]
+		if (self.isForward):
+			goal.pose.orientation.z = self.start.pose.orientation.z
+			goal.pose.orientation.w = self.start.pose.orientation.w
+		else:
+			quaternion = (self.start.pose.orientation.x,self.start.pose.orientation.y,self.start.pose.orientation.z,self.start.pose.orientation.w)
+			euler = tf.transformations.euler_from_quaternion(quaternion)
+			roll = euler[0]
+			pitch = euler[1]
+			yaw = euler[2]
+			yaw = yaw + pi
 
-		goal.pose.orientation.z = self.start.pose.orientation.z
-		goal.pose.orientation.w = self.start.pose.orientation.w
+			newQuat = tf.transformations.quaternion_from_euler(roll,pitch, yaw)
+			goal.pose.orientation.x = newQuat[0]
+			goal.pose.orientation.y = newQuat[1]
+			goal.pose.orientation.z = newQuat[2]
+			goal.pose.orientation.w = newQuat[3]
 		return goal
 
 
