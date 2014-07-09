@@ -49,13 +49,14 @@ class MyViz( QWidget ):
 		# We use rospack to find the filepath for remote_nav.
 		rospack = rospkg.RosPack()
 		package_path = rospack.get_path('remote_nav')
+		print package_path
 		#Now you can grab this filepath from either roslaunch remote_nav myviz and using the launch file or just rosrun.
 		config_file = rospy.get_param('remote_nav/rviz_config', package_path + "/config/map_and_img.rviz")
 		reader.readFile( config, config_file )
 		self.frame.load( config )
 
 		self.setWindowTitle( config.mapGetChild( "Title" ).getValue() )
-		self.setWindowIcon(QIcon('images/icon.png'))
+		self.setWindowIcon(QIcon(package_path +'/images/icon.png'))
 
 	#The twist commands
 		self.pub = rospy.Publisher('mobile_base/commands/velocity', Twist) 
@@ -109,7 +110,7 @@ class MyViz( QWidget ):
 		reset_dir_btn.setToolTip('Reset to the original orientation')
 		h_layout.addWidget( reset_dir_btn )
 		
-		self.fwd_button = PicButton(QPixmap(package_path + "images/forward.png"))
+		self.fwd_button = PicButton(QPixmap(package_path + "/images/forward.png"))
 		self.fwd_button = QPushButton("Move Forward")
 		self.fwd_button.pressed.connect( self.onFwdPress )
 		self.fwd_button.setToolTip('While held, the robot will move forward')
@@ -127,11 +128,11 @@ class MyViz( QWidget ):
 		# turn_twist_button.setToolTip('The robot will turn around 180 degrees')
 		# h_layout.addWidget( turn_twist_button )
 
-		look_left_btn = PicButton(QPixmap(package_path + "images/turn_left.png"))
+		look_left_btn = PicButton(QPixmap(package_path + "/images/turn_left.png"))
 		layout.addWidget(look_left_btn, 2, 0)
 		layout.setAlignment(look_left_btn, Qt.AlignLeft)
 
-		look_right_btn = PicButton(QPixmap(package_path + "images/turn_right.png"))
+		look_right_btn = PicButton(QPixmap(package_path + "/images/turn_right.png"))
 		layout.addWidget(look_right_btn, 2, 2)
 		layout.setAlignment(look_right_btn, Qt.AlignRight)
 		
