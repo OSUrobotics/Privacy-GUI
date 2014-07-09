@@ -121,11 +121,11 @@ class MyViz( QWidget ):
 		turn_button.setToolTip('The robot will turn around 180 degrees')
 		h_layout.addWidget( turn_button )
 
-		turn_twist_button = QPushButton( "Turn Around[ALEX DEBUG - Twist message]" )
-		# turn_button.clicked.connect( self.onTurnButtonClick )
-		turn_twist_button.clicked.connect( self.onTurnTwistButtonClick)
-		turn_twist_button.setToolTip('The robot will turn around 180 degrees')
-		h_layout.addWidget( turn_twist_button )
+		# turn_twist_button = QPushButton( "Turn Around[ALEX DEBUG - Twist message]" )
+		# # turn_button.clicked.connect( self.onTurnButtonClick )
+		# turn_twist_button.clicked.connect( self.onTurnTwistButtonClick)
+		# turn_twist_button.setToolTip('The robot will turn around 180 degrees')
+		# h_layout.addWidget( turn_twist_button )
 
 		look_left_btn = PicButton(QPixmap("images/turn_left.png"))
 		layout.addWidget(look_left_btn, 2, 0)
@@ -231,52 +231,52 @@ class MyViz( QWidget ):
 		print ("Now facing backward.")
 		
 
-	#Moves the robot at a given max velocity whenever the forward button is pressed
-	#It still works while the button is held down
-	def moveWhilePressed(self, velocity):
-		now = rospy.get_time()
-		#Speed up until max velocity
-		while rospy.get_time() - now < 2:
-			QApplication.processEvents()
-			x = rospy.get_time() - now            
-			xVel = tanh(x) * velocity
-			self._send_twist(xVel)
-			if self.stop_button.isDown():
-				break
-			if not self.fwd_button.isDown():
-				break
-		#Continue at max while pressed
-		while self.fwd_button.isDown():
-			QApplication.processEvents()
-			if self.stop_button.isDown():
-				break
-			xVel = velocity
-			self._send_twist(xVel)
+	# #Moves the robot at a given max velocity whenever the forward button is pressed
+	# #It still works while the button is held down
+	# def moveWhilePressed(self, velocity):
+	# 	now = rospy.get_time()
+	# 	#Speed up until max velocity
+	# 	while rospy.get_time() - now < 2:
+	# 		QApplication.processEvents()
+	# 		x = rospy.get_time() - now            
+	# 		xVel = tanh(x) * velocity
+	# 		self._send_twist(xVel)
+	# 		if self.stop_button.isDown():
+	# 			break
+	# 		if not self.fwd_button.isDown():
+	# 			break
+	# 	#Continue at max while pressed
+	# 	while self.fwd_button.isDown():
+	# 		QApplication.processEvents()
+	# 		if self.stop_button.isDown():
+	# 			break
+	# 		xVel = velocity
+	# 		self._send_twist(xVel)
 
-		#Slow down on button release
-		now = rospy.get_time()
-		while rospy.get_time() - now < 2:			
-			QApplication.processEvents()
-			if self.stop_button.isDown():
-				break
-			x = 2 - (rospy.get_time() - now) 
-			xVel = tanh(x) * velocity
-			self._send_twist(xVel)
-		#Check orientation
-		#Realign orientation
+	# 	#Slow down on button release
+	# 	now = rospy.get_time()
+	# 	while rospy.get_time() - now < 2:			
+	# 		QApplication.processEvents()
+	# 		if self.stop_button.isDown():
+	# 			break
+	# 		x = 2 - (rospy.get_time() - now) 
+	# 		xVel = tanh(x) * velocity
+	# 		self._send_twist(xVel)
+	# 	#Check orientation
+	# 	#Realign orientation
 
-	# Give the turtlebot a distance to travel and a velocity and it follows the command + slows down accordingly as it reaches its destination.
-	def moveAhead(self, distance, velocity):
-		# By what facter we scale/lengthen the tanh function.
-		s = 1
-		# Integrate the x function below and set it equal to distance to find movingTime.
-		movingTime = 1.0/s * acosh( exp( s/velocity * distance ) )
-		now = rospy.get_time()
-		while rospy.get_time() - now < movingTime:
-			QApplication.processEvents()
-			x = movingTime - (rospy.get_time() - now)            
-			xVel = tanh(s * x) * velocity
-			self._send_twist(xVel)
+	# # Give the turtlebot a distance to travel and a velocity and it follows the command + slows down accordingly as it reaches its destination.
+	# def moveAhead(self, distance, velocity):
+	# 	# By what facter we scale/lengthen the tanh function.
+	# 	s = 1
+	# 	# Integrate the x function below and set it equal to distance to find movingTime.
+	# 	movingTime = 1.0/s * acosh( exp( s/velocity * distance ) )
+	# 	now = rospy.get_time()
+	# 	while rospy.get_time() - now < movingTime:
+	# 		QApplication.processEvents()
+	# 		x = movingTime - (rospy.get_time() - now)            
+	# 		xVel = tanh(s * x) * velocity
+	# 		self._send_twist(xVel)
 
 	#Moves ahead via nav goals while the button is pressed.
 	def moveNav(self, dist):
