@@ -1,11 +1,14 @@
 <launch>
 
   <!--Publishes our "/start" frame at a constant rate. -->
-  <!-- <node name="startFrame" pkg="remote_nav" type="startFrame.py"> -->
-  <!-- </node> -->
+  <node name="startFrame" pkg="remote_nav" type="startFrame.py">
+  </node>
 
   <arg name="rviz_config" default="$(find remote_nav)/config/map_and_img.rviz" />
+<!-- Sends nav goals in this increment. -->
+  <arg name="nav_goal_dist" default="0.75"/>
   <node name="myviz" pkg="remote_nav" type="myviz.py" >
+  	<param name="nav_goal_dist" value="$(arg nav_goal_dist)"/>
   	<param name="rviz_config" value="$(arg rviz_config)"/>
   </node>
 </launch>
