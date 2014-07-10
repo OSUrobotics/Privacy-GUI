@@ -46,6 +46,16 @@ Visualization Manager:
       Radius: 0.1
       Reference Frame: /base_footprint
       Value: true
+    - Class: rviz/Pose
+      Enabled: true
+      Topic: /move_base_simple/goal
+      Shape: Arrow
+      Color: 255; 25; 0 
+      Alpha: 1
+      Shaft Length: 1
+      Shaft Radius: 0.05
+      Head Length: 0.3
+      Head Radius: 0.1
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48

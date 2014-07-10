@@ -65,9 +65,7 @@ class MyViz( QWidget ):
 		self.nav_pub = rospy.Publisher('/move_base_simple/goal', PoseStamped)
 		self.listener = tf.TransformListener()
 
-	#Subscribe to initialpose to find our start position
-		rospy.Subscriber("/initialpose", PoseWithCovarianceStamped, self.initialpose_callback)
-		#Is the robot facing forward along our track?
+	#Is the robot facing forward along our track?
 		self.isForward = True
 	
 
@@ -128,11 +126,11 @@ class MyViz( QWidget ):
 		# turn_twist_button.setToolTip('The robot will turn around 180 degrees')
 		# h_layout.addWidget( turn_twist_button )
 
-		look_left_btn = PicButton(QPixmap(package_path + "/images/turn_left.png"))
+		look_left_btn = PicButton(QPixmap(package_path + "/images/left.png"))
 		layout.addWidget(look_left_btn, 2, 0)
 		layout.setAlignment(look_left_btn, Qt.AlignLeft)
 
-		look_right_btn = PicButton(QPixmap(package_path + "/images/turn_right.png"))
+		look_right_btn = PicButton(QPixmap(package_path + "/images/right.png"))
 		layout.addWidget(look_right_btn, 2, 2)
 		layout.setAlignment(look_right_btn, Qt.AlignRight)
 		
@@ -163,12 +161,20 @@ class MyViz( QWidget ):
 
 	def onDebugButtonClick(self):
 	#Tells robot to return to home base. Alex, you can continue editing here. 
-		self.start.header.stamp = rospy.Time.now()
-		self._send_nav_goal(self.start)
+		(trans, rot) = self.listener.lookupTransform("/map","/start", rospy.Time(0))
+		goal = PoseStamped()
+		goal.pose.position.x = trans[0]
+		goal.pose.position.y = trans[1]
+
+		goal.pose.orientation.z = rot[2]
+		goal.pose.orientation.w = rot[3]
+
+		self._send_nav_goal(goal)
+		self.faceForward()
 
 	def onStopButtonClick(self):
 		QApplication.processEvents()
-		goal = self._get_current_pose()
+		goal = self._get_pose_from_start()
 		self._send_nav_goal(goal)
 		# Needs to interrupt the turnAround and navTurnAround functions
 
@@ -186,16 +192,6 @@ class MyViz( QWidget ):
 
 	## NAVIGATION FUNCTIONS
 	## ^^^^^^^^^^^^^^^^^^^^
-
-	#Initialize our goal as on the start frame.
-	def initialpose_callback(self, initialpose):
-
-		self.start = PoseStamped()
-		self.start.header.frame_id = "/map"
-		self.start.header.stamp = rospy.Time.now()
-
-		self.start.pose.position = copy.copy(initialpose.pose.pose.position)
-		self.start.pose.orientation = copy.copy(initialpose.pose.pose.orientation)
 
 	#Rotate the robot exactly 180 degrees with a twist command
 	# def turnAround(self):
@@ -219,16 +215,22 @@ class MyViz( QWidget ):
 	#Face forward along our track.
 	def faceForward(self):
 		self.isForward = True
-		goal = self._get_current_pose()
+		goal = self._get_pose_from_start()
+		goal.pose.position.y = 0
+		goal.pose.orientation.z = 0.0
+		goal.pose.orientation.w = 1.0
+
 		self._send_nav_goal(goal)
-		print ("Now facing forward")
+		print ("Now facing forward.")
 	#Face 180 degrees from the forward position.
 	def faceBackward(self):
-		now = rospy.Time.now()
-
-		#Grab where we currently are.
 		self.isForward = False
-		goal = self._get_current_pose()
+		#Grab where we currently are.
+		goal = self._get_pose_from_start()
+		#realign and turn around.
+		goal.pose.position.y = 0
+		goal.pose.orientation.z = 1.0
+		goal.pose.orientation.w = 0.0
 		self._send_nav_goal(goal)
 		print ("Now facing backward.")
 		
@@ -296,10 +298,15 @@ class MyViz( QWidget ):
 		
 		i = 0
 		#give an initial command to go.
+		goal.pose.position.y = 0.0
+		goal.pose.orientation.z = 0.0
+		goal.pose.orientation.w = 0.0
 		if (self.isForward):
 			goal.pose.position.x += dist
+			goal.pose.orientation.w = 1.0
 		else:
 			goal.pose.position.x -= dist
+			goal.pose.orientation.z = 1.0
 
 		self._send_nav_goal(goal)
 
@@ -307,19 +314,25 @@ class MyViz( QWidget ):
 			QApplication.processEvents()
 			goal = self._get_pose_from_start()
 			travelled = abs(goal.pose.position.x - oldX)
-			# print("{0}. travelled = {1}. Button is pressed, no nav sent. dist = {2} ".format(i, travelled, dist))
 			if (travelled >= (dist - tolerance) ):
 				#Reset our variables tracking our distance travelled.
 				oldX = goal.pose.position.x
+				travelled = 0
+
+				goal.pose.position.y = 0.0
+				goal.pose.orientation.z = 0.0
+				goal.pose.orientation.w = 0.0
 				if (self.isForward):
 					goal.pose.position.x += dist
+					goal.pose.orientation.w = 1.0
 				else:
 					goal.pose.position.x -= dist
+					goal.pose.orientation.z = 1.0
 				self._send_nav_goal(goal)
-				print("{0}. sending nav goal: {1} ahead. travelled = {2} ".format(i,goal.pose.position.x, travelled))
-				travelled = 0
 			i += 1
-
+		#TODO: THIS RESULTS IN 
+		#THE ROBOT GOING  BACKWARDS DUE TO SENDING MSG TO CURRENT POSITION BEFORE FULLY STOPPING
+		#PLEASE FIX THIS
 		if self.isForward:
 			self.faceForward()
 		else:
@@ -350,58 +363,49 @@ class MyViz( QWidget ):
 	# If it is necessary to transform to the /map frame, specify so with transform=True
 	def _send_nav_goal(self, pose):
 		self.nav_pub.publish(pose)
+
 	# Returns a nav goal set to the current position of the robot with orientation of /initialpose to keep it along ze track.
-	def _get_current_pose(self):
-		(trans, rot) = self.listener.lookupTransform("/map", "/base_footprint", rospy.Time(0))
+	# def _get_current_pose(self):
+	# 	(trans, rot) = self.listener.lookupTransform("/map", "/base_footprint", rospy.Time(0))
 
-		goal = PoseStamped()
-		goal.header.frame_id = "/map"
-		goal.header.stamp = rospy.Time.now()
+	# 	goal = PoseStamped()
+	# 	goal.header.frame_id = "/map"
+	# 	goal.header.stamp = rospy.Time.now()
 
-		goal.pose.position.x = trans[0]
-		goal.pose.position.y = trans[1]
-		goal.pose.position.z = trans[2]
-		if (self.isForward):
-			goal.pose.orientation.z = self.start.pose.orientation.z
-			goal.pose.orientation.w = self.start.pose.orientation.w
-		else:
-			quaternion = (self.start.pose.orientation.x,self.start.pose.orientation.y,self.start.pose.orientation.z,self.start.pose.orientation.w)
-			euler = tf.transformations.euler_from_quaternion(quaternion)
-			yaw = euler[2] # yaw gonna make me lose my mind,
-			pitch = euler[1] #up in pitch
-			roll = euler[0] #up in roll (see photo at bottom)
-			yaw = yaw + pi
+	# 	goal.pose.position.x = trans[0]
+	# 	goal.pose.position.y = trans[1]
+	# 	goal.pose.position.z = trans[2]
+	# 	if (self.isForward):
+	# 		goal.pose.orientation.z = self.start.pose.orientation.z
+	# 		goal.pose.orientation.w = self.start.pose.orientation.w
+	# 	else:
+	# 		quaternion = (self.start.pose.orientation.x,self.start.pose.orientation.y,self.start.pose.orientation.z,self.start.pose.orientation.w)
+	# 		euler = tf.transformations.euler_from_quaternion(quaternion)
+	# 		yaw = euler[2] # yaw gonna make me lose my mind,
+	# 		pitch = euler[1] #up in pitch
+	# 		roll = euler[0] #up in roll (see photo at bottom)
+	# 		yaw = yaw + pi
 
-			newQuat = tf.transformations.quaternion_from_euler(roll,pitch, yaw)
-			goal.pose.orientation.x = newQuat[0]
-			goal.pose.orientation.y = newQuat[1]
-			goal.pose.orientation.z = newQuat[2]
-			goal.pose.orientation.w = newQuat[3]
-		return goal
+	# 		newQuat = tf.transformations.quaternion_from_euler(roll,pitch, yaw)
+	# 		goal.pose.orientation.x = newQuat[0]
+	# 		goal.pose.orientation.y = newQuat[1]
+	# 		goal.pose.orientation.z = newQuat[2]
+	# 		goal.pose.orientation.w = newQuat[3]
+	# 	return goal
 	#Returns transform of robot relative to /start pose.
 	def _get_pose_from_start(self):
-		# (trans, rot) = self.listener.lookupTransform("/map", "/base_footprint", rospy.Time(0))
-		# toStart = PoseStamped()
-		# toStart.header.frame_id = "/map"
-		# toStart.header.stamp = rospy.Time.now()
-		# toStart.pose.position.x = trans[0] - self.start.pose.position.x
-		# toStart.pose.position.y = trans[1] - self.start.pose.position.y
-		# toStart.pose.position.z = trans[2] - self.start.pose.position.z
-		# toStart.pose.orientation = copy.copy(self.start.pose.orientation)
-		# now = rospy.Time.now()
-		# self.listener.waitForTransform("/start", "/base_footprint", now, rospy.Duration(4.0))
 		(trans, rot) = self.listener.lookupTransform("/start", "/base_footprint", rospy.Time(0))
-		toStart = PoseStamped()
-		toStart.header.frame_id = "/start"
-		toStart.header.stamp = rospy.Time.now()
-		toStart.pose.position.x = trans[0]
-		toStart.pose.position.y = trans[1]
-		toStart.pose.position.z = trans[2]
-		toStart.pose.orientation.x = rot[0]
-		toStart.pose.orientation.y = rot[1]
-		toStart.pose.orientation.z = rot[2]
-		toStart.pose.orientation.w = rot[3]
-		return toStart
+		start_trans = PoseStamped()
+		start_trans.header.frame_id = "/start"
+		start_trans.header.stamp = rospy.Time.now()
+		start_trans.pose.position.x = trans[0]
+		start_trans.pose.position.y = trans[1]
+		start_trans.pose.position.z = trans[2]
+		start_trans.pose.orientation.x = rot[0]
+		start_trans.pose.orientation.y = rot[1]
+		start_trans.pose.orientation.z = rot[2]
+		start_trans.pose.orientation.w = rot[3]
+		return start_trans
 
 
 
