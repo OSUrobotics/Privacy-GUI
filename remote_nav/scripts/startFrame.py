@@ -20,7 +20,7 @@ if __name__ == '__main__':
 	
 	broadcaster = tf.TransformBroadcaster()
 	while not rospy.is_shutdown():
-		r = rospy.Rate(10.0)
+		r = rospy.Rate(100.0)
 		try: 
 			if (position and rotation):
 				frame = "/start"

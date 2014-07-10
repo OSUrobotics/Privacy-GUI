@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+#vim /etc/puppet/manifests/site.pp
+
 import tf
 import rospy
 import datetime
