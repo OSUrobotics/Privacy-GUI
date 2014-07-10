@@ -20,6 +20,10 @@ Authors:
 * gui  - The first iteration of the attempt at the gui.  Not currently used but has some nice buttons.
 * remote_nav - The real package and current implementation of our UI
 
+##custom_nav package
+The custom_nav package is to be used ON THE TURTLEBOT. Copy this repo to your turtlebot and rosmake this package. It is simply a modified version of turtlebot_navigation to better fit our needs. Changes include, but are not limited to: resetting the default map_file, turning on rgb_processing,
+and tinkering with the .yaml configuration files. 
+
 ###Running remote_nav
 In order for remote_nav to run, several things need to be set up (this may be fixed with a future update)
 * turtlebot bringup
