@@ -50,7 +50,7 @@ class MyViz( QWidget ):
 		rospack = rospkg.RosPack()
 		package_path = rospack.get_path('remote_nav')
 		#Now you can grab this filepath from either roslaunch remote_nav myviz and using the launch file or just rosrun.
-		config_file = rospy.get_param('remote_nav/rviz_config', package_path + "/config/map_and_img.rviz")
+		config_file = rospy.get_param('remote_nav/rviz_config', package_path + "/rviz/map_and_img.rviz")
 		reader.readFile( config, config_file )
 		self.frame.load( config )
 
@@ -185,7 +185,8 @@ class MyViz( QWidget ):
 			self.faceForward()
 		else:
 			self.faceBackward()
-		# Needs to interrupt the turnAround and navTurnAround functions
+		# Needs to interrupt the turnAround and navTurnAround functions.
+		#  Actually we want to restrict them to one dimensional movement so we don't want to allow them to interrupt a turnaround. - Alex
 
 #
 	def onTurnButtonClick(self):
@@ -274,10 +275,10 @@ class MyViz( QWidget ):
 		#TODO: THIS RESULTS IN 
 		#THE ROBOT GOING  BACKWARDS DUE TO SENDING MSG TO CURRENT POSITION BEFORE FULLY STOPPING
 		#PLEASE FIX THIS
-		if self.isForward:
-			self.faceForward()
-		else:
-			self.faceBackward()
+		# if self.isForward:
+		# 	self.faceForward()
+		# else:
+		# 	self.faceBackward()
 
 	#Rotate the robot exactly 180 degrees with a twist command
 	# def turnAround(self):
@@ -369,7 +370,7 @@ class MyViz( QWidget ):
 		start_trans.pose.orientation.z = rot[2]
 		start_trans.pose.orientation.w = rot[3]
 		return start_trans
-		
+
 	# def _send_twist(self, x_linear):
 	# 	if self.pub is None:
 	# 		return

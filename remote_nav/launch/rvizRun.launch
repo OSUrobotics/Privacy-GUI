@@ -4,7 +4,7 @@
   <node name="startFrame" pkg="remote_nav" type="startFrame.py">
   </node>
 
-  <arg name="rviz_config" default="$(find remote_nav)/config/map_and_img.rviz" />
+  <arg name="rviz_config" default="$(find remote_nav)/rviz/map_and_img.rviz" />
 <!-- Sends nav goals in this increment. -->
   <arg name="nav_goal_dist" default="0.75"/>
   <node name="myviz" pkg="remote_nav" type="myviz.py" >
