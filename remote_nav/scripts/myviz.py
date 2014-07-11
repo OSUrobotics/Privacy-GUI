@@ -109,6 +109,7 @@ class MyViz( QWidget ):
 		
 
 		self.fwd_button = PicButton(QPixmap(package_path + "/images/up.png"))
+		self.fwd_button.setClickPix(QPixmap(package_path + "/images/upDark.png"))
 		# self.fwd_button = QPushButton("Move Forward")
 		self.fwd_button.pressed.connect( self.onFwdPress )
 		self.fwd_button.setToolTip('While held, the robot will move forward')
@@ -127,10 +128,16 @@ class MyViz( QWidget ):
 		# h_layout.addWidget( turn_twist_button )
 
 		look_left_btn = PicButton(QPixmap(package_path + "/images/left.png"))
+
+		look_left_btn.setClickPix(QPixmap(package_path + "/images/leftDark.png"))
+
 		layout.addWidget(look_left_btn, 2, 0)
 		layout.setAlignment(look_left_btn, Qt.AlignLeft)
 
 		look_right_btn = PicButton(QPixmap(package_path + "/images/right.png"))
+
+		look_right_btn.setClickPix(QPixmap(package_path + "/images/rightDark.png"))
+
 		layout.addWidget(look_right_btn, 2, 2)
 		layout.setAlignment(look_right_btn, Qt.AlignRight)
 		
@@ -411,19 +418,32 @@ class MyViz( QWidget ):
 
 
 class PicButton(QAbstractButton):
-    def __init__(self, pixmap, parent=None):
-        super(PicButton, self).__init__(parent)
-        self.pixmap = pixmap
-        if self.pixmap.width() > 50:
-        	self.pixmap = self.pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+	def __init__(self, pixmap, parent=None):
+		super(PicButton, self).__init__(parent)
+		self.pixmap = pixmap
+		self.clickpix = pixmap
+		if self.pixmap.width() > 50:
+			self.pixmap = self.pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.drawPixmap(event.rect(), self.pixmap)
+	def setClickPix(self, pixmap2):
+		self.clickpix = pixmap2
 
+	def paintEvent(self, event):
+		painter = QPainter(self)
+		if self.isDown():
+			painter.drawPixmap(event.rect(), self.clickpix)
+		else:
+			painter.drawPixmap(event.rect(), self.pixmap)
 
-    def sizeHint(self):
-        return self.pixmap.size()
+	def sizeHint(self):
+		return self.pixmap.size()
+
+	# def mousePressEvent (self, event):
+	# 	self.setPixmap(self.clickpix)
+
+	# def mouseReleaseEvent (self, event):
+	# 	self.setPixmap(self.pixmap)
+
 
 ## Start the Application
 ## ^^^^^^^^^^^^^^^^^^^^^
