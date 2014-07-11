@@ -58,8 +58,8 @@ class MyViz( QWidget ):
 		self.setWindowIcon(QIcon(package_path +'/images/icon.png'))
 
 	#The twist commands
-		self.pub = rospy.Publisher('mobile_base/commands/velocity', Twist) 
-		self.zero_cmd_sent = False
+		# self.pub = rospy.Publisher('mobile_base/commands/velocity', Twist) 
+		# self.zero_cmd_sent = False
 
 	#For sending nav goals.
 		self.nav_pub = rospy.Publisher('/move_base_simple/goal', PoseStamped)
@@ -148,8 +148,8 @@ class MyViz( QWidget ):
 
 
 
-	## Handle GUI events
-	## ^^^^^^^^^^^^^^^^^
+## Handle GUI events
+## ^^^^^^^^^^^^^^^^^
 
 	def switchToView( self, view_name ):
 		view_man = self.manager.getViewManager()
@@ -167,7 +167,7 @@ class MyViz( QWidget ):
 
 
 	def onDebugButtonClick(self):
-	#Tells robot to return to home base. Alex, you can continue editing here. 
+	#Tells robot to return to home base.
 		(trans, rot) = self.listener.lookupTransform("/map","/start", rospy.Time(0))
 		goal = PoseStamped()
 		goal.pose.position.x = trans[0]
@@ -181,8 +181,10 @@ class MyViz( QWidget ):
 
 	def onStopButtonClick(self):
 		QApplication.processEvents()
-		goal = self._get_pose_from_start()
-		self._send_nav_goal(goal)
+		if (self.isForward):
+			self.faceForward()
+		else:
+			self.faceBackward()
 		# Needs to interrupt the turnAround and navTurnAround functions
 
 #
@@ -197,28 +199,8 @@ class MyViz( QWidget ):
 	def onResetDirButtonClick(self):
 		self.faceForward()
 
-	## NAVIGATION FUNCTIONS
-	## ^^^^^^^^^^^^^^^^^^^^
-
-	#Rotate the robot exactly 180 degrees with a twist command
-	# def turnAround(self):
-	# 	command = Twist()
-	# 	command.angular.z = 0.5
-	# 	now = rospy.Time.now()
-	# 	r = rospy.Rate(50) 
-	# 	while rospy.Time.now() - now <= rospy.Duration(2*pi):
-	# 		QApplication.processEvents()
-	# 		print (rospy.Time.now() - now)
-	# 	#An attempt to stop it while it is in motion
-	# 		if self.stop_button.isDown():
-	# 			command.angular.z = 0.0
-	# 			break
-	# 		self.pub.publish(command)
-	# 		r.sleep()
-	# 	command.angular.z = 0.0
-	# 	self.pub.publish(command)
-			
-
+## NAVIGATION FUNCTIONS
+## ^^^^^^^^^^^^^^^^^^^^
 	#Face forward along our track.
 	def faceForward(self):
 		self.isForward = True
@@ -240,54 +222,6 @@ class MyViz( QWidget ):
 		goal.pose.orientation.w = 0.0
 		self._send_nav_goal(goal)
 		print ("Now facing backward.")
-		
-
-	# #Moves the robot at a given max velocity whenever the forward button is pressed
-	# #It still works while the button is held down
-	# def moveWhilePressed(self, velocity):
-	# 	now = rospy.get_time()
-	# 	#Speed up until max velocity
-	# 	while rospy.get_time() - now < 2:
-	# 		QApplication.processEvents()
-	# 		x = rospy.get_time() - now            
-	# 		xVel = tanh(x) * velocity
-	# 		self._send_twist(xVel)
-	# 		if self.stop_button.isDown():
-	# 			break
-	# 		if not self.fwd_button.isDown():
-	# 			break
-	# 	#Continue at max while pressed
-	# 	while self.fwd_button.isDown():
-	# 		QApplication.processEvents()
-	# 		if self.stop_button.isDown():
-	# 			break
-	# 		xVel = velocity
-	# 		self._send_twist(xVel)
-
-	# 	#Slow down on button release
-	# 	now = rospy.get_time()
-	# 	while rospy.get_time() - now < 2:			
-	# 		QApplication.processEvents()
-	# 		if self.stop_button.isDown():
-	# 			break
-	# 		x = 2 - (rospy.get_time() - now) 
-	# 		xVel = tanh(x) * velocity
-	# 		self._send_twist(xVel)
-	# 	#Check orientation
-	# 	#Realign orientation
-
-	# # Give the turtlebot a distance to travel and a velocity and it follows the command + slows down accordingly as it reaches its destination.
-	# def moveAhead(self, distance, velocity):
-	# 	# By what facter we scale/lengthen the tanh function.
-	# 	s = 1
-	# 	# Integrate the x function below and set it equal to distance to find movingTime.
-	# 	movingTime = 1.0/s * acosh( exp( s/velocity * distance ) )
-	# 	now = rospy.get_time()
-	# 	while rospy.get_time() - now < movingTime:
-	# 		QApplication.processEvents()
-	# 		x = movingTime - (rospy.get_time() - now)            
-	# 		xVel = tanh(s * x) * velocity
-	# 		self._send_twist(xVel)
 
 	#Moves ahead via nav goals while the button is pressed.
 	def moveNav(self, dist):
@@ -345,31 +279,116 @@ class MyViz( QWidget ):
 		else:
 			self.faceBackward()
 
+	#Rotate the robot exactly 180 degrees with a twist command
+	# def turnAround(self):
+	# 	command = Twist()
+	# 	command.angular.z = 0.5
+	# 	now = rospy.Time.now()
+	# 	r = rospy.Rate(50) 
+	# 	while rospy.Time.now() - now <= rospy.Duration(2*pi):
+	# 		QApplication.processEvents()
+	# 		print (rospy.Time.now() - now)
+	# 	#An attempt to stop it while it is in motion
+	# 		if self.stop_button.isDown():
+	# 			command.angular.z = 0.0
+	# 			break
+	# 		self.pub.publish(command)
+	# 		r.sleep()
+	# 	command.angular.z = 0.0
+	# 	self.pub.publish(command)
+			
+
+		
+
+	# #Moves the robot at a given max velocity whenever the forward button is pressed
+	# #It still works while the button is held down
+	# def moveWhilePressed(self, velocity):
+	# 	now = rospy.get_time()
+	# 	#Speed up until max velocity
+	# 	while rospy.get_time() - now < 2:
+	# 		QApplication.processEvents()
+	# 		x = rospy.get_time() - now            
+	# 		xVel = tanh(x) * velocity
+	# 		self._send_twist(xVel)
+	# 		if self.stop_button.isDown():
+	# 			break
+	# 		if not self.fwd_button.isDown():
+	# 			break
+	# 	#Continue at max while pressed
+	# 	while self.fwd_button.isDown():
+	# 		QApplication.processEvents()
+	# 		if self.stop_button.isDown():
+	# 			break
+	# 		xVel = velocity
+	# 		self._send_twist(xVel)
+
+	# 	#Slow down on button release
+	# 	now = rospy.get_time()
+	# 	while rospy.get_time() - now < 2:			
+	# 		QApplication.processEvents()
+	# 		if self.stop_button.isDown():
+	# 			break
+	# 		x = 2 - (rospy.get_time() - now) 
+	# 		xVel = tanh(x) * velocity
+	# 		self._send_twist(xVel)
+	# 	#Check orientation
+	# 	#Realign orientation
+
+	# # Give the turtlebot a distance to travel and a velocity and it follows the command + slows down accordingly as it reaches its destination.
+	# def moveAhead(self, distance, velocity):
+	# 	# By what facter we scale/lengthen the tanh function.
+	# 	s = 1
+	# 	# Integrate the x function below and set it equal to distance to find movingTime.
+	# 	movingTime = 1.0/s * acosh( exp( s/velocity * distance ) )
+	# 	now = rospy.get_time()
+	# 	while rospy.get_time() - now < movingTime:
+	# 		QApplication.processEvents()
+	# 		x = movingTime - (rospy.get_time() - now)            
+	# 		xVel = tanh(s * x) * velocity
+	# 		self._send_twist(xVel)
+
+
 #PRIVATE FUNCTIONS
 #^^^^^^^^^^^^^^^^
-	def _send_twist(self, x_linear):
-		if self.pub is None:
-			return
-		twist = Twist()
-		twist.linear.x = x_linear
-		twist.linear.y = 0
-		twist.linear.z = 0
-		twist.angular.x = 0
-		twist.angular.y = 0
-		twist.angular.z = 0
-
-		# Only send the zero command once so other devices can take control
-		if x_linear == 0:
-			if not self.zero_cmd_sent:
-				self.zero_cmd_sent = True
-				self.pub.publish(twist)
-		else:
-			self.zero_cmd_sent = False
-			self.pub.publish(twist)
 	# Sends a nav goal to the bot. This is like sending it a position in space to go.
 	# If it is necessary to transform to the /map frame, specify so with transform=True
 	def _send_nav_goal(self, pose):
 		self.nav_pub.publish(pose)
+
+	#Returns transform of robot relative to /start pose.
+	def _get_pose_from_start(self):
+		(trans, rot) = self.listener.lookupTransform("/start", "/base_footprint", rospy.Time(0))
+		start_trans = PoseStamped()
+		start_trans.header.frame_id = "/start"
+		start_trans.header.stamp = rospy.Time.now()
+		start_trans.pose.position.x = trans[0]
+		start_trans.pose.position.y = trans[1]
+		start_trans.pose.position.z = trans[2]
+		start_trans.pose.orientation.x = rot[0]
+		start_trans.pose.orientation.y = rot[1]
+		start_trans.pose.orientation.z = rot[2]
+		start_trans.pose.orientation.w = rot[3]
+		return start_trans
+		
+	# def _send_twist(self, x_linear):
+	# 	if self.pub is None:
+	# 		return
+	# 	twist = Twist()
+	# 	twist.linear.x = x_linear
+	# 	twist.linear.y = 0
+	# 	twist.linear.z = 0
+	# 	twist.angular.x = 0
+	# 	twist.angular.y = 0
+	# 	twist.angular.z = 0
+
+	# 	# Only send the zero command once so other devices can take control
+	# 	if x_linear == 0:
+	# 		if not self.zero_cmd_sent:
+	# 			self.zero_cmd_sent = True
+	# 			self.pub.publish(twist)
+	# 	else:
+	# 		self.zero_cmd_sent = False
+	# 		self.pub.publish(twist)
 
 	# Returns a nav goal set to the current position of the robot with orientation of /initialpose to keep it along ze track.
 	# def _get_current_pose(self):
@@ -399,24 +418,12 @@ class MyViz( QWidget ):
 	# 		goal.pose.orientation.z = newQuat[2]
 	# 		goal.pose.orientation.w = newQuat[3]
 	# 	return goal
-	#Returns transform of robot relative to /start pose.
-	def _get_pose_from_start(self):
-		(trans, rot) = self.listener.lookupTransform("/start", "/base_footprint", rospy.Time(0))
-		start_trans = PoseStamped()
-		start_trans.header.frame_id = "/start"
-		start_trans.header.stamp = rospy.Time.now()
-		start_trans.pose.position.x = trans[0]
-		start_trans.pose.position.y = trans[1]
-		start_trans.pose.position.z = trans[2]
-		start_trans.pose.orientation.x = rot[0]
-		start_trans.pose.orientation.y = rot[1]
-		start_trans.pose.orientation.z = rot[2]
-		start_trans.pose.orientation.w = rot[3]
-		return start_trans
 
 
 
 
+#SPECIAL SNOWFLAKE CLASSES
+#^^^^^^^^^^^^^^^^
 class PicButton(QAbstractButton):
 	def __init__(self, pixmap, parent=None):
 		super(PicButton, self).__init__(parent)
