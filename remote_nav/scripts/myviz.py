@@ -100,21 +100,21 @@ class MyViz( QWidget ):
 		# 2. Connect Signal to Slot
 		# 3. Add to layout
 
-		# self.stop_button = QPushButton( "STOP" )
-		# self.stop_button.clicked.connect( self.onStopButtonClick )
-		# self.stop_button.setToolTip('Press this to immediately <b>STOP</b> the robot')
-		# self.stop_button.setStyleSheet("background-color: #700000 ; font-weight: bold; color: white")
-		# layout.addWidget( self.stop_button, 5, 1 )
+		self.stop_button = QPushButton( "STOP" )
+		self.stop_button.clicked.connect( self.onStopButtonClick )
+		self.stop_button.setToolTip('Press this to immediately <b>STOP</b> the robot')
+		self.stop_button.setStyleSheet("background-color: #700000 ; font-weight: bold; color: white")
+		layout.addWidget( self.stop_button, 6, 1 )
 
-		debug_button = QPushButton( "Reset Position" )
-		debug_button.clicked.connect( self.onDebugButtonClick )
-		debug_button.setToolTip('Set a navigation goal at the starting point')
-		h_layout.addWidget( debug_button )
+		# debug_button = QPushButton( "Reset Position" )
+		# debug_button.clicked.connect( self.onDebugButtonClick )
+		# debug_button.setToolTip('Set a navigation goal at the starting point')
+		# h_layout.addWidget( debug_button )
 
-		reset_dir_btn = QPushButton( "Reset Orientation" )
-		reset_dir_btn.clicked.connect( self.onResetDirButtonClick )
-		reset_dir_btn.setToolTip('Reset to the original orientation')
-		h_layout.addWidget( reset_dir_btn )
+		# reset_dir_btn = QPushButton( "Reset Orientation" )
+		# reset_dir_btn.clicked.connect( self.onResetDirButtonClick )
+		# reset_dir_btn.setToolTip('Reset to the original orientation')
+		# h_layout.addWidget( reset_dir_btn )
 		
 
 		self.fwd_button = PicButton(QPixmap(package_path + "/images/up.png"))
@@ -130,8 +130,8 @@ class MyViz( QWidget ):
 		# turn_button = QPushButton( "Turn Around[ALEX DEBUG - Nav Goals]" )
 		turn_button.clicked.connect( self.onTurnButtonClick )
 		turn_button.setToolTip('The robot will turn around 180 degrees')
-		layout.addWidget( turn_button, 5, 1 )
-		layout.setAlignment(turn_button, Qt.AlignHCenter)
+		# layout.addWidget( turn_button, 5, 1 )
+		# layout.setAlignment(turn_button, Qt.AlignHCenter)
 
 		# turn_twist_button = QPushButton( "Turn Around[ALEX DEBUG - Twist message]" )
 		# # turn_button.clicked.connect( self.onTurnButtonClick )
@@ -142,28 +142,41 @@ class MyViz( QWidget ):
 
 
 		look_left_btn = PicButton(QPixmap(package_path + "/images/left.png"))
-
 		look_left_btn.setClickPix(QPixmap(package_path + "/images/leftDark.png"))
-
-		layout.addWidget(look_left_btn, 2, 0)
-		layout.setAlignment(look_left_btn, Qt.AlignLeft)
+		# layout.addWidget(look_left_btn, 2, 0)
+		# layout.setAlignment(look_left_btn, Qt.AlignLeft)
 
 		look_right_btn = PicButton(QPixmap(package_path + "/images/right.png"))
-
 		look_right_btn.setClickPix(QPixmap(package_path + "/images/rightDark.png"))
-
-		layout.addWidget(look_right_btn, 2, 2)
-		layout.setAlignment(look_right_btn, Qt.AlignRight)
+		# layout.addWidget(look_right_btn, 2, 2)
+		# layout.setAlignment(look_right_btn, Qt.AlignRight)
 		
 
 		#Finalizing layout and placing components
-		layout.addLayout( h_layout, 6, 0, 1, 3 )	
+		h_layout.addWidget(look_left_btn)
+		h_layout.setAlignment(look_left_btn, Qt.AlignRight)
+		h_layout.addWidget(turn_button)
+		h_layout.setAlignment(turn_button, Qt.AlignHCenter)
+		h_layout.addWidget(look_right_btn)
+		h_layout.setAlignment(look_right_btn, Qt.AlignLeft)
+
+		layout.addLayout( h_layout, 5, 1 )	
 		self.setLayout( layout )
 
 
 ## Handle GUI events
 ## ^^^^^^^^^^^^^^^^^
 
+	def closeEvent(self, event):
+
+		reply = QMessageBox.question(self, 'Message',
+		"Are you sure to quit?", QMessageBox.Yes | 
+		QMessageBox.No, QMessageBox.No)
+
+		if reply == QMessageBox.Yes:
+			event.accept()
+		else:
+			event.ignore()
 
 	def switchToView( self, view_name ):
 		view_man = self.manager.getViewManager()
