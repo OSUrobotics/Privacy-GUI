@@ -21,6 +21,7 @@ from python_qt_binding.QtCore import *
 
 #Get moving!
 from geometry_msgs.msg import Twist, PoseStamped, PoseWithCovarianceStamped
+from actionlib_msgs.msg import GoalID
 
 ## Finally import the RViz bindings themselves.
 import rviz
@@ -65,6 +66,8 @@ class MyViz( QWidget ):
 
 	#For sending nav goals.
 		self.nav_pub = rospy.Publisher('/move_base_simple/goal', PoseStamped)
+	#A publisher to literally tell dis bisnatch to cancel all goals.
+		self.cancel_pub = rospy.Publisher('/move_base/cancel', GoalID)
 		self.listener = tf.TransformListener()
 
 	#Is the robot facing forward along our track?
@@ -185,12 +188,7 @@ class MyViz( QWidget ):
 
 	def onStopButtonClick(self):
 		QApplication.processEvents()
-		if (self.isForward):
-			self.faceForward()
-		else:
-			self.faceBackward()
-		# Needs to interrupt the turnAround and navTurnAround functions.
-		#  Actually we want to restrict them to one dimensional movement so we don't want to allow them to interrupt a turnaround. - Alex
+		self._cancel_goals()
 
 #
 	def onTurnButtonClick(self):
@@ -209,16 +207,14 @@ class MyViz( QWidget ):
 	#Face forward along our track.
 	def faceForward(self):
 		self.isForward = True
-		goal = PoseStamped()
-		goal.header.frame_id = self.robot_frame
+		goal = self._get_pose_from_start()
+		goal.pose.position.y = 0
+		goal.pose.orientation.z = 0.0
 		goal.pose.orientation.w = 1.0
-		# goal = self._get_pose_from_start()
-		# goal.pose.position.y = 0
-		# goal.pose.orientation.z = 0.0
-		# goal.pose.orientation.w = 1.0
 
 		self._send_nav_goal(goal)
 		print ("Now facing forward.")
+
 	#Face 180 degrees from the forward position.
 	def faceBackward(self):
 		self.isForward = False
@@ -244,11 +240,11 @@ class MyViz( QWidget ):
 
 		while self.fwd_button.isDown():
 			QApplication.processEvents()
-
-		if self.isForward:
-			self.faceForward()
-		else:
-			self.faceBackward()
+		self._cancel_goals()
+		# if self.isForward:
+		# 	self.faceForward()
+		# else:
+		# 	self.faceBackward()
 
 	#Moves ahead via nav goals while the button is pressed.
 	# def moveNav(self, dist):
@@ -413,6 +409,10 @@ class MyViz( QWidget ):
 		pose.pose.position.x += self.track_length
 		pose.pose.orientation.w = 1.0
 		return pose
+
+	def _cancel_goals(self):
+		goalID = GoalID()
+		self.cancel_pub.publish(goalID)
 
 	# def _send_twist(self, x_linear):
 	# 	if self.pub is None:
