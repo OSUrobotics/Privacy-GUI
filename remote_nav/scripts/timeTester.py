@@ -8,7 +8,7 @@ def tf_callback(data):
 	print ( "datetime: " + str( datetime.datetime.now()) ) 
 
 if __name__ == '__main__':
-	rospy.init_node('timeTester')
+	rospy.init_node('timeTester22')
 	tf_sub = rospy.Subscriber("/tf", tf.msg.tfMessage, tf_callback)
 	rospy.spin()
 
