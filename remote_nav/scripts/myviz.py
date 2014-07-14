@@ -40,6 +40,8 @@ class MyViz( QWidget ):
 		self.frame.setSplashPath( "" )
 		self.frame.initialize()
 
+
+
 	## The reader reads config file data into the config object.
 		## VisualizationFrame reads its data from the config object.
 		reader = rviz.YamlConfigReader()
@@ -55,6 +57,7 @@ class MyViz( QWidget ):
 
 		self.setWindowTitle( config.mapGetChild( "Title" ).getValue() )
 		self.setWindowIcon(QIcon(package_path +'/images/icon.png'))
+
 
 	#The twist commands
 		# self.pub = rospy.Publisher('mobile_base/commands/velocity', Twist) 
@@ -78,7 +81,8 @@ class MyViz( QWidget ):
 		self.manager = self.frame.getManager()
 		self.grid_display = self.manager.getRootDisplayGroup().getDisplayAt( 0 )
 		
-	# ##--LAYOUT--
+	##LAYOUT
+	##^^^^^^
 	# 	layout = QVBoxLayout()
 	# 	layout.addWidget( self.frame )
 		layout = QGridLayout()
@@ -118,16 +122,21 @@ class MyViz( QWidget ):
 		layout.addWidget( self.fwd_button, 4, 1 )
 		layout.setAlignment(self.fwd_button, Qt.AlignHCenter)
 
-		turn_button = QPushButton( "Turn Around[ALEX DEBUG - Nav Goals]" )
+		turn_button = PicButton(QPixmap(package_path + "/images/rotate.png"))
+		turn_button.setClickPix(QPixmap(package_path + "/images/rotateDark.png"))
+		# turn_button = QPushButton( "Turn Around[ALEX DEBUG - Nav Goals]" )
 		turn_button.clicked.connect( self.onTurnButtonClick )
 		turn_button.setToolTip('The robot will turn around 180 degrees')
 		h_layout.addWidget( turn_button )
+		h_layout.setAlignment(turn_button, Qt.AlignHCenter)
 
 		# turn_twist_button = QPushButton( "Turn Around[ALEX DEBUG - Twist message]" )
 		# # turn_button.clicked.connect( self.onTurnButtonClick )
 		# turn_twist_button.clicked.connect( self.onTurnTwistButtonClick)
 		# turn_twist_button.setToolTip('The robot will turn around 180 degrees')
 		# h_layout.addWidget( turn_twist_button )
+
+
 
 		look_left_btn = PicButton(QPixmap(package_path + "/images/left.png"))
 
@@ -143,15 +152,15 @@ class MyViz( QWidget ):
 		layout.addWidget(look_right_btn, 2, 2)
 		layout.setAlignment(look_right_btn, Qt.AlignRight)
 		
-	#Finalizing layout and placing components
+
+		#Finalizing layout and placing components
 		layout.addLayout( h_layout, 6, 0, 1, 3 )	
 		self.setLayout( layout )
 
 
-
-
 ## Handle GUI events
 ## ^^^^^^^^^^^^^^^^^
+
 
 	def switchToView( self, view_name ):
 		view_man = self.manager.getViewManager()
