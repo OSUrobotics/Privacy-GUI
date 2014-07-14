@@ -26,8 +26,8 @@ from actionlib_msgs.msg import GoalID
 ## Finally import the RViz bindings themselves.
 import rviz
 import tf
-
 import rospkg
+
 
 ## The MyViz class is the main container widget.
 class MyViz( QWidget ):
@@ -65,9 +65,11 @@ class MyViz( QWidget ):
 		# self.zero_cmd_sent = False
 
 	#For sending nav goals.
-		self.nav_pub = rospy.Publisher('/move_base_simple/goal', PoseStamped)
+		nav_topic = rospy.get_param("/remote_nav/nav_topic", "/move_base_simple/goal")
+		cancel_topic = rospy.get_param("/remote_nav/cancel_topic", '/move_base/cancel')
+		self.nav_pub = rospy.Publisher(nav_topic, PoseStamped)
 	#A publisher to literally tell dis bisnatch to cancel all goals.
-		self.cancel_pub = rospy.Publisher('/move_base/cancel', GoalID)
+		self.cancel_pub = rospy.Publisher(cancel_topic, GoalID)
 		self.listener = tf.TransformListener()
 
 	#Is the robot facing forward along our track?
