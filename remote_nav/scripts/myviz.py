@@ -68,6 +68,7 @@ class MyViz( QWidget ):
 		self.isForward = True
 	#Get the track_length for our 1D start track.
 		self.track_length = rospy.get_param('remote_nav/track_length', 5.0)
+		self.robot_frame = rospy.get_param('remote_nav/robot_frame', "/base_footprint")
 	
 
 	#Disable unneeded views and more visualization setup
@@ -163,9 +164,7 @@ class MyViz( QWidget ):
 	# BUTTON CALLBACKS
 	# ^^^^^^^^^^^^^^^^
 	def onFwdPress(self):
-		# dist = rospy.get_param("myviz/nav_goal_dist", 0.75)
-		# self.moveNav(dist)
-		self.moveNav2()
+		self.moveNav()
 
 
 	def onDebugButtonClick(self):
@@ -202,7 +201,7 @@ class MyViz( QWidget ):
 	def faceForward(self):
 		self.isForward = True
 		goal = PoseStamped()
-		goal.header.frame_id = "/base_footprint"
+		goal.header.frame_id = self.robot_frame
 		goal.pose.orientation.w = 1.0
 		# goal = self._get_pose_from_start()
 		# goal.pose.position.y = 0
@@ -222,7 +221,7 @@ class MyViz( QWidget ):
 		goal.pose.orientation.w = 0.0
 		self._send_nav_goal(goal)
 		print ("Now facing backward.")
-	def moveNav2(self):
+	def moveNav(self):
 		if (self.isForward):
 			goal = self._get_end_pose()
 			self._send_nav_goal(goal)
@@ -243,52 +242,52 @@ class MyViz( QWidget ):
 			self.faceBackward()
 
 	#Moves ahead via nav goals while the button is pressed.
-	def moveNav(self, dist):
-		toStart = self._get_pose_from_start()
+	# def moveNav(self, dist):
+	# 	toStart = self._get_pose_from_start()
 
-		# Keep track of how far we've travelled in order to only send new nav goals when need be. 
-		travelled = 0.0
-		goal = self._get_pose_from_start()
-		#oldX indicates our first nav x position.
-		oldX = goal.pose.position.x
+	# 	# Keep track of how far we've travelled in order to only send new nav goals when need be. 
+	# 	travelled = 0.0
+	# 	goal = self._get_pose_from_start()
+	# 	#oldX indicates our first nav x position.
+	# 	oldX = goal.pose.position.x
 		
-		#If we say "travel 1 meter" the robot will probably just travel ~0.9 meters. This trys to account for that by grabbing the x, y tolerance.
-		tolerance = rospy.get_param("/move_base/TrajectoryPlannerROS/xy_goal_tolerance", "0.25")
+	# 	#If we say "travel 1 meter" the robot will probably just travel ~0.9 meters. This trys to account for that by grabbing the x, y tolerance.
+	# 	tolerance = rospy.get_param("/move_base/TrajectoryPlannerROS/xy_goal_tolerance", "0.25")
 		
-		i = 0
-		#give an initial command to go.
-		goal.pose.position.y = 0.0
-		goal.pose.orientation.z = 0.0
-		goal.pose.orientation.w = 0.0
-		if (self.isForward):
-			goal.pose.position.x += dist
-			goal.pose.orientation.w = 1.0
-		else:
-			goal.pose.position.x -= dist
-			goal.pose.orientation.z = 1.0
+	# 	i = 0
+	# 	#give an initial command to go.
+	# 	goal.pose.position.y = 0.0
+	# 	goal.pose.orientation.z = 0.0
+	# 	goal.pose.orientation.w = 0.0
+	# 	if (self.isForward):
+	# 		goal.pose.position.x += dist
+	# 		goal.pose.orientation.w = 1.0
+	# 	else:
+	# 		goal.pose.position.x -= dist
+	# 		goal.pose.orientation.z = 1.0
 
-		self._send_nav_goal(goal)
+	# 	self._send_nav_goal(goal)
 
-		while self.fwd_button.isDown():
-			QApplication.processEvents()
-			goal = self._get_pose_from_start()
-			travelled = abs(goal.pose.position.x - oldX)
-			if (travelled >= (dist - tolerance) ):
-				#Reset our variables tracking our distance travelled.
-				oldX = goal.pose.position.x
-				travelled = 0
+	# 	while self.fwd_button.isDown():
+	# 		QApplication.processEvents()
+	# 		goal = self._get_pose_from_start()
+	# 		travelled = abs(goal.pose.position.x - oldX)
+	# 		if (travelled >= (dist - tolerance) ):
+	# 			#Reset our variables tracking our distance travelled.
+	# 			oldX = goal.pose.position.x
+	# 			travelled = 0
 
-				goal.pose.position.y = 0.0
-				goal.pose.orientation.z = 0.0
-				goal.pose.orientation.w = 0.0
-				if (self.isForward):
-					goal.pose.position.x += dist
-					goal.pose.orientation.w = 1.0
-				else:
-					goal.pose.position.x -= dist
-					goal.pose.orientation.z = 1.0
-				self._send_nav_goal(goal)
-			i += 1
+	# 			goal.pose.position.y = 0.0
+	# 			goal.pose.orientation.z = 0.0
+	# 			goal.pose.orientation.w = 0.0
+	# 			if (self.isForward):
+	# 				goal.pose.position.x += dist
+	# 				goal.pose.orientation.w = 1.0
+	# 			else:
+	# 				goal.pose.position.x -= dist
+	# 				goal.pose.orientation.z = 1.0
+	# 			self._send_nav_goal(goal)
+	# 		i += 1
 		#TODO: THIS RESULTS IN 
 		#THE ROBOT GOING  BACKWARDS DUE TO SENDING MSG TO CURRENT POSITION BEFORE FULLY STOPPING
 		#PLEASE FIX THIS
@@ -375,7 +374,7 @@ class MyViz( QWidget ):
 
 	#Returns transform of robot relative to /start pose.
 	def _get_pose_from_start(self):
-		(trans, rot) = self.listener.lookupTransform("/start", "/base_footprint", rospy.Time(0))
+		(trans, rot) = self.listener.lookupTransform("/start", self.robot_frame, rospy.Time(0))
 		start_trans = PoseStamped()
 		start_trans.header.frame_id = "/start"
 		start_trans.header.stamp = rospy.Time.now()
