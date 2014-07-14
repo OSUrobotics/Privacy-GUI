@@ -97,11 +97,11 @@ class MyViz( QWidget ):
 		# 2. Connect Signal to Slot
 		# 3. Add to layout
 
-		self.stop_button = QPushButton( "STOP" )
-		self.stop_button.clicked.connect( self.onStopButtonClick )
-		self.stop_button.setToolTip('Press this to immediately <b>STOP</b> the robot')
-		self.stop_button.setStyleSheet("background-color: #700000 ; font-weight: bold; color: white")
-		layout.addWidget( self.stop_button, 5, 1 )
+		# self.stop_button = QPushButton( "STOP" )
+		# self.stop_button.clicked.connect( self.onStopButtonClick )
+		# self.stop_button.setToolTip('Press this to immediately <b>STOP</b> the robot')
+		# self.stop_button.setStyleSheet("background-color: #700000 ; font-weight: bold; color: white")
+		# layout.addWidget( self.stop_button, 5, 1 )
 
 		debug_button = QPushButton( "Reset Position" )
 		debug_button.clicked.connect( self.onDebugButtonClick )
@@ -127,8 +127,8 @@ class MyViz( QWidget ):
 		# turn_button = QPushButton( "Turn Around[ALEX DEBUG - Nav Goals]" )
 		turn_button.clicked.connect( self.onTurnButtonClick )
 		turn_button.setToolTip('The robot will turn around 180 degrees')
-		h_layout.addWidget( turn_button )
-		h_layout.setAlignment(turn_button, Qt.AlignHCenter)
+		layout.addWidget( turn_button, 5, 1 )
+		layout.setAlignment(turn_button, Qt.AlignHCenter)
 
 		# turn_twist_button = QPushButton( "Turn Around[ALEX DEBUG - Twist message]" )
 		# # turn_button.clicked.connect( self.onTurnButtonClick )
