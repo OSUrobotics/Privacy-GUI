@@ -21,7 +21,6 @@ from python_qt_binding.QtCore import *
 
 #Get moving!
 from geometry_msgs.msg import Twist, PoseStamped, PoseWithCovarianceStamped
-from goal import Goal
 
 ## Finally import the RViz bindings themselves.
 import rviz
@@ -67,6 +66,8 @@ class MyViz( QWidget ):
 
 	#Is the robot facing forward along our track?
 		self.isForward = True
+	#Get the track_length for our 1D start track.
+		self.track_length = rospy.get_param('remote_nav/track_length', 5.0)
 	
 
 	#Disable unneeded views and more visualization setup
@@ -162,22 +163,17 @@ class MyViz( QWidget ):
 	# BUTTON CALLBACKS
 	# ^^^^^^^^^^^^^^^^
 	def onFwdPress(self):
-		dist = rospy.get_param("myviz/nav_goal_dist", 0.75)
-		self.moveNav(dist)
+		# dist = rospy.get_param("myviz/nav_goal_dist", 0.75)
+		# self.moveNav(dist)
+		self.moveNav2()
 
 
 	def onDebugButtonClick(self):
 	#Tells robot to return to home base.
-		(trans, rot) = self.listener.lookupTransform("/map","/start", rospy.Time(0))
-		goal = PoseStamped()
-		goal.pose.position.x = trans[0]
-		goal.pose.position.y = trans[1]
-
-		goal.pose.orientation.z = rot[2]
-		goal.pose.orientation.w = rot[3]
+		goal = self._get_start_pose()
 
 		self._send_nav_goal(goal)
-		self.faceForward()
+		self.isForward = True
 
 	def onStopButtonClick(self):
 		QApplication.processEvents()
@@ -205,10 +201,13 @@ class MyViz( QWidget ):
 	#Face forward along our track.
 	def faceForward(self):
 		self.isForward = True
-		goal = self._get_pose_from_start()
-		goal.pose.position.y = 0
-		goal.pose.orientation.z = 0.0
+		goal = PoseStamped()
+		goal.header.frame_id = "/base_footprint"
 		goal.pose.orientation.w = 1.0
+		# goal = self._get_pose_from_start()
+		# goal.pose.position.y = 0
+		# goal.pose.orientation.z = 0.0
+		# goal.pose.orientation.w = 1.0
 
 		self._send_nav_goal(goal)
 		print ("Now facing forward.")
@@ -223,16 +222,34 @@ class MyViz( QWidget ):
 		goal.pose.orientation.w = 0.0
 		self._send_nav_goal(goal)
 		print ("Now facing backward.")
+	def moveNav2(self):
+		if (self.isForward):
+			goal = self._get_end_pose()
+			self._send_nav_goal(goal)
+		else:
+			goal = PoseStamped()
+			goal.header.frame_id = "/start"
+			goal.pose.orientation.z = 1.0
+			goal.pose.orientation.w = 0.0
+
+			self._send_nav_goal(goal)
+
+		while self.fwd_button.isDown():
+			QApplication.processEvents()
+
+		if self.isForward:
+			self.faceForward()
+		else:
+			self.faceBackward()
 
 	#Moves ahead via nav goals while the button is pressed.
 	def moveNav(self, dist):
 		toStart = self._get_pose_from_start()
 
 		# Keep track of how far we've travelled in order to only send new nav goals when need be. 
-		# How far we've travelled since last nav goal sent.
 		travelled = 0.0
-		#oldX indicates our first nav x position.
 		goal = self._get_pose_from_start()
+		#oldX indicates our first nav x position.
 		oldX = goal.pose.position.x
 		
 		#If we say "travel 1 meter" the robot will probably just travel ~0.9 meters. This trys to account for that by grabbing the x, y tolerance.
@@ -370,6 +387,24 @@ class MyViz( QWidget ):
 		start_trans.pose.orientation.z = rot[2]
 		start_trans.pose.orientation.w = rot[3]
 		return start_trans
+	#Get start frame's pose with parent frame /map.
+	def _get_start_pose(self):
+		(trans, rot) = self.listener.lookupTransform("/map","/start", rospy.Time(0))
+		goal = PoseStamped()
+		goal.header.frame_id = "/map"
+		goal.pose.position.x = trans[0]
+		goal.pose.position.y = trans[1]
+
+		goal.pose.orientation.z = rot[2]
+		goal.pose.orientation.w = rot[3]
+		return goal
+	#Returns the pose of the END of the track defined by start.
+	def _get_end_pose(self):
+		pose = PoseStamped()
+		pose.header.frame_id = "/start"
+		pose.pose.position.x += self.track_length
+		pose.pose.orientation.w = 1.0
+		return pose
 
 	# def _send_twist(self, x_linear):
 	# 	if self.pub is None:
