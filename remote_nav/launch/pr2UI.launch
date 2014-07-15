@@ -1,4 +1,4 @@
-s<launch>
+<launch>
 
   <!--Publishes our "/start" frame at a constant rate. -->
   <node name="startFrame" pkg="remote_nav" type="startFrame.py">
@@ -10,9 +10,9 @@ s<launch>
   <!-- The frame by which we recognize the robot. For a turtlebot this is /base_footprint -->
   <arg name="robot_frame" default="/base_footprint" />
   <!-- The topic you publish to in order to send nav goals. -->
-  <arg name="nav_topic" default="/move_base_simple/goal" />
+  <arg name="nav_topic" default="/pr2_move_base/goal" />
   <!-- The topic you publish to in order to cancel nav goals. -->
-  <arg name="cancel_topic" default="/move_base/cancel" />
+  <arg name="cancel_topic" default="/pr2_move_base/cancel" />
 
   <node name="myviz" pkg="remote_nav" type="myviz.py" >
   	<param name="robot_frame" value="$(arg robot_frame)"/>
