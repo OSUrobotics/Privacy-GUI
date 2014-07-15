@@ -256,11 +256,7 @@ class MyViz( QWidget ):
 		while self.fwd_button.isDown():
 			QApplication.processEvents()
 		self._cancel_goals()
-		# if self.isForward:
-		# 	self.faceForward()
-		# else:
-		# 	self.faceBackward()
-
+		
 	#Moves ahead via nav goals while the button is pressed.
 	# def moveNav(self, dist):
 	# 	toStart = self._get_pose_from_start()
@@ -406,16 +402,12 @@ class MyViz( QWidget ):
 		start_trans.pose.orientation.z = rot[2]
 		start_trans.pose.orientation.w = rot[3]
 		return start_trans
-	#Get start frame's pose with parent frame /map.
+	#Just returns a goal in the /start frame.
 	def _get_start_pose(self):
-		(trans, rot) = self.listener.lookupTransform("/map","/start", rospy.Time(0))
 		goal = PoseStamped()
-		goal.header.frame_id = "/map"
-		goal.pose.position.x = trans[0]
-		goal.pose.position.y = trans[1]
+		goal.header.frame_id = "/start"
 
-		goal.pose.orientation.z = rot[2]
-		goal.pose.orientation.w = rot[3]
+		goal.pose.orientation.w = 1
 		return goal
 	#Returns the pose of the END of the track defined by start.
 	def _get_end_pose(self):
