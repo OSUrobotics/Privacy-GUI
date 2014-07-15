@@ -1,10 +1,10 @@
-<launch>
+s<launch>
 
   <!--Publishes our "/start" frame at a constant rate. -->
   <node name="startFrame" pkg="remote_nav" type="startFrame.py">
   </node>
 
-  <arg name="rviz_config" default="$(find remote_nav)/rviz/map_and_img.rviz" />
+  <arg name="rviz_config" default="$(find remote_nav)/rviz/pr2_map_img.rviz" />
   <!-- The length in meters of the one dimensional track the robit floats on. -->
   <arg name="track_length" default="2.0" />
   <!-- The frame by which we recognize the robot. For a turtlebot this is /base_footprint -->
