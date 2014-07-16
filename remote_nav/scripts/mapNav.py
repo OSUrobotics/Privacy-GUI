@@ -27,6 +27,7 @@ from actionlib_msgs.msg import GoalID
 
 import tf
 import rospkg
+import threading
 
 # provides method for converting MapMetaData yaml to python class
 from MapMetaData import *
@@ -156,6 +157,20 @@ class Window(QMainWindow):
 
 		newQuat = tf.transformations.quaternion_from_euler(roll,pitch, yaw)
 
+		
+	def update_robot_pose(self):
+		r = rospy.Rate(10)
+		while not rospy.is_shutdown():
+			current_pose = self._get_robot_pose()
+			self.harris.setPoint(current_pose.pose.position.x, current_pose.pose.position.y)
+			quaternion = (current_pose.pose.position.x,current_pose.pose.position.y,current_pose.pose.orientation.z,current_pose.pose.orientation.w)
+			euler = tf.transformations.euler_from_quaternion(quaternion)
+			yaw = euler[2] # yaw gonna make me lose my mind,
+			yaw = yaw + pi
+			self.harris.setRotate(yaw)
+			self.update()
+			r.sleep()
+
 
 
 ##ROBOT OBJECT CLASS
@@ -191,28 +206,26 @@ class Robot(QGraphicsItem):
 		#also set up sizehint
 
 #Work in progress paint event (trying to draw the robot as an image. Using a square for now
-	# def paint(self, painter, option, widget):
-	# 	painter = QPainter(self)
-	# 	painter.setRenderHint(QPainter.Antialiasing)
+	def paint(self, painter, option, widget):
+		size = 25
+		painter.drawPixmap(QRect(0, 0, size, size), self.img)
+		#painter.setRenderHint(QPainter.Antialiasing)
+		if self.img.width() > size:
+			self.img = self.img.scaled(size, size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
-	# 	painter.fillRect(event.rect(), self.palette().brush(QPalette.Window))
-	# 	painter.setPen(Qt.blue)
-	# 	painter.setFont(QFont("Arial", 20))
-	# 	painter.drawText(rect(),QAlignCenter, "Qt")
-	# 	painter.save()
-
-	# def boundingRect(self):
-	# 	width = 20
-	# 	height = 20
-	# 	return QRectF(QPoint(x_pos, y_pos), QSize(width, height))
 
 	def boundingRect(self):
-		penWidth = 1.0
-		return QRectF(-10 - penWidth / 2, -10 - penWidth / 2,
-			20 + penWidth, 20 + penWidth)
+		width = 20
+		height = 20
+		return QRectF(QPoint(0, 0), QSize(width, height))
 
-	def paint(self, painter, option, widget):
-		painter.drawRoundedRect(-10, -10, 20, 20, 5, 5)
+	# def boundingRect(self):
+	# 	penWidth = 1.0
+	# 	return QRectF(-10 - penWidth / 2, -10 - penWidth / 2,
+	# 		20 + penWidth, 20 + penWidth)
+
+	# def paint(self, painter, option, widget):
+	# 	painter.drawRoundedRect(-10, -10, 20, 20, 5, 5)
 	
 	#Sets the rotation in the Image frame, given real-world rotation
 	def setRotate(self, yaw):
@@ -231,10 +244,6 @@ class Robot(QGraphicsItem):
 	# gets the position in the image
 	def getPoint(self):
 		return {'x': self.x_pos, 'y': self.y_pos}
-		
-
-
-
 
 
 
@@ -248,5 +257,9 @@ if __name__ == '__main__':
 	mainWindow = Window()
 	mainWindow.resize( 1000, 1000 )
 	mainWindow.show()
+
+	t = threading.Thread(target=mainWindow.update_robot_pose)
+	t.daemon = True
+	t.start()
 
 	app.exec_()
