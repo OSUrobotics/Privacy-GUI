@@ -56,10 +56,14 @@ class Window(QMainWindow):
 		self.scene=QGraphicsScene()
 
 
+	#THIS IS YOUR ROBOT.  TAKE CARE OF HIM.
+		# self.robot=QGraphicsEllipseItem()
 
 
 		#Add the map background. You can change the path here if you want.
 		self.scene.addPixmap(QPixmap(self.package_path + "/maps/labtest.pgm"))
+
+		#For now, this is the robot.  Will change soon. 
 		self.scene.addEllipse(0, 0, 20, 20)
 		self.world.setScene(self.scene)
 		self.setCentralWidget(self.world)
@@ -111,41 +115,48 @@ class Window(QMainWindow):
 		return goal
 
 # The  Robot Object, THIS IS WHAT YOU EDIT :D
-class Robot(QLabel):
+# class Robot(QGraphicsItem):
 
-	angleChanged = pyqtSignal(float)
-	rotation = 0.0
-	x_pos = 0.0
-	y_pos = 0.0
+# 	angleChanged = pyqtSignal(float)
+# 	rotation = 0.0
+# 	x_pos = 0.0
+# 	y_pos = 0.0
 
-	def __init__(self, parent=None):
-		super(Robot, self).__init__(parent)
-		#set up the Qlabel to be an image of the robot
-		#Make private variables for the orientation and rotation
-		#also set up sizehint
-	def paintEvent(self, event):
-		painter = QPainter()
-		painter.setRenderHint(QPainter.Antialiasing)
+# 	def __init__(self, parent=None):
+# 		super(Robot, self).__init__(parent)
 
-		painter.fillRect(event.rect(), self.palette().brush(QPalette.Window))
-		painter.setPen(Qt.blue)
-		painter.setFont(QFont("Arial", 20))
-		painter.drawText(rect(),QAlignCenter, "Qt")
-		painter.save()
+# 		rospack = rospkg.RosPack()
+# 		package_path = rospack.get_path('remote_nav')
+
+# 		self.img = QPixmap(package_path + '/images/something.png')
+# 		#set up the Qlabel to be an image of the robot
+# 		#Make private variables for the orientation and rotation
+# 		#also set up sizehint
+
+
+# 	def paintEvent(self, event):
+# 		painter = QPainter(self)
+# 		painter.setRenderHint(QPainter.Antialiasing)
+
+# 		painter.fillRect(event.rect(), self.palette().brush(QPalette.Window))
+# 		painter.setPen(Qt.blue)
+# 		painter.setFont(QFont("Arial", 20))
+# 		painter.drawText(rect(),QAlignCenter, "Qt")
+# 		painter.save()
 	
-	#Sets the rotation in the QWidget frame (not the world map)	
-	def setRotate(self, yaw):
-		rotation = yaw
+# 	#Sets the rotation in the QWidget frame (not the world map)	
+# 	def setRotate(self, yaw):
+# 		rotation = yaw
 
-	def getRotate(self):
-		return rotation
+# 	def getRotate(self):
+# 		return rotation
 
-	#Sets the coordinates for use in the QWidget frame (not the world map)
-	def setPoint(self, x, y):
-		x_pos = x
-		y_pos = y
-	def getPoint(self):
-		return {'x':x_pos, 'y': y_pos}
+# 	#Sets the coordinates for use in the QWidget frame (not the world map)
+# 	def setPoint(self, x, y):
+# 		x_pos = x
+# 		y_pos = y
+# 	def getPoint(self):
+# 		return {'x':x_pos, 'y': y_pos}
 		
 
 
