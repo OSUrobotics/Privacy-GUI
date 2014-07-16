@@ -191,28 +191,26 @@ class Robot(QGraphicsItem):
 		#also set up sizehint
 
 #Work in progress paint event (trying to draw the robot as an image. Using a square for now
-	# def paint(self, painter, option, widget):
-	# 	painter = QPainter(self)
-	# 	painter.setRenderHint(QPainter.Antialiasing)
+	def paint(self, painter, option, widget):
+		size = 25
+		painter.drawPixmap(QRect(0, 0, size, size), self.img)
+		#painter.setRenderHint(QPainter.Antialiasing)
+		if self.img.width() > size:
+			self.img = self.img.scaled(size, size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
-	# 	painter.fillRect(event.rect(), self.palette().brush(QPalette.Window))
-	# 	painter.setPen(Qt.blue)
-	# 	painter.setFont(QFont("Arial", 20))
-	# 	painter.drawText(rect(),QAlignCenter, "Qt")
-	# 	painter.save()
-
-	# def boundingRect(self):
-	# 	width = 20
-	# 	height = 20
-	# 	return QRectF(QPoint(x_pos, y_pos), QSize(width, height))
 
 	def boundingRect(self):
-		penWidth = 1.0
-		return QRectF(-10 - penWidth / 2, -10 - penWidth / 2,
-			20 + penWidth, 20 + penWidth)
+		width = 20
+		height = 20
+		return QRectF(QPoint(0, 0), QSize(width, height))
 
-	def paint(self, painter, option, widget):
-		painter.drawRoundedRect(-10, -10, 20, 20, 5, 5)
+	# def boundingRect(self):
+	# 	penWidth = 1.0
+	# 	return QRectF(-10 - penWidth / 2, -10 - penWidth / 2,
+	# 		20 + penWidth, 20 + penWidth)
+
+	# def paint(self, painter, option, widget):
+	# 	painter.drawRoundedRect(-10, -10, 20, 20, 5, 5)
 	
 	#Sets the rotation in the Image frame, given real-world rotation
 	def setRotate(self, yaw):
