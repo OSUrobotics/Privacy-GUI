@@ -77,7 +77,7 @@ class Window(QMainWindow):
 
 		#For now, this is the robot.  Will change soon. 
 		self.scene.addItem(self.harris)
-		self.harris.setPos(240, 250) #This is how you change the position (X, Y)
+		self.harris.setPoint(0, 0) #This is how you change the position (X, Y)
 		self.harris.setTransformOriginPoint(10, 10) #Changes the origin for its own transformations. Maybe make center?
 		self.harris.setRotation(27) # This is how you change the rotation (degrees)
 
@@ -142,9 +142,7 @@ class Window(QMainWindow):
 class Robot(QGraphicsItem):
 
 	angleChanged = pyqtSignal(float)
-	self.robot_width = 0.6 	# meters, in the real world
-	self.x_pos = 0.0
-	self.y_pos = 0.0
+	robot_width = 0.6 	# meters, in the real world
 
 	def __init__(self, parent=None):
 		super(Robot, self).__init__(parent)
@@ -152,8 +150,7 @@ class Robot(QGraphicsItem):
 		rospack = rospkg.RosPack()
 		package_path = rospack.get_path('remote_nav')
 
-		self.img = QPixmap(package_path + '/images/pr2HeadUp.png')
-# Get the relevant information from the yaml
+		# Get the relevant information from the yaml
 		map_meta_data = yaml_to_meta_data(package_path + '/maps/labtest.yaml')
 		self.origin = map_meta_data.origin
 		self.resolution = map_meta_data.resolution
@@ -165,8 +162,8 @@ class Robot(QGraphicsItem):
 
 		# Make private variables for the orientation and rotation
 		# until we know where the robot is, it will start at image origin
-		self.img_x_pos = 0.0
-		self.img_y_pos = 0.0
+		self.x_pos = 0.0
+		self.y_pos = 0.0
 		self.rotation = 0.0
 		#set up the Qlabel to be an image of the robot
 		#Make private variables for the orientation and rotation
@@ -198,19 +195,20 @@ class Robot(QGraphicsItem):
 	
 	#Sets the rotation in the Image frame, given real-world rotation
 	def setRotate(self, yaw):
-		rotation = yaw + self.origin[2]
+		self.rotation = yaw + self.origin[2]
 	# Gets the rotation in the image
 	def getRotate(self):
-		return rotation
+		return self.rotation
 
 	# Sets the coordinates for use in the Image frame based on the 
-	# real-world coordinates given
+	# real-world coordinates (relative to /map frame)
 	def setPoint(self, real_x, real_y):
-		self.img_x_pos = real_x + self.origin[0]
-		self.img_y_pos = real_y + self.origin[1]
+		self.x_pos = (real_x - self.origin[0]) / self.resolution
+		self.y_pos = (real_y - self.origin[1]) / self.resolution
+		self.setPos(self.x_pos, self.y_pos)
 	# gets the position in the image
 	def getPoint(self):
-		return {'x':x_pos, 'y': y_pos}
+		return {'x': self.x_pos, 'y': self.y_pos}
 		
 
 
