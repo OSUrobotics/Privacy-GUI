@@ -48,28 +48,47 @@ class Window(QMainWindow):
 		self.track_length = rospy.get_param('remote_nav/track_length', 5.0)
 		self.robot_frame = rospy.get_param('remote_nav/robot_frame', "/base_footprint")
 
-		self.initUI()
-
-	#This function puts together the visuals in the init.  
-	def initUI(self):
-		self.world=QGraphicsView()
-		self.scene=QGraphicsScene()
-
-
-	#THIS IS YOUR ROBOT.  TAKE CARE OF HIM.
-		# self.robot=QGraphicsEllipseItem()
-
-
-		#Add the map background. You can change the path here if you want.
-		self.scene.addPixmap(QPixmap(self.package_path + "/maps/labtest.pgm"))
-
-		#For now, this is the robot.  Will change soon. 
-		self.scene.addEllipse(0, 0, 20, 20)
-		self.world.setScene(self.scene)
-		self.setCentralWidget(self.world)
+		self.initMapFrame()
 		self.setGeometry(300, 300, 350, 250)
 		self.setWindowTitle('Robot Map')
 		self.show()
+
+	#This function puts together the visuals in the init.  
+	def initMapFrame(self):
+		self.world=QGraphicsView()
+		self.scene=QGraphicsScene()
+		self.scene.addPixmap(QPixmap(self.package_path + "/maps/labtest.pgm"))
+
+
+##ROBOT STUFF
+##^^^^^^^^^^^
+		self.harris = Robot()
+		print ("Rotation is: " )
+		print self.harris.getRotate()
+
+
+
+		#feel free to make whatever functions you want. You can also edit the  Robot class
+
+
+
+		#For now, this is the robot.  Will change soon. 
+		self.scene.addItem(self.harris)
+		self.harris.setPos(240, 250) #This is how you change the position (X, Y)
+		self.harris.setTransformOriginPoint(10, 10) #Changes the origin for its own transformations. Maybe make center?
+		self.harris.setRotation(27) # This is how you change the rotation (degrees)
+
+		#This is how you change the scale of the object.
+		#A scale of 0 is a single point
+		#A negative scale flips it over the origin (so it will be mirrored)
+		#Regular scale is 1.0
+		self.harris.setScale(1.0)
+
+
+#----------end  robot stuff -----------
+
+		self.world.setScene(self.scene)
+		self.setCentralWidget(self.world)
 
 	def closeEvent(self, event):
 		reply = QMessageBox.question(self, 'Message',
@@ -114,49 +133,63 @@ class Window(QMainWindow):
 		goal.pose.orientation.w = rot[3]
 		return goal
 
-# The  Robot Object, THIS IS WHAT YOU EDIT :D
-# class Robot(QGraphicsItem):
+##ROBOT OBJECT CLASS
+##^^^^^^^^^^^^^^^^^^
+class Robot(QGraphicsItem):
 
-# 	angleChanged = pyqtSignal(float)
-# 	rotation = 0.0
-# 	x_pos = 0.0
-# 	y_pos = 0.0
+	def __init__(self, parent=None):
+		super(Robot, self).__init__(parent)
+		angleChanged = pyqtSignal(float)
+		self.rotation = 0.0
+		self.x_pos = 0.0
+		self.y_pos = 0.0
 
-# 	def __init__(self, parent=None):
-# 		super(Robot, self).__init__(parent)
+		rospack = rospkg.RosPack()
+		package_path = rospack.get_path('remote_nav')
 
-# 		rospack = rospkg.RosPack()
-# 		package_path = rospack.get_path('remote_nav')
+		self.img = QPixmap(package_path + '/images/pr2HeadUp.png')
+		#set up the Qlabel to be an image of the robot
+		#Make private variables for the orientation and rotation
+		#also set up sizehint
 
-# 		self.img = QPixmap(package_path + '/images/something.png')
-# 		#set up the Qlabel to be an image of the robot
-# 		#Make private variables for the orientation and rotation
-# 		#also set up sizehint
+#Work in progress paint event (trying to draw the robot as an image. Using a square for now
+	# def paint(self, painter, option, widget):
+	# 	painter = QPainter(self)
+	# 	painter.setRenderHint(QPainter.Antialiasing)
 
+	# 	painter.fillRect(event.rect(), self.palette().brush(QPalette.Window))
+	# 	painter.setPen(Qt.blue)
+	# 	painter.setFont(QFont("Arial", 20))
+	# 	painter.drawText(rect(),QAlignCenter, "Qt")
+	# 	painter.save()
 
-# 	def paintEvent(self, event):
-# 		painter = QPainter(self)
-# 		painter.setRenderHint(QPainter.Antialiasing)
+	# def boundingRect(self):
+	# 	width = 20
+	# 	height = 20
+	# 	return QRectF(QPoint(x_pos, y_pos), QSize(width, height))
 
-# 		painter.fillRect(event.rect(), self.palette().brush(QPalette.Window))
-# 		painter.setPen(Qt.blue)
-# 		painter.setFont(QFont("Arial", 20))
-# 		painter.drawText(rect(),QAlignCenter, "Qt")
-# 		painter.save()
+	def boundingRect(self):
+		penWidth = 1.0
+		return QRectF(-10 - penWidth / 2, -10 - penWidth / 2,
+			20 + penWidth, 20 + penWidth)
+
+	def paint(self, painter, option, widget):
+		painter.drawRoundedRect(-10, -10, 20, 20, 5, 5)
+
 	
-# 	#Sets the rotation in the QWidget frame (not the world map)	
-# 	def setRotate(self, yaw):
-# 		rotation = yaw
+	#Sets the rotation in the QWidget frame (not the world map)	
+	def setRotate(self, yaw):
+		self.rotation = yaw
 
-# 	def getRotate(self):
-# 		return rotation
+	def getRotate(self):
+		return self.rotation
 
-# 	#Sets the coordinates for use in the QWidget frame (not the world map)
-# 	def setPoint(self, x, y):
-# 		x_pos = x
-# 		y_pos = y
-# 	def getPoint(self):
-# 		return {'x':x_pos, 'y': y_pos}
+	#Sets the coordinates for use in the QWidget frame (not the world map)
+	def setPoint(self, x, y):
+		self.x_pos = x
+		self.y_pos = y
+	def getPoint(self):
+		return {'x':self.x_pos, 'y': self.y_pos}
 		
 
 
@@ -172,7 +205,7 @@ if __name__ == '__main__':
 	rospy.init_node('move')
 
 	mainWindow = Window()
-	mainWindow.resize( 1000, 500 )
+	mainWindow.resize( 1000, 1000 )
 	mainWindow.show()
 
 	app.exec_()
