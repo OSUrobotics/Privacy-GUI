@@ -79,7 +79,7 @@ class Window(QMainWindow):
 		self.scene.addItem(self.harris)
 		self.harris.setPoint(0, 0) #This is how you change the position (X, Y)
 		self.harris.setTransformOriginPoint(10, 10) #Changes the origin for its own transformations. Maybe make center?
-		self.harris.setRotation(27) # This is how you change the rotation (degrees)
+		self.harris.setRotate(0) # This is how you change the rotation (degrees)
 
 		#This is how you change the scale of the object.
 		#A scale of 0 is a single point
@@ -195,7 +195,8 @@ class Robot(QGraphicsItem):
 	
 	#Sets the rotation in the Image frame, given real-world rotation
 	def setRotate(self, yaw):
-		self.rotation = yaw + self.origin[2]
+		self.rotation = yaw - self.origin[2]
+		self.setRotation(self.rotation)
 	# Gets the rotation in the image
 	def getRotate(self):
 		return self.rotation
