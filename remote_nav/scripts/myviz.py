@@ -52,7 +52,7 @@ class MyViz( QWidget ):
 		rospack = rospkg.RosPack()
 		package_path = rospack.get_path('remote_nav')
 		#Now you can grab this filepath from either roslaunch remote_nav myviz and using the launch file or just rosrun.
-		config_file = rospy.get_param('remote_nav/rviz_config', package_path + "/rviz/map_and_img.rviz")
+		config_file = rospy.get_param('remote_nav/rviz_config', package_path + "/rviz/pr2_map_img.rviz")
 		reader.readFile( config, config_file )
 		self.frame.load( config )
 
@@ -65,8 +65,8 @@ class MyViz( QWidget ):
 		# self.zero_cmd_sent = False
 
 	#For sending nav goals.
-		nav_topic = rospy.get_param("/remote_nav/nav_topic", "/move_base_simple/goal")
-		cancel_topic = rospy.get_param("/remote_nav/cancel_topic", '/move_base/cancel')
+		nav_topic = rospy.get_param("remote_nav/nav_topic", "/move_base_simple/goal")
+		cancel_topic = rospy.get_param("remote_nav/cancel_topic", '/move_base/cancel')
 		self.nav_pub = rospy.Publisher(nav_topic, PoseStamped)
 	#A publisher to literally tell dis bisnatch to cancel all goals.
 		self.cancel_pub = rospy.Publisher(cancel_topic, GoalID)
@@ -507,7 +507,7 @@ class PicButton(QAbstractButton):
 ## ^^^^^^^^^^^^^^^^^^^^^
 if __name__ == '__main__':
 	app = QApplication( sys.argv )
-	rospy.init_node('move')
+	rospy.init_node('remote_nav')
 
 	myviz = MyViz()
 	myviz.resize( 1000, 500 )

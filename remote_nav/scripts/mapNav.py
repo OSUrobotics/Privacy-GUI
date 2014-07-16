@@ -28,6 +28,9 @@ from actionlib_msgs.msg import GoalID
 import tf
 import rospkg
 
+# provides method for converting MapMetaData yaml to python class
+from MapMetaData import *
+
 
 ## Main Window
 ##^^^^^^^^^^^^^
@@ -133,21 +136,38 @@ class Window(QMainWindow):
 		goal.pose.orientation.w = rot[3]
 		return goal
 
+
 ##ROBOT OBJECT CLASS
 ##^^^^^^^^^^^^^^^^^^
 class Robot(QGraphicsItem):
 
+	angleChanged = pyqtSignal(float)
+	self.robot_width = 0.6 	# meters, in the real world
+	self.x_pos = 0.0
+	self.y_pos = 0.0
+
 	def __init__(self, parent=None):
 		super(Robot, self).__init__(parent)
-		angleChanged = pyqtSignal(float)
-		self.rotation = 0.0
-		self.x_pos = 0.0
-		self.y_pos = 0.0
 
 		rospack = rospkg.RosPack()
 		package_path = rospack.get_path('remote_nav')
 
 		self.img = QPixmap(package_path + '/images/pr2HeadUp.png')
+# Get the relevant information from the yaml
+		map_meta_data = yaml_to_meta_data(package_path + '/maps/labtest.yaml')
+		self.origin = map_meta_data.origin
+		self.resolution = map_meta_data.resolution
+
+		# Set the image and scale it 
+		self.img = QPixmap(package_path + '/images/pr2HeadUp.png')
+		robot_size = (int)(self.robot_width / self.resolution)
+		self.img.scaled(robot_size, robot_size)
+
+		# Make private variables for the orientation and rotation
+		# until we know where the robot is, it will start at image origin
+		self.img_x_pos = 0.0
+		self.img_y_pos = 0.0
+		self.rotation = 0.0
 		#set up the Qlabel to be an image of the robot
 		#Make private variables for the orientation and rotation
 		#also set up sizehint
@@ -175,21 +195,22 @@ class Robot(QGraphicsItem):
 
 	def paint(self, painter, option, widget):
 		painter.drawRoundedRect(-10, -10, 20, 20, 5, 5)
-
 	
-	#Sets the rotation in the QWidget frame (not the world map)	
+	#Sets the rotation in the Image frame, given real-world rotation
 	def setRotate(self, yaw):
-		self.rotation = yaw
-
+		rotation = yaw + self.origin[2]
+	# Gets the rotation in the image
 	def getRotate(self):
-		return self.rotation
+		return rotation
 
-	#Sets the coordinates for use in the QWidget frame (not the world map)
-	def setPoint(self, x, y):
-		self.x_pos = x
-		self.y_pos = y
+	# Sets the coordinates for use in the Image frame based on the 
+	# real-world coordinates given
+	def setPoint(self, real_x, real_y):
+		self.img_x_pos = real_x + self.origin[0]
+		self.img_y_pos = real_y + self.origin[1]
+	# gets the position in the image
 	def getPoint(self):
-		return {'x':self.x_pos, 'y': self.y_pos}
+		return {'x':x_pos, 'y': y_pos}
 		
 
 
