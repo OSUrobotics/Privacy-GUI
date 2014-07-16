@@ -27,6 +27,7 @@ from actionlib_msgs.msg import GoalID
 
 import tf
 import rospkg
+import threading
 
 # provides method for converting MapMetaData yaml to python class
 from MapMetaData import *
@@ -156,6 +157,20 @@ class Window(QMainWindow):
 
 		newQuat = tf.transformations.quaternion_from_euler(roll,pitch, yaw)
 
+		
+	def update_robot_pose(self):
+		r = rospy.Rate(10)
+		while not rospy.is_shutdown():
+			current_pose = self._get_robot_pose()
+			self.harris.setPoint(current_pose.pose.position.x, current_pose.pose.position.y)
+			quaternion = (current_pose.pose.position.x,current_pose.pose.position.y,current_pose.pose.orientation.z,current_pose.pose.orientation.w)
+			euler = tf.transformations.euler_from_quaternion(quaternion)
+			yaw = euler[2] # yaw gonna make me lose my mind,
+			yaw = yaw + pi
+			self.harris.setRotate(yaw)
+			self.update()
+			r.sleep()
+
 
 
 ##ROBOT OBJECT CLASS
@@ -231,10 +246,6 @@ class Robot(QGraphicsItem):
 	# gets the position in the image
 	def getPoint(self):
 		return {'x': self.x_pos, 'y': self.y_pos}
-		
-
-
-
 
 
 
@@ -248,5 +259,9 @@ if __name__ == '__main__':
 	mainWindow = Window()
 	mainWindow.resize( 1000, 1000 )
 	mainWindow.show()
+
+	t = threading.Thread(target=mainWindow.update_robot_pose)
+	t.daemon = True
+	t.start()
 
 	app.exec_()
