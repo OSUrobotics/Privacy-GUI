@@ -14,12 +14,12 @@
   <!-- The topic you publish to in order to cancel nav goals. -->
   <arg name="cancel_topic" default="/move_base/cancel" />
 
-  <node name="myviz" pkg="remote_nav" type="myviz.py" >
+  <node name="remote_nav" pkg="remote_nav" type="myviz.py" >
   	<param name="robot_frame" value="$(arg robot_frame)"/>
   	<param name="rviz_config" value="$(arg rviz_config)"/>
   	<param name="track_length" value="$(arg track_length)"/>
-    <param name="nav_topic" value="/move_base_simple/goal" />
-    <param name="cancel_topic" value="/move_base/cancel" />
+    <param name="nav_topic" value="$(arg nav_topic)" />
+    <param name="cancel_topic" value="$(arg cancel_topic)" />
 
   </node>
 </launch>
