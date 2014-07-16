@@ -28,6 +28,9 @@ from actionlib_msgs.msg import GoalID
 import tf
 import rospkg
 
+# provides method for converting MapMetaData yaml to python class
+from MapMetaData import *
+
 
 ## Main Window
 ##^^^^^^^^^^^^^
@@ -115,48 +118,56 @@ class Window(QMainWindow):
 		return goal
 
 # The  Robot Object, THIS IS WHAT YOU EDIT :D
-# class Robot(QGraphicsItem):
+class Robot(QGraphicsItem):
 
-# 	angleChanged = pyqtSignal(float)
-# 	rotation = 0.0
-# 	x_pos = 0.0
-# 	y_pos = 0.0
+	angleChanged = pyqtSignal(float)
+	rotation = 0.0
+	x_pos = 0.0
+	y_pos = 0.0
+	robot_width = 0.6 	# meters, in the real world
 
-# 	def __init__(self, parent=None):
-# 		super(Robot, self).__init__(parent)
+	def __init__(self, parent=None):
+		super(Robot, self).__init__(parent)
 
-# 		rospack = rospkg.RosPack()
-# 		package_path = rospack.get_path('remote_nav')
+		rospack = rospkg.RosPack()
+		package_path = rospack.get_path('remote_nav')
 
-# 		self.img = QPixmap(package_path + '/images/something.png')
-# 		#set up the Qlabel to be an image of the robot
-# 		#Make private variables for the orientation and rotation
-# 		#also set up sizehint
+		# Get the relevant information from the yaml
+		map_meta_data = yaml_to_meta_data(package_path + '/maps/labtest.yaml')
+		self.origin = map_meta_data.origin
+		self.resolution = map_meta_data.resolution
 
+		# Set the image and scale it 
+		self.img = QPixmap(package_path + '/images/pr2HeadUp.png')
+		robot_size = (int)(self.robot_width / self.resolution)
+		self.img.scaled(robot_size, robot_size)
 
-# 	def paintEvent(self, event):
-# 		painter = QPainter(self)
-# 		painter.setRenderHint(QPainter.Antialiasing)
+		# Make private variables for the orientation and rotation
+		# also set up sizehint
 
-# 		painter.fillRect(event.rect(), self.palette().brush(QPalette.Window))
-# 		painter.setPen(Qt.blue)
-# 		painter.setFont(QFont("Arial", 20))
-# 		painter.drawText(rect(),QAlignCenter, "Qt")
-# 		painter.save()
+	def paintEvent(self, event):
+		painter = QPainter(self)
+		painter.setRenderHint(QPainter.Antialiasing)
+
+		painter.fillRect(event.rect(), self.palette().brush(QPalette.Window))
+		painter.setPen(Qt.blue)
+		painter.setFont(QFont("Arial", 20))
+		painter.drawText(rect(),QAlignCenter, "Qt")
+		painter.save()
 	
-# 	#Sets the rotation in the QWidget frame (not the world map)	
-# 	def setRotate(self, yaw):
-# 		rotation = yaw
+	#Sets the rotation in the QWidget frame (not the world map)	
+	def setRotate(self, yaw):
+		rotation = yaw
 
-# 	def getRotate(self):
-# 		return rotation
+	def getRotate(self):
+		return rotation
 
-# 	#Sets the coordinates for use in the QWidget frame (not the world map)
-# 	def setPoint(self, x, y):
-# 		x_pos = x
-# 		y_pos = y
-# 	def getPoint(self):
-# 		return {'x':x_pos, 'y': y_pos}
+	#Sets the coordinates for use in the QWidget frame (not the world map)
+	def setPoint(self, x, y):
+		x_pos = x
+		y_pos = y
+	def getPoint(self):
+		return {'x':x_pos, 'y': y_pos}
 		
 
 

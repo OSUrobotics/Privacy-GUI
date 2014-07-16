@@ -20,5 +20,7 @@ def yaml_to_meta_data(file_name):
 	file_text = fo.read()
 	meta_data = yaml.load("--- !MapMetaData \n" + file_text)
 
+	fo.close()
+
 	# return MapMetaData object
 	return meta_data
