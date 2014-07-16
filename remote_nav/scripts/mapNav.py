@@ -113,6 +113,27 @@ class Window(QMainWindow):
 		goal.pose.orientation.z = rot[2]
 		goal.pose.orientation.w = rot[3]
 		return goal
+	#Returns pose of robot in /map frame.
+	def _get_robot_pose(self):
+		(trans, rot) = self.listener.lookupTransform("/map","/base_footprint", rospy.Time(0))
+		goal = PoseStamped()
+		goal.header.frame_id = "/map"
+		goal.pose.position.x = trans[0]
+		goal.pose.position.y = trans[1]
+
+		goal.pose.orientation.z = rot[2]
+		goal.pose.orientation.w = rot[3]
+		return goal
+	def quaternion_to_angle(self):
+		quaternion = (x,y,z,w)
+		euler = tf.transformations.euler_from_quaternion(quaternion)
+		yaw = euler[2] # yaw gonna make me lose my mind,
+		pitch = euler[1] #up in pitch
+		roll = euler[0] #up in roll (see photo at bottom)
+		yaw = yaw + pi
+
+		newQuat = tf.transformations.quaternion_from_euler(roll,pitch, yaw)
+
 
 # The  Robot Object, THIS IS WHAT YOU EDIT :D
 # class Robot(QGraphicsItem):
