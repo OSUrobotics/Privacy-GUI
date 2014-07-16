@@ -121,9 +121,6 @@ class Window(QMainWindow):
 class Robot(QGraphicsItem):
 
 	angleChanged = pyqtSignal(float)
-	rotation = 0.0
-	x_pos = 0.0
-	y_pos = 0.0
 	robot_width = 0.6 	# meters, in the real world
 
 	def __init__(self, parent=None):
@@ -143,7 +140,10 @@ class Robot(QGraphicsItem):
 		self.img.scaled(robot_size, robot_size)
 
 		# Make private variables for the orientation and rotation
-		# also set up sizehint
+		# until we know where the robot is, it will start at image origin
+		self.img_x_pos = 0.0
+		self.img_y_pos = 0.0
+		self.rotation = 0.0
 
 	def paintEvent(self, event):
 		painter = QPainter(self)
@@ -155,17 +155,19 @@ class Robot(QGraphicsItem):
 		painter.drawText(rect(),QAlignCenter, "Qt")
 		painter.save()
 	
-	#Sets the rotation in the QWidget frame (not the world map)	
+	#Sets the rotation in the Image frame, given real-world rotation
 	def setRotate(self, yaw):
-		rotation = yaw
-
+		rotation = yaw + self.origin[2]
+	# Gets the rotation in the image
 	def getRotate(self):
 		return rotation
 
-	#Sets the coordinates for use in the QWidget frame (not the world map)
-	def setPoint(self, x, y):
-		x_pos = x
-		y_pos = y
+	# Sets the coordinates for use in the Image frame based on the 
+	# real-world coordinates given
+	def setPoint(self, real_x, real_y):
+		self.img_x_pos = real_x + self.origin[0]
+		self.img_y_pos = real_y + self.origin[1]
+	# gets the position in the image
 	def getPoint(self):
 		return {'x':x_pos, 'y': y_pos}
 		
