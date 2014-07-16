@@ -20,8 +20,10 @@ from python_qt_binding.QtGui import *
 from python_qt_binding.QtCore import *
 
 #Get moving!
-from geometry_msgs.msg import Twist, PoseStamped, PoseWithCovarianceStamped
+from geometry_msgs.msg import Twist, PoseStamped, PoseWithCovarianceStamped, PointStamped
 from actionlib_msgs.msg import GoalID
+# from pr2_controllers_msgs.msg import PointHeadActionGoal
+from control_msgs.msg import PointHeadActionGoal
 
 ## Finally import the RViz bindings themselves.
 import rviz
@@ -66,10 +68,15 @@ class MyViz( QWidget ):
 
 	#For sending nav goals.
 		nav_topic = rospy.get_param("remote_nav/nav_topic", "/move_base_simple/goal")
-		cancel_topic = rospy.get_param("remote_nav/cancel_topic", '/move_base/cancel')
 		self.nav_pub = rospy.Publisher(nav_topic, PoseStamped)
 	#A publisher to literally tell dis bisnatch to cancel all goals.
+		cancel_topic = rospy.get_param("remote_nav/cancel_topic", '/move_base/cancel')
 		self.cancel_pub = rospy.Publisher(cancel_topic, GoalID)
+
+	#We choose in our implementation to move the head using the preexisting head trajectory controller.
+		head_topic = rospy.get_param("remote_nav/head_topic", 'are you a turtlebot? This no for turtlebot')
+		self.head_pub = rospy.Publisher(head_topic, PointHeadActionGoal)
+	#We need be transformin these mofuckin frames.
 		self.listener = tf.TransformListener()
 
 	#Is the robot facing forward along our track?
@@ -145,11 +152,13 @@ class MyViz( QWidget ):
 
 		look_left_btn = PicButton(QPixmap(package_path + "/images/left.png"))
 		look_left_btn.setClickPix(QPixmap(package_path + "/images/leftDark.png"))
+		look_left_btn.pressed.connect( self.onLeftButtonClick )
 		# layout.addWidget(look_left_btn, 2, 0)
 		# layout.setAlignment(look_left_btn, Qt.AlignLeft)
 
 		look_right_btn = PicButton(QPixmap(package_path + "/images/right.png"))
 		look_right_btn.setClickPix(QPixmap(package_path + "/images/rightDark.png"))
+		look_right_btn.pressed.connect( self.onRightButtonClick )
 		# layout.addWidget(look_right_btn, 2, 2)
 		# layout.setAlignment(look_right_btn, Qt.AlignRight)
 		
@@ -216,6 +225,36 @@ class MyViz( QWidget ):
 
 	def onResetDirButtonClick(self):
 		self.faceForward()
+	def onLeftButtonClick(self):
+		self.lookLeft()
+	def onRightButtonClick(self):
+		self.lookRight()
+
+## MOVE ZE HEAD FUNCTIONS
+## ^^^^^^^^^^^^^^^^^^^^
+
+	def lookLeft(self):
+		goal = PointHeadActionGoal()
+
+		#the point to be looking at is expressed in the "base_link" frame
+		point = PointStamped()
+		point.header.frame_id = "base_link"
+		point.header.stamp = rospy.Time.now()
+		point.point.x = 1.0
+		point.point.y = 0.5 
+		point.point.z = 1.20
+		goal.goal.target = point
+
+		#we want the X axis of the camera frame to be pointing at the target
+		goal.header.frame_id = "base_link"
+		goal.goal.pointing_frame = "high_def_frame"
+		goal.goal.pointing_axis.x = 1
+		goal.goal.pointing_axis.y = 0
+		goal.goal.pointing_axis.z = 0
+		goal.goal.max_velocity = 1.0
+		self. head_pub.publish(goal)
+	def lookRight(self):
+		pass
 
 ## NAVIGATION FUNCTIONS
 ## ^^^^^^^^^^^^^^^^^^^^

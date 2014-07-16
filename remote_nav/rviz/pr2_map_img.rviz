@@ -52,7 +52,7 @@ Visualization Manager:
 
     - Class: rviz/Pose
       Enabled: true
-      Topic: /pr2_base_simple/goal
+      Topic: /move_base_simple/goal
       Shape: Arrow
       Color: 255; 25; 0 
       Alpha: 1
