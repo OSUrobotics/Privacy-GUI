@@ -23,7 +23,8 @@ from python_qt_binding.QtCore import *
 from geometry_msgs.msg import Twist, PoseStamped, PoseWithCovarianceStamped, PointStamped
 from actionlib_msgs.msg import GoalID
 # from pr2_controllers_msgs.msg import PointHeadActionGoal
-from control_msgs.msg import PointHeadActionGoal
+from control_msgs.msg import PointHeadAction, PointHeadGoal
+import actionlib
 
 ## Finally import the RViz bindings themselves.
 import rviz
@@ -38,22 +39,24 @@ class MyViz( QWidget ):
 	def __init__(self):
 
 		QWidget.__init__(self)
+		self.init_ros_variables()
+		
 	#The visualizer
 		self.frame = rviz.VisualizationFrame()
 		self.frame.setSplashPath( "" )
 		self.frame.initialize()
-
-
 
 	## The reader reads config file data into the config object.
 		## VisualizationFrame reads its data from the config object.
 		reader = rviz.YamlConfigReader()
 		config = rviz.Config()
 
-		# We use rospack to find the filepath for remote_nav.
+	# We use rospack to find the filepath for remote_nav.
 		rospack = rospkg.RosPack()
 		package_path = rospack.get_path('remote_nav')
-		#Now you can grab this filepath from either roslaunch remote_nav myviz and using the launch file or just rosrun.
+
+
+	#Now you can grab this filepath from either roslaunch remote_nav myviz and using the launch file or just rosrun.
 		config_file = rospy.get_param('remote_nav/rviz_config', package_path + "/rviz/pr2_map_img.rviz")
 		reader.readFile( config, config_file )
 		self.frame.load( config )
@@ -61,30 +64,6 @@ class MyViz( QWidget ):
 		self.setWindowTitle( config.mapGetChild( "Title" ).getValue() )
 		self.setWindowIcon(QIcon(package_path +'/images/icon.png'))
 
-
-	#The twist commands
-		# self.pub = rospy.Publisher('mobile_base/commands/velocity', Twist) 
-		# self.zero_cmd_sent = False
-
-	#For sending nav goals.
-		nav_topic = rospy.get_param("remote_nav/nav_topic", "/move_base_simple/goal")
-		self.nav_pub = rospy.Publisher(nav_topic, PoseStamped)
-	#A publisher to literally tell dis bisnatch to cancel all goals.
-		cancel_topic = rospy.get_param("remote_nav/cancel_topic", '/move_base/cancel')
-		self.cancel_pub = rospy.Publisher(cancel_topic, GoalID)
-
-	#We choose in our implementation to move the head using the preexisting head trajectory controller.
-		head_topic = rospy.get_param("remote_nav/head_topic", 'are you a turtlebot? This no for turtlebot')
-		self.head_pub = rospy.Publisher(head_topic, PointHeadActionGoal)
-	#We need be transformin these mofuckin frames.
-		self.listener = tf.TransformListener()
-
-	#Is the robot facing forward along our track?
-		self.isForward = True
-	#Get the track_length for our 1D start track.
-		self.track_length = rospy.get_param('remote_nav/track_length', 5.0)
-		self.robot_frame = rospy.get_param('remote_nav/robot_frame', "/base_footprint")
-	
 
 	#Disable unneeded views and more visualization setup
 		self.frame.setMenuBar( None )
@@ -152,13 +131,13 @@ class MyViz( QWidget ):
 
 		look_left_btn = PicButton(QPixmap(package_path + "/images/left.png"))
 		look_left_btn.setClickPix(QPixmap(package_path + "/images/leftDark.png"))
-		look_left_btn.pressed.connect( self.onLeftButtonClick )
+		look_left_btn.clicked.connect( self.onLeftButtonClick )
 		# layout.addWidget(look_left_btn, 2, 0)
 		# layout.setAlignment(look_left_btn, Qt.AlignLeft)
 
 		look_right_btn = PicButton(QPixmap(package_path + "/images/right.png"))
 		look_right_btn.setClickPix(QPixmap(package_path + "/images/rightDark.png"))
-		look_right_btn.pressed.connect( self.onRightButtonClick )
+		look_right_btn.clicked.connect( self.onRightButtonClick )
 		# layout.addWidget(look_right_btn, 2, 2)
 		# layout.setAlignment(look_right_btn, Qt.AlignRight)
 		
@@ -173,7 +152,33 @@ class MyViz( QWidget ):
 
 		layout.addLayout( h_layout, 5, 1 )	
 		self.setLayout( layout )
+	#The initializer was getting crowded. Here's all the ros/alex stuff
+	def init_ros_variables(self):
+	#The twist commands
+		# self.pub = rospy.Publisher('mobile_base/commands/velocity', Twist) 
+		# self.zero_cmd_sent = False
 
+	#For sending nav goals.
+		nav_topic = rospy.get_param("remote_nav/nav_topic", "/move_base_simple/goal")
+		self.nav_pub = rospy.Publisher(nav_topic, PoseStamped)
+	#A publisher to literally tell dis bisnatch to cancel all goals.
+		cancel_topic = rospy.get_param("remote_nav/cancel_topic", '/move_base/cancel')
+		self.cancel_pub = rospy.Publisher(cancel_topic, GoalID)
+
+	#We choose in our implementation to move the head using the preexisting head trajectory controller.
+		# head_topic = rospy.get_param("remote_nav/head_topic", 'are you a turtlebot? This no for turtlebot')
+		# self.head_pub = rospy.Publisher(head_topic, PointHeadActionGoal)
+		self.client = actionlib.SimpleActionClient('/head_traj_controller/point_head_action', PointHeadAction)
+		self.client.wait_for_server()	
+	#We need be transformin these mofuckin frames.
+		self.listener = tf.TransformListener()
+
+	#Is the robot facing forward along our track?
+		self.isForward = True
+	#Get the track_length for our 1D start track.
+		self.track_length = rospy.get_param('remote_nav/track_length', 5.0)
+		self.robot_frame = rospy.get_param('remote_nav/robot_frame', "/base_footprint")
+	
 
 ## Handle GUI events
 ## ^^^^^^^^^^^^^^^^^
@@ -181,7 +186,7 @@ class MyViz( QWidget ):
 	def closeEvent(self, event):
 
 		reply = QMessageBox.question(self, 'Message',
-		"Are you sure to quit?", QMessageBox.Yes | 
+		"Are you sure you want to quit?", QMessageBox.Yes | 
 		QMessageBox.No, QMessageBox.No)
 
 		if reply == QMessageBox.Yes:
@@ -234,8 +239,7 @@ class MyViz( QWidget ):
 ## ^^^^^^^^^^^^^^^^^^^^
 
 	def lookLeft(self):
-		goal = PointHeadActionGoal()
-
+		goal = PointHeadGoal()
 		#the point to be looking at is expressed in the "base_link" frame
 		point = PointStamped()
 		point.header.frame_id = "base_link"
@@ -243,16 +247,18 @@ class MyViz( QWidget ):
 		point.point.x = 1.0
 		point.point.y = 0.5 
 		point.point.z = 1.20
-		goal.goal.target = point
+		goal.target = point
 
 		#we want the X axis of the camera frame to be pointing at the target
-		goal.header.frame_id = "base_link"
-		goal.goal.pointing_frame = "high_def_frame"
-		goal.goal.pointing_axis.x = 1
-		goal.goal.pointing_axis.y = 0
-		goal.goal.pointing_axis.z = 0
-		goal.goal.max_velocity = 1.0
-		self. head_pub.publish(goal)
+		goal.pointing_frame = "high_def_frame"
+		goal.pointing_axis.x = 1
+		goal.pointing_axis.y = 0
+		goal.pointing_axis.z = 0
+		goal.min_duration = rospy.Duration(0.5)
+		goal.max_velocity = 1.0
+		self.client.send_goal(goal)
+		# self.client.wait_for_result(rospy.Duration(2))
+		# self.head_pub.publish(goal)
 	def lookRight(self):
 		pass
 
