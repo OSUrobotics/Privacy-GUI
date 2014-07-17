@@ -19,6 +19,7 @@ Authors:
 ##Package list and info
 * gui  - The first iteration of the attempt at the gui.  Not currently used but has some nice buttons.
 * remote_nav - The real package and current implementation of our UI
+* map_registration - not a ROS package but a pyQT program which is used for map registration
 
 ##custom_nav package
 The custom_nav package is to be used ON THE TURTLEBOT. Copy this repo to your turtlebot and rosmake this package. It is simply a modified version of turtlebot_navigation to better fit our needs. Changes include, but are not limited to: resetting the default map_file, turning on rgb_processing,
