@@ -166,9 +166,9 @@ class MyViz( QWidget ):
 		self.cancel_pub = rospy.Publisher(cancel_topic, GoalID)
 
 	#We choose in our implementation to move the head using the preexisting head trajectory controller.
-		head_server = rospy.get_param("remote_nav/head_server", 'are you a turtlebot? This no for turtlebot')
-		self.client = actionlib.SimpleActionClient(head_server, PointHeadAction)
-		self.client.wait_for_server()	
+		# head_server = rospy.get_param("remote_nav/head_server", 'are you a turtlebot? This no for turtlebot')
+		# self.client = actionlib.SimpleActionClient(head_server, PointHeadAction)
+		# self.client.wait_for_server()	
 	#We need be transformin these mofuckin frames.
 		self.listener = tf.TransformListener()
 
