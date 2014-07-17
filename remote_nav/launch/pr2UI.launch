@@ -15,14 +15,14 @@
   <arg name="cancel_topic" default="/move_base/cancel" />
 
   <!-- the topic you publish to send head goals -->
-  <arg name="head_topic" default="/head_traj_controller/point_head_action/goal" />
+  <arg name="head_server" default="/head_traj_controller/point_head_action" />
 
   <node name="remote_nav" pkg="remote_nav" type="myviz.py" >
   	<param name="robot_frame" value="$(arg robot_frame)"/>
   	<param name="rviz_config" value="$(arg rviz_config)"/>
   	<param name="track_length" value="$(arg track_length)"/>
     <param name="nav_topic" value="$(arg nav_topic)" />
-    <param name="head_topic" value="$(arg head_topic)" />
+    <param name="head_server" value="$(arg head_server)" />
     <param name="cancel_topic" value="$(arg cancel_topic)" />
 
   </node>

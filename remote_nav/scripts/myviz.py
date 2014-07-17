@@ -129,26 +129,26 @@ class MyViz( QWidget ):
 
 
 
-		look_left_btn = PicButton(QPixmap(package_path + "/images/left.png"))
-		look_left_btn.setClickPix(QPixmap(package_path + "/images/leftDark.png"))
-		look_left_btn.clicked.connect( self.onLeftButtonClick )
+		self.look_left_btn = PicButton(QPixmap(package_path + "/images/left.png"))
+		self.look_left_btn.setClickPix(QPixmap(package_path + "/images/leftDark.png"))
+		self.look_left_btn.pressed.connect( self.onLeftButtonClick )
 		# layout.addWidget(look_left_btn, 2, 0)
 		# layout.setAlignment(look_left_btn, Qt.AlignLeft)
 
-		look_right_btn = PicButton(QPixmap(package_path + "/images/right.png"))
-		look_right_btn.setClickPix(QPixmap(package_path + "/images/rightDark.png"))
-		look_right_btn.clicked.connect( self.onRightButtonClick )
+		self.look_right_btn = PicButton(QPixmap(package_path + "/images/right.png"))
+		self.look_right_btn.setClickPix(QPixmap(package_path + "/images/rightDark.png"))
+		self.look_right_btn.pressed.connect( self.onRightButtonClick )
 		# layout.addWidget(look_right_btn, 2, 2)
 		# layout.setAlignment(look_right_btn, Qt.AlignRight)
 		
 
 		#Finalizing layout and placing components
-		h_layout.addWidget(look_left_btn)
-		h_layout.setAlignment(look_left_btn, Qt.AlignRight)
+		h_layout.addWidget(self.look_left_btn)
+		h_layout.setAlignment(self.look_left_btn, Qt.AlignRight)
 		h_layout.addWidget(turn_button)
 		h_layout.setAlignment(turn_button, Qt.AlignHCenter)
-		h_layout.addWidget(look_right_btn)
-		h_layout.setAlignment(look_right_btn, Qt.AlignLeft)
+		h_layout.addWidget(self.look_right_btn)
+		h_layout.setAlignment(self.look_right_btn, Qt.AlignLeft)
 
 		layout.addLayout( h_layout, 5, 1 )	
 		self.setLayout( layout )
@@ -166,9 +166,8 @@ class MyViz( QWidget ):
 		self.cancel_pub = rospy.Publisher(cancel_topic, GoalID)
 
 	#We choose in our implementation to move the head using the preexisting head trajectory controller.
-		# head_topic = rospy.get_param("remote_nav/head_topic", 'are you a turtlebot? This no for turtlebot')
-		# self.head_pub = rospy.Publisher(head_topic, PointHeadActionGoal)
-		self.client = actionlib.SimpleActionClient('/head_traj_controller/point_head_action', PointHeadAction)
+		head_server = rospy.get_param("remote_nav/head_server", 'are you a turtlebot? This no for turtlebot')
+		self.client = actionlib.SimpleActionClient(head_server, PointHeadAction)
 		self.client.wait_for_server()	
 	#We need be transformin these mofuckin frames.
 		self.listener = tf.TransformListener()
@@ -239,28 +238,26 @@ class MyViz( QWidget ):
 ## ^^^^^^^^^^^^^^^^^^^^
 
 	def lookLeft(self):
-		goal = PointHeadGoal()
-		#the point to be looking at is expressed in the "base_link" frame
-		point = PointStamped()
-		point.header.frame_id = "base_link"
-		point.header.stamp = rospy.Time.now()
-		point.point.x = 1.0
-		point.point.y = 0.5 
-		point.point.z = 1.20
-		goal.target = point
+		parent_frame = "base_link"
+		x = 0.25
+		y = 1.5
+		z = 1.2
 
-		#we want the X axis of the camera frame to be pointing at the target
-		goal.pointing_frame = "high_def_frame"
-		goal.pointing_axis.x = 1
-		goal.pointing_axis.y = 0
-		goal.pointing_axis.z = 0
-		goal.min_duration = rospy.Duration(0.5)
-		goal.max_velocity = 1.0
-		self.client.send_goal(goal)
-		# self.client.wait_for_result(rospy.Duration(2))
-		# self.head_pub.publish(goal)
+		self._look_at(parent_frame, x, y, z)
+		while self.look_left_btn.isDown():
+			QApplication.processEvents()
+		self.client.cancel_all_goals()
+
+
 	def lookRight(self):
-		pass
+		parent_frame = "base_link"
+		x = 1.0
+		y = -1.5
+		z = 1.2
+		self._look_at(parent_frame, x, y, z)
+		while self.look_right_btn.isDown():
+			QApplication.processEvents()
+		self.client.cancel_all_goals()
 
 ## NAVIGATION FUNCTIONS
 ## ^^^^^^^^^^^^^^^^^^^^
@@ -465,6 +462,26 @@ class MyViz( QWidget ):
 	def _cancel_goals(self):
 		goalID = GoalID()
 		self.cancel_pub.publish(goalID)
+
+	def _look_at(self, parent_frame, x, y, z):
+		goal = PointHeadGoal()
+		#the point to be looking at is expressed in the "base_link" frame
+		point = PointStamped()
+		point.header.frame_id = parent_frame
+		point.header.stamp = rospy.Time.now()
+		point.point.x = x
+		point.point.y = y 
+		point.point.z = z
+		goal.target = point
+
+		#we want the X axis of the camera frame to be pointing at the target
+		goal.pointing_frame = "high_def_frame"
+		goal.pointing_axis.x = 1
+		goal.pointing_axis.y = 0
+		goal.pointing_axis.z = 0
+		goal.min_duration = rospy.Duration(2.0)
+		goal.max_velocity = 1.0
+		self.client.send_goal(goal)
 
 	# def _send_twist(self, x_linear):
 	# 	if self.pub is None:
