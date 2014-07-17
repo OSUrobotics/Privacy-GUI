@@ -24,6 +24,7 @@
     <param name="nav_topic" value="$(arg nav_topic)" />
     <param name="head_server" value="$(arg head_server)" />
     <param name="cancel_topic" value="$(arg cancel_topic)" />
+    <param name="is_pr2" type="bool" value="true"/>
 
   </node>
 </launch>

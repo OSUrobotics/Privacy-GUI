@@ -39,6 +39,7 @@ class MyViz( QWidget ):
 	def __init__(self):
 
 		QWidget.__init__(self)
+		self.is_pr2 = rospy.get_param("remote_nav/is_pr2", False)
 		self.init_ros_variables()
 		
 	#The visualizer
@@ -55,9 +56,9 @@ class MyViz( QWidget ):
 		rospack = rospkg.RosPack()
 		package_path = rospack.get_path('remote_nav')
 
-
 	#Now you can grab this filepath from either roslaunch remote_nav myviz and using the launch file or just rosrun.
-		config_file = rospy.get_param('remote_nav/rviz_config', package_path + "/rviz/pr2_map_img.rviz")
+		config_file = rospy.get_param('remote_nav/rviz_config', package_path + "/rviz/turtle_map_img.rviz")
+		rospy.logerr(config_file)
 		reader.readFile( config, config_file )
 		self.frame.load( config )
 
@@ -131,13 +132,15 @@ class MyViz( QWidget ):
 
 		self.look_left_btn = PicButton(QPixmap(package_path + "/images/left.png"))
 		self.look_left_btn.setClickPix(QPixmap(package_path + "/images/leftDark.png"))
-		self.look_left_btn.pressed.connect( self.onLeftButtonClick )
 		# layout.addWidget(look_left_btn, 2, 0)
 		# layout.setAlignment(look_left_btn, Qt.AlignLeft)
 
 		self.look_right_btn = PicButton(QPixmap(package_path + "/images/right.png"))
 		self.look_right_btn.setClickPix(QPixmap(package_path + "/images/rightDark.png"))
-		self.look_right_btn.pressed.connect( self.onRightButtonClick )
+		# Only actually connect these to the moving of the head if there is in fact a head.
+		if (self.is_pr2):
+			self.look_left_btn.pressed.connect( self.onLeftButtonClick )
+			self.look_right_btn.pressed.connect( self.onRightButtonClick )
 		# layout.addWidget(look_right_btn, 2, 2)
 		# layout.setAlignment(look_right_btn, Qt.AlignRight)
 		
@@ -166,9 +169,10 @@ class MyViz( QWidget ):
 		self.cancel_pub = rospy.Publisher(cancel_topic, GoalID)
 
 	#We choose in our implementation to move the head using the preexisting head trajectory controller.
-		# head_server = rospy.get_param("remote_nav/head_server", 'are you a turtlebot? This no for turtlebot')
-		# self.client = actionlib.SimpleActionClient(head_server, PointHeadAction)
-		# self.client.wait_for_server()	
+		if (self.is_pr2):
+			head_server = rospy.get_param("remote_nav/head_server", 'are you a turtlebot? This no for turtlebot')
+			self.client = actionlib.SimpleActionClient(head_server, PointHeadAction)
+			self.client.wait_for_server()	
 	#We need be transformin these mofuckin frames.
 		self.listener = tf.TransformListener()
 
