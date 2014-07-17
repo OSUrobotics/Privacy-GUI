@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(rvizRun)
+project(remote_nav)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -81,7 +81,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES rvizRun
+#  LIBRARIES remote_nav
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
@@ -98,19 +98,19 @@ include_directories(
 )
 
 ## Declare a cpp library
-# add_library(rvizRun
-#   src/${PROJECT_NAME}/rvizRun.cpp
+# add_library(remote_nav
+#   src/${PROJECT_NAME}/remote_nav.cpp
 # )
 
 ## Declare a cpp executable
-# add_executable(rvizRun_node src/rvizRun_node.cpp)
+# add_executable(remote_nav_node src/remote_nav_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(rvizRun_node rvizRun_generate_messages_cpp)
+# add_dependencies(remote_nav_node remote_nav_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(rvizRun_node
+# target_link_libraries(remote_nav_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -129,7 +129,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS rvizRun rvizRun_node
+# install(TARGETS remote_nav remote_nav_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -154,7 +154,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_rvizRun.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_remote_nav.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

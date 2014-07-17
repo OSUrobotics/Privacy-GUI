@@ -1,0 +1,25 @@
+<launch>
+
+  <!--Publishes our "/start" frame at a constant rate. -->
+  <node name="startFrame" pkg="remote_nav" type="startFrame.py">
+  </node>
+
+  <arg name="rviz_config" default="$(find remote_nav)/rviz/turtle_map_img.rviz" />
+  <!-- The length in meters of the one dimensional track the robit floats on. -->
+  <arg name="track_length" default="5.0" />
+  <!-- The frame by which we recognize the robot. For a turtlebot this is /base_footprint -->
+  <arg name="robot_frame" default="/base_footprint" />
+  <!-- The topic you publish to in order to send nav goals. -->
+  <arg name="nav_topic" default="/move_base_simple/goal" />
+  <!-- The topic you publish to in order to cancel nav goals. -->
+  <arg name="cancel_topic" default="/move_base/cancel" />
+
+  <node name="remote_nav" pkg="remote_nav" type="myviz.py" >
+  	<param name="robot_frame" value="$(arg robot_frame)"/>
+  	<param name="rviz_config" value="$(arg rviz_config)"/>
+  	<param name="track_length" value="$(arg track_length)"/>
+    <param name="nav_topic" value="$(arg nav_topic)" />
+    <param name="cancel_topic" value="$(arg cancel_topic)" />
+
+  </node>
+</launch>

@@ -8,6 +8,7 @@
 ## First we start with the standard ros Python import line:
 import roslib; roslib.load_manifest('rviz_python_tutorial')
 import rospy
+import math
 ## Then load sys to get sys.argv.
 import sys
 
@@ -80,6 +81,10 @@ class MyViz( QWidget ):
         fwd_button = QPushButton( "Move Forward" )
         fwd_button.clicked.connect( self.onFwdButtonClick )
         h_layout.addWidget( fwd_button )
+
+        turn_button = QPushButton( "Turn Around" )
+        turn_button.clicked.connect( self.onTurnButtonClick )
+        h_layout.addWidget( turn_button )
         
         layout.addLayout( h_layout )
         
@@ -115,7 +120,19 @@ class MyViz( QWidget ):
         self._send_twist(0.3)
 
     def onStopButtonClick(self):
-        self_send_twist(0.0)
+        self.send_twist(0.0)
+
+    def onTurnButtonClick(self):
+        self.turnAround()
+
+    def turnAround(self):
+        command = Twist()
+        command.angular.z = 0.5
+        now = rospy.Time.now()
+
+        while rospy.Time.now() - now < rospy.Duration(2*math.pi):
+            self.pub.publish(command)
+
 
     def _send_twist(self, x_linear):
         if self.pub is None:
@@ -148,7 +165,7 @@ if __name__ == '__main__':
     rospy.init_node('move')
 
     myviz = MyViz()
-    myviz.resize( 500, 500 )
+    myviz.resize( 1000, 500 )
     myviz.show()
 
     app.exec_()
