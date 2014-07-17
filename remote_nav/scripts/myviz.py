@@ -58,7 +58,6 @@ class MyViz( QWidget ):
 
 	#Now you can grab this filepath from either roslaunch remote_nav myviz and using the launch file or just rosrun.
 		config_file = rospy.get_param('remote_nav/rviz_config', package_path + "/rviz/turtle_map_img.rviz")
-		rospy.logerr(config_file)
 		reader.readFile( config, config_file )
 		self.frame.load( config )
 
@@ -243,7 +242,7 @@ class MyViz( QWidget ):
 
 	def lookLeft(self):
 		parent_frame = "base_link"
-		x = 0.25
+		x = 0.0
 		y = 1.5
 		z = 1.2
 
@@ -255,7 +254,7 @@ class MyViz( QWidget ):
 
 	def lookRight(self):
 		parent_frame = "base_link"
-		x = 1.0
+		x = 0.0
 		y = -1.5
 		z = 1.2
 		self._look_at(parent_frame, x, y, z)
@@ -483,8 +482,8 @@ class MyViz( QWidget ):
 		goal.pointing_axis.x = 1
 		goal.pointing_axis.y = 0
 		goal.pointing_axis.z = 0
-		goal.min_duration = rospy.Duration(2.0)
-		goal.max_velocity = 1.0
+		# goal.min_duration = rospy.Duration(2.0)
+		goal.max_velocity = 0.85
 		self.client.send_goal(goal)
 
 	# def _send_twist(self, x_linear):
