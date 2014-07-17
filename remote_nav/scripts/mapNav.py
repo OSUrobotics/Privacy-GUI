@@ -159,7 +159,6 @@ class Window(QMainWindow):
 
 		
 	def update_robot_pose(self):
-		r = rospy.Rate(10)
 		while not rospy.is_shutdown():
 			current_pose = self._get_robot_pose()
 			self.harris.setPoint(current_pose.pose.position.x, current_pose.pose.position.y)
@@ -169,7 +168,6 @@ class Window(QMainWindow):
 			yaw = yaw + pi
 			self.harris.setRotate(yaw)
 			self.update()
-			r.sleep()
 
 
 
@@ -197,10 +195,9 @@ class Robot(QGraphicsItem):
 		self.img.scaled(robot_size, robot_size)
 
 		# Make private variables for the orientation and rotation
-		# until we know where the robot is, it will start at image origin
-		self.x_pos = 0.0
-		self.y_pos = 0.0
-		self.rotation = 0.0
+		# until we know where the robot is, it will start at map origin
+		self.setPoint(0, 0)
+		self.setRotate(0)
 		#set up the Qlabel to be an image of the robot
 		#Make private variables for the orientation and rotation
 		#also set up sizehint
@@ -208,16 +205,15 @@ class Robot(QGraphicsItem):
 #Work in progress paint event (trying to draw the robot as an image. Using a square for now
 	def paint(self, painter, option, widget):
 		size = 25
-		painter.drawPixmap(QRect(0, 0, size, size), self.img)
+		painter.drawPixmap(self.x_pos, self.y_pos, size, size, self.img)
 		#painter.setRenderHint(QPainter.Antialiasing)
 		if self.img.width() > size:
 			self.img = self.img.scaled(size, size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
-
 	def boundingRect(self):
 		width = 20
 		height = 20
-		return QRectF(QPoint(0, 0), QSize(width, height))
+		return QRectF(self.x_pos, self.y_pos, width, height)
 
 	# def boundingRect(self):
 	# 	penWidth = 1.0
