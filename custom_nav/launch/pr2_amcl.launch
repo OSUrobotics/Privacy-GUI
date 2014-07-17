@@ -1,0 +1,15 @@
+<launch>
+  <!-- Map server -->
+  <arg name="map_file" default="$(find custom_nav)/maps/betterMap.yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+
+  <include file="$(find pr2_machine)/$(env ROBOT).machine" />
+  <include file="$(find pr2_navigation_global)/amcl_node.xml" />
+
+  <include file="$(find pr2_navigation_teleop)/teleop.xml" />
+  <include file="$(find pr2_navigation_perception)/lasers_and_filters.xml" />
+  <include file="$(find pr2_navigation_perception)/ground_plane.xml" />
+  <include file="$(find pr2_navigation_global)/move_base.xml" />
+
+
+</launch>
