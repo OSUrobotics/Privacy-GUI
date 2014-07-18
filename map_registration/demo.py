@@ -1,4 +1,4 @@
-import sys
+import sys, getopt
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 class MainWindow(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, map1, map2, parent=None):
         super(QWidget, self).__init__(parent)
 
         self.setWindowTitle('Main Window')
@@ -18,9 +18,9 @@ class MainWindow(QWidget):
         # Sets up the maps
         self.source = QGraphicsView()
         self.destination = QGraphicsView()
-        self.map1 = DrawMap('lab.pgm', self)
+        self.map1 = DrawMap(map1, self)
         self.source.setScene( self.map1 )
-        self.map2 = DrawMap('lab_pretty.pgm', self)
+        self.map2 = DrawMap(map2, self)
         self.destination.setScene( self.map2 )
         mapLayout.addWidget(self.source)
         mapLayout.addWidget(self.destination)
@@ -131,12 +131,35 @@ class DrawMap(QGraphicsScene):
         point = (self.position.x(), self.position.y())
         return point
 
-def main():
+def main(argv):
+    usage = "demo.py -s <source image> -o <destination image>"
+    src = ""
+    dst = ""
+
+    try:
+        opts, args = getopt.getopt(argv, "hs:d:",["src=","dst="])
+    except getoptError:
+        print usage
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt == '-h':
+            print usage
+            sys.exit()
+        elif opt in ("-s", "--src"):
+            src = arg
+        elif opt in ("-d", "--dst"):
+            dst = arg
+
+    if src == "" and dst == "":
+        print usage 
+        sys.exit(2)
+
     app = QApplication( sys.argv )
-    mainWindow = MainWindow()
+    mainWindow = MainWindow(src, dst)
     mainWindow.resize( 1000, 500 )
     mainWindow.show()
     app.exec_()
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
