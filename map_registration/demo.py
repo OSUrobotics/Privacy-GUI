@@ -56,8 +56,8 @@ class MainWindow(QWidget):
 
         # Set up variables for point registration and transformation, etc
         self.edit_mode = 0
-        self.src = []
-        self.dst = []
+        self.src = [(-1, -1), (-1, -1), (-1, -1)]
+        self.dst = [(-1, -1), (-1, -1), (-1, -1)]
 
     # Edit a different point
     def change_edit_mode(self):
@@ -74,7 +74,7 @@ class MainWindow(QWidget):
     # Using registred points, transform the maps
     def transform_map(self):
         # Check that three pairs have been make
-        if len(self.src) == 3:
+        if ((-1, -1) not in self.src) and ((-1, -1) not in self.dst):
             print "Transforming Maps"
             # Turn the pairs into an Affine Transformation matrix
             numpy_src = np.array(self.src, dtype='float32')
@@ -93,17 +93,12 @@ class MainWindow(QWidget):
     def register_points(self):
         # check that both map1.getPoint() and map2.getPoint() have been set
         if (self.map1.getPoint() != (-1, -1)) and (self.map2.getPoint() != (-1, -1)):
-            if (self.map1.getPoint() not in self.src) and (self.map2.getPoint() not in self.dst):
-                print "Registering Points"
-                self.src.append(self.map1.getPoint())
-                self.dst.append(self.map2.getPoint())
-                if len(self.src) > 3:
-                    self.src.pop(0)
-                    self.dst.pop(0)
+            print "Registering Points"
+            if self.edit_mode != 0:
+                self.src[self.edit_mode - 1] = self.map1.getPoint()
+                self.dst[self.edit_mode - 1] = self.map2.getPoint()
                 print "Source: ", self.src
                 print "Destination: ", self.dst
-            else:
-                print "Cannot pair new point with old point"
         else:
             print "Not all points have been set"
 

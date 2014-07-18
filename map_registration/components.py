@@ -8,8 +8,8 @@ class DrawPoint(QGraphicsItem):
     def __init__(self, color, parent=None):
         super(DrawPoint, self).__init__(parent)
         self.color = color
-        self.x = 0
-        self.y = 0
+        self.x = -1 - (self.size / 2)
+        self.y = -1 - (self.size / 2)
         self.is_drawn = False
 
     def boundingRect(self):
@@ -18,11 +18,14 @@ class DrawPoint(QGraphicsItem):
     def paint(self, painter, option, widget):
         self.is_drawn = True
         painter.setPen(self.color)
-        painter.drawRoundedRect(self.x, self.y, self.size, self.size, self.size / 2, self.size / 2)
+        painter.drawRoundedRect(self.x, self.y, self.size, self.size, self.size / 3, self.size / 3)
 
     def update_pos(self, x, y):
         self.x = x - (self.size / 2)
         self.y = y - (self.size / 2)
+
+    def get_pos(self):
+        return (self.x + (self.size / 2), self.y + (self.size / 2))
 
 class DrawMap(QGraphicsScene): 
     def __init__(self, image, parent=None):
@@ -42,7 +45,7 @@ class DrawMap(QGraphicsScene):
 
     # Updates the positin and draws a circle around it
     def pixelSelect( self, event ):
-        self.position = QPoint(event.pos().x(),  event.pos().y())
+        position = QPoint(event.pos().x(),  event.pos().y())
         marker = None
         if self.edit_mode == 1:
             marker = self.marker_1
@@ -53,15 +56,21 @@ class DrawMap(QGraphicsScene):
 
         if marker != None:
             # Draw a circle around the clicked point
-            marker.update_pos(self.position.x(), self.position.y())
+            marker.update_pos(position.x(), position.y())
             if not marker.is_drawn:
                 self.addItem(marker)
             self.update()
 
     # Returns the most recent point
     def getPoint(self):
-        point = (self.position.x(), self.position.y())
-        return point
+        if self.edit_mode == 1:
+            return self.marker_1.get_pos()
+        elif self.edit_mode == 2:
+            return self.marker_2.get_pos()
+        elif self.edit_mode == 3:
+            return self.marker_3.get_pos()
+        else:
+            return (-1, -1)
 
     def change_edit_mode(self, mode):
         self.edit_mode = mode
