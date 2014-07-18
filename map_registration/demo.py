@@ -52,11 +52,15 @@ class MainWindow(QWidget):
         if len(self.src) == 3:
             print "Transforming Maps"
             # Turn the pairs into an Affine Transformation matrix
-            numpy_src = np.array(self.src)
-            numpy_dst = np.array(self.dst)
-            # transform = cv2.getAffineTransform(numpy_src, numpy_dst)
-            # print transform
+            numpy_src = np.array(self.src, dtype='float32')
+            numpy_dst = np.array(self.dst, dtype='float32')
+            transform = cv2.getAffineTransform(numpy_src, numpy_dst)
+            print transform
             # Apply the transform 
+            src = cv2.imread('lab.pgm', 0)
+            rows, cols = src.shape
+            output = cv2.warpAffine(src, transform, (cols, rows))
+            cv2.imshow('Output', output)
 
     # Reads the most recent points off the maps and puts into the Matrix
     def register_points(self):
