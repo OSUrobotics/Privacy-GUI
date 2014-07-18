@@ -55,25 +55,32 @@ class MainWindow(QWidget):
             numpy_src = np.array(self.src, dtype='float32')
             numpy_dst = np.array(self.dst, dtype='float32')
             transform = cv2.getAffineTransform(numpy_src, numpy_dst)
-            print transform
+            print "Transform: ", transform
             # Apply the transform 
             src = cv2.imread('lab.pgm', 0)
             rows, cols = src.shape
             output = cv2.warpAffine(src, transform, (cols, rows))
             cv2.imshow('Output', output)
+        else:
+            print "Not enough pairs to transform"
 
     # Reads the most recent points off the maps and puts into the Matrix
     def register_points(self):
         # check that both map1.getPoint() and map2.getPoint() have been set
         if (self.map1.getPoint() != (-1, -1)) and (self.map2.getPoint() != (-1, -1)):
-            print "Registering Points"
-            self.src.append(self.map1.getPoint())
-            self.dst.append(self.map2.getPoint())
-            if len(self.src) > 3:
-                self.src.pop(0)
-                self.dst.pop(0)
-            print self.src
-            print self.dst
+            if (self.map1.getPoint() not in self.src) and (self.map2.getPoint() not in self.dst):
+                print "Registering Points"
+                self.src.append(self.map1.getPoint())
+                self.dst.append(self.map2.getPoint())
+                if len(self.src) > 3:
+                    self.src.pop(0)
+                    self.dst.pop(0)
+                print "Source: ", self.src
+                print "Destination: ", self.dst
+            else:
+                print "Cannot pair new point with old point"
+        else:
+            print "Not all points have been set"
 
 class DrawPoint(QGraphicsItem):
     size = 10
@@ -110,7 +117,6 @@ class DrawMap(QGraphicsScene):
     # Updates the positin and draws a circle around it
     def pixelSelect( self, event ):
         self.position = QPoint(event.pos().x(),  event.pos().y())
-        print self.position
         # Draw a circle around the clicked point
         color = QColor.fromRgb(self.local_image.pixel( self.position ) )
         # Draw a circle around the clicked point
