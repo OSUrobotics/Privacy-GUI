@@ -16,11 +16,13 @@ class MainWindow(QWidget):
         buttonLayout = QHBoxLayout()
  
         # Sets up the maps
+        self.img_1 = map1
+        self.img_2 = map2
         self.source = QGraphicsView()
         self.destination = QGraphicsView()
-        self.map1 = DrawMap(map1, self)
+        self.map1 = DrawMap(self.img_1, self)
         self.source.setScene( self.map1 )
-        self.map2 = DrawMap(map2, self)
+        self.map2 = DrawMap(self.img_2, self)
         self.destination.setScene( self.map2 )
         mapLayout.addWidget(self.source)
         mapLayout.addWidget(self.destination)
@@ -57,7 +59,7 @@ class MainWindow(QWidget):
             transform = cv2.getAffineTransform(numpy_src, numpy_dst)
             print "Transform: ", transform
             # Apply the transform 
-            src = cv2.imread('lab.pgm', 0)
+            src = cv2.imread(self.img_1, 0)
             rows, cols = src.shape
             output = cv2.warpAffine(src, transform, (cols, rows))
             cv2.imshow('Output', output)
