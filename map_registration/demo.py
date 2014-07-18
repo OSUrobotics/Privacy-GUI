@@ -2,6 +2,8 @@ import sys
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
+import cv2
+import numpy as np
 
 class MainWindow(QWidget):
     def __init__(self, parent=None):
@@ -40,21 +42,38 @@ class MainWindow(QWidget):
         layout.addLayout(buttonLayout)
         self.setLayout( layout )
 
+        # Set up variables for point registration and transformation
+        self.src = []
+        self.dst = []
+
     # Using registred points, transform the maps
     def transform_map(self):
-        print "Transforming Maps"
         # Check that three pairs have been make
-        # Turn the pairs into an Affine Transformation matrix
-        # Apply the transform 
+        if len(self.src) == 3:
+            print "Transforming Maps"
+            # Turn the pairs into an Affine Transformation matrix
+            numpy_src = np.array(self.src)
+            numpy_dst = np.array(self.dst)
+            # transform = cv2.getAffineTransform(numpy_src, numpy_dst)
+            # print transform
+            # Apply the transform 
 
     # Reads the most recent points off the maps and puts into the Matrix
     def register_points(self):
-        print "Registering Points"
-        # check that both map1.position and map2.position have been set
-        # If yes, put them into row i of matrixy thing
-        # Increment (mod 3) i
+        # check that both map1.getPoint() and map2.getPoint() have been set
+        if (self.map1.getPoint() != (-1, -1)) and (self.map2.getPoint() != (-1, -1)):
+            print "Registering Points"
+            self.src.append(self.map1.getPoint())
+            self.dst.append(self.map2.getPoint())
+            if len(self.src) > 3:
+                self.src.pop(0)
+                self.dst.pop(0)
+            print self.src
+            print self.dst
 
 class DrawPoint(QGraphicsItem):
+    size = 10
+
     def __init__(self, parent=None):
         super(DrawPoint, self).__init__(parent)
         self.x = 0
@@ -62,15 +81,14 @@ class DrawPoint(QGraphicsItem):
 
     def boundingRect(self):
         penWidth = 1.0
-        return QRectF(self.x, self.y, 20, 20)
+        return QRectF(self.x, self.y, self.size, self.size)
 
     def paint(self, painter, option, widget):
-        painter.drawRoundedRect(self.x, self.y, 20, 20, 5, 5)
+        painter.drawRoundedRect(self.x, self.y, self.size, self.size, self.size / 2, self.size / 2)
 
     def update_pos(self, x, y):
-        self.x = x - 10
-        self.y = y - 10
-        # Force a re-paint
+        self.x = x - (self.size / 2)
+        self.y = y - (self.size / 2)
 
 class DrawMap(QGraphicsScene): 
     def __init__(self, image, parent=None):
@@ -83,13 +101,15 @@ class DrawMap(QGraphicsScene):
         self.pixMapItem.mousePressEvent = self.pixelSelect
         self.marker = DrawPoint()
         self.is_drawn = False
+        self.position = QPoint(-1, -1)
 
     # Updates the positin and draws a circle around it
     def pixelSelect( self, event ):
         self.position = QPoint(event.pos().x(),  event.pos().y())
+        print self.position
         # Draw a circle around the clicked point
         color = QColor.fromRgb(self.local_image.pixel( self.position ) )
-        # # Draw a circle around the clicked point
+        # Draw a circle around the clicked point
         self.marker.update_pos(self.position.x(), self.position.y())
         if not self.is_drawn:
             self.addItem(self.marker)
@@ -98,9 +118,8 @@ class DrawMap(QGraphicsScene):
 
     # Returns the most recent point
     def getPoint(self):
-        return self.position
-    # def getView(self):
-    #     return self.local_grview
+        point = (self.position.x(), self.position.y())
+        return point
 
 def main():
     app = QApplication( sys.argv )
