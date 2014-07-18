@@ -16,9 +16,9 @@ class MainWindow(QWidget):
         buttonLayout = QHBoxLayout()
  
 
-        self.map1 = QGraphicsScene()
+        self.map1 = DrawMap('lab.pgm', self)
         self.source.setScene( self.map1 )
-        self.map2 = QGraphicsScene()
+        self.map2 = DrawMap('lab_pretty.pgm', self)
         self.destination.setScene( self.map2 )
         mapLayout.addWidget(self.source)
         mapLayout.addWidget(self.destination)
@@ -79,26 +79,17 @@ class DrawPoint(QGraphicsItem):
         self.y = y - 10
         # Force a re-paint
 
-# class DrawMap(QMainWindow): 
-#     def __init__(self, image, label, parent=None):
-#         super(QMainWindow, self).__init__(parent)
-#         self.label = label
-#         self.setWindowTitle(label)
-#         self.local_image = QImage(image)
+class DrawMap(QGraphicsScene): 
+    def __init__(self, image, parent=None):
+        super(QGraphicsScene, self).__init__(parent)
+        self.local_image = QImage(image)
 
-#         self.local_grview = QGraphicsView()
-#         self.setCentralWidget( self.local_grview )
+        self.image_format = self.local_image.format()
+        self.pixMapItem = QGraphicsPixmapItem(QPixmap(self.local_image), None, self)
 
-#         self.local_scene = QGraphicsScene()
-
-#         self.image_format = self.local_image.format()
-#         self.pixMapItem = QGraphicsPixmapItem(QPixmap(self.local_image), None, self.local_scene)
-
-#         self.local_grview.setScene( self.local_scene )
-
-#         self.pixMapItem.mousePressEvent = self.pixelSelect
-#         self.marker = DrawPoint()
-#         self.is_drawn = False
+        self.pixMapItem.mousePressEvent = self.pixelSelect
+        self.marker = DrawPoint()
+        self.is_drawn = False
 
     def closeEvent(self, event):
         event.accept()
@@ -106,18 +97,12 @@ class DrawPoint(QGraphicsItem):
     # Updates the positin and draws a circle around it
     def pixelSelect( self, event ):
         self.position = QPoint(event.pos().x(),  event.pos().y())
-        color = QColor.fromRgb(self.local_image.pixel( self.position ) )
-        if color.isValid():
-            rgbColor = '('+str(color.red())+','+str(color.green())+','+str(color.blue())+','+str(color.alpha())+')'
-            self.setWindowTitle(self.label + 'Pixel position = (' + str( event.pos().x() ) + ' , ' + str( event.pos().y() )+ ') - Value (R,G,B,A)= ' + rgbColor)
-        else:
-            self.setWindowTitle(self.label + 'Pixel position = (' + str( event.pos().x() ) + ' , ' + str( event.pos().y() )+ ') - color not valid')
         # Draw a circle around the clicked point
         self.marker.update_pos(self.position.x(), self.position.y())
         if not self.is_drawn:
-            self.local_scene.addItem(self.marker)
+            self.addItem(self.marker)
             self.is_drawn = True
-        self.local_scene.update()
+        self.update()
 
     # Returns the most recent point
     def getPoint(self):
