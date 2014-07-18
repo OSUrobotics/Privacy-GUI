@@ -4,6 +4,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
 import cv2
 import numpy as np
+from components import * 
 
 class MainWindow(QWidget):
     def __init__(self, map1, map2, parent=None):
@@ -40,13 +41,35 @@ class MainWindow(QWidget):
         warp_btn.resize(warp_btn.sizeHint())
         buttonLayout.addWidget(warp_btn)
 
+        # Make 3 buttons -- one to edit each point
+        for i in range(1, 4):
+            name = "Edit Point " + str(i)
+            btn = QtGui.QPushButton(name, self)
+            btn.clicked.connect(self.change_edit_mode)
+            btn.resize(btn.sizeHint())
+            buttonLayout.addWidget(btn)
+
+        # Show the layout
         layout.addLayout(mapLayout)
         layout.addLayout(buttonLayout)
         self.setLayout( layout )
 
-        # Set up variables for point registration and transformation
+        # Set up variables for point registration and transformation, etc
+        self.edit_mode = 0
         self.src = []
         self.dst = []
+
+    # Edit a different point
+    def change_edit_mode(self):
+        sender_name = self.sender().text()
+        if sender_name == "Edit Point 1":
+            self.edit_mode = 1
+        elif sender_name == "Edit Point 2":
+            self.edit_mode = 2
+        elif sender_name == "Edit Point 3":
+            self.edit_mode = 3
+        self.map1.change_edit_mode(self.edit_mode)
+        self.map2.change_edit_mode(self.edit_mode)
 
     # Using registred points, transform the maps
     def transform_map(self):
@@ -57,7 +80,7 @@ class MainWindow(QWidget):
             numpy_src = np.array(self.src, dtype='float32')
             numpy_dst = np.array(self.dst, dtype='float32')
             transform = cv2.getAffineTransform(numpy_src, numpy_dst)
-            print "Transform: ", transform
+            print transform
             # Apply the transform 
             src = cv2.imread(self.img_1, 0)
             rows, cols = src.shape
@@ -83,55 +106,6 @@ class MainWindow(QWidget):
                 print "Cannot pair new point with old point"
         else:
             print "Not all points have been set"
-
-class DrawPoint(QGraphicsItem):
-    size = 10
-
-    def __init__(self, parent=None):
-        super(DrawPoint, self).__init__(parent)
-        self.x = 0
-        self.y = 0
-
-    def boundingRect(self):
-        penWidth = 1.0
-        return QRectF(self.x, self.y, self.size, self.size)
-
-    def paint(self, painter, option, widget):
-        painter.drawRoundedRect(self.x, self.y, self.size, self.size, self.size / 2, self.size / 2)
-
-    def update_pos(self, x, y):
-        self.x = x - (self.size / 2)
-        self.y = y - (self.size / 2)
-
-class DrawMap(QGraphicsScene): 
-    def __init__(self, image, parent=None):
-        super(QGraphicsScene, self).__init__(parent)
-        self.local_image = QImage(image)
-
-        self.image_format = self.local_image.format()
-        self.pixMapItem = QGraphicsPixmapItem(QPixmap(self.local_image), None, self)
-
-        self.pixMapItem.mousePressEvent = self.pixelSelect
-        self.marker = DrawPoint()
-        self.is_drawn = False
-        self.position = QPoint(-1, -1)
-
-    # Updates the positin and draws a circle around it
-    def pixelSelect( self, event ):
-        self.position = QPoint(event.pos().x(),  event.pos().y())
-        # Draw a circle around the clicked point
-        color = QColor.fromRgb(self.local_image.pixel( self.position ) )
-        # Draw a circle around the clicked point
-        self.marker.update_pos(self.position.x(), self.position.y())
-        if not self.is_drawn:
-            self.addItem(self.marker)
-            self.is_drawn = True
-        self.update()
-
-    # Returns the most recent point
-    def getPoint(self):
-        point = (self.position.x(), self.position.y())
-        return point
 
 def main(argv):
     usage = "demo.py -s <source image> -o <destination image>"
