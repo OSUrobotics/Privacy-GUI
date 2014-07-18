@@ -3,31 +3,49 @@ from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
 
-class MainWindow(QMainWindow):
+class MainWindow(QWidget):
     def __init__(self, parent=None):
-        super(QMainWindow, self).__init__(parent)
+        super(QWidget, self).__init__(parent)
 
         self.setWindowTitle('Main Window')
-        self.local_grview = QGraphicsView()
-        self.setCentralWidget(self.local_grview)
-        self.local_scene = QGraphicsScene()
-        self.local_grview.setScene( self.local_scene )
+        self.source = QGraphicsView()
+        self.destination = QGraphicsView()
 
-        self.map1 = DrawMap('lab.pgm', 'source', self)
-        self.map1.show()
-        self.map2 = DrawMap('lab_pretty.pgm', 'destination', self)
-        self.map2.show()
+        layout = QVBoxLayout()
+        mapLayout = QHBoxLayout()
+        buttonLayout = QHBoxLayout()
+ 
+
+        self.map1 = QGraphicsScene()
+        self.source.setScene( self.map1 )
+        self.map2 = QGraphicsScene()
+        self.destination.setScene( self.map2 )
+        mapLayout.addWidget(self.source)
+        mapLayout.addWidget(self.destination)
+
+        # self.map1 = DrawMap('lab.pgm', 'source', self)
+        # self.map1.show()
+        # self.map2 = DrawMap('lab_pretty.pgm', 'destination', self)
+        # self.map2.show()
+
+
+
 
         register_btn = QtGui.QPushButton('Register Points', self)
         register_btn.setToolTip("Pair the points currently selected in the map")
         register_btn.clicked.connect(self.register_points)
         register_btn.resize(register_btn.sizeHint())
+        buttonLayout.addWidget(register_btn)
 
         warp_btn = QtGui.QPushButton('Apply Transform', self)
         warp_btn.setToolTip("Apply Affine Transform defined by the registered points")
         warp_btn.clicked.connect(self.transform_map)
         warp_btn.resize(warp_btn.sizeHint())
-        warp_btn.move(0, 50)
+        buttonLayout.addWidget(warp_btn)
+
+        layout.addLayout(mapLayout)
+        layout.addLayout(buttonLayout)
+        self.setLayout( layout )
 
     # Using registred points, transform the maps
     def transform_map(self):
@@ -61,26 +79,26 @@ class DrawPoint(QGraphicsItem):
         self.y = y - 10
         # Force a re-paint
 
-class DrawMap(QMainWindow): 
-    def __init__(self, image, label, parent=None):
-        super(QMainWindow, self).__init__(parent)
-        self.label = label
-        self.setWindowTitle(label)
-        self.local_image = QImage(image)
+# class DrawMap(QMainWindow): 
+#     def __init__(self, image, label, parent=None):
+#         super(QMainWindow, self).__init__(parent)
+#         self.label = label
+#         self.setWindowTitle(label)
+#         self.local_image = QImage(image)
 
-        self.local_grview = QGraphicsView()
-        self.setCentralWidget( self.local_grview )
+#         self.local_grview = QGraphicsView()
+#         self.setCentralWidget( self.local_grview )
 
-        self.local_scene = QGraphicsScene()
+#         self.local_scene = QGraphicsScene()
 
-        self.image_format = self.local_image.format()
-        self.pixMapItem = QGraphicsPixmapItem(QPixmap(self.local_image), None, self.local_scene)
+#         self.image_format = self.local_image.format()
+#         self.pixMapItem = QGraphicsPixmapItem(QPixmap(self.local_image), None, self.local_scene)
 
-        self.local_grview.setScene( self.local_scene )
+#         self.local_grview.setScene( self.local_scene )
 
-        self.pixMapItem.mousePressEvent = self.pixelSelect
-        self.marker = DrawPoint()
-        self.is_drawn = False
+#         self.pixMapItem.mousePressEvent = self.pixelSelect
+#         self.marker = DrawPoint()
+#         self.is_drawn = False
 
     def closeEvent(self, event):
         event.accept()
@@ -108,6 +126,7 @@ class DrawMap(QMainWindow):
 def main():
     app = QApplication( sys.argv )
     mainWindow = MainWindow()
+    mainWindow.resize( 1000, 500 )
     mainWindow.show()
     app.exec_()
 

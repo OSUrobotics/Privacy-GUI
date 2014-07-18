@@ -127,9 +127,9 @@ class Window(QMainWindow):
 		return start_trans
 	#Get start frame's pose with parent frame /map.
 	def _get_start_pose(self):
-		(trans, rot) = self.listener.lookupTransform("/map","/start", rospy.Time(0))
+		(trans, rot) = self.listener.lookupTransform("/odom","/start", rospy.Time(0))
 		goal = PoseStamped()
-		goal.header.frame_id = "/map"
+		goal.header.frame_id = "/odom"
 		goal.pose.position.x = trans[0]
 		goal.pose.position.y = trans[1]
 
@@ -138,9 +138,9 @@ class Window(QMainWindow):
 		return goal
 	#Returns pose of robot in /map frame.
 	def _get_robot_pose(self):
-		(trans, rot) = self.listener.lookupTransform("/map","/base_footprint", rospy.Time(0))
+		(trans, rot) = self.listener.lookupTransform("/odom","/base_footprint", rospy.Time(0))
 		goal = PoseStamped()
-		goal.header.frame_id = "/map"
+		goal.header.frame_id = "/odom"
 		goal.pose.position.x = trans[0]
 		goal.pose.position.y = trans[1]
 
@@ -152,13 +152,14 @@ class Window(QMainWindow):
 		euler = tf.transformations.euler_from_quaternion(quaternion)
 		yaw = euler[2] # yaw gonna make me lose my mind,
 		pitch = euler[1] #up in pitch
-		roll = euler[0] #up in roll (see photo at bottom)
+		roll = euler[0] #up in roll
 		yaw = yaw + pi
 
 		newQuat = tf.transformations.quaternion_from_euler(roll,pitch, yaw)
 
 		
 	def update_robot_pose(self):
+		r = rospy.Rate(10)
 		while not rospy.is_shutdown():
 			current_pose = self._get_robot_pose()
 			self.harris.setPoint(current_pose.pose.position.x, current_pose.pose.position.y)
@@ -167,7 +168,8 @@ class Window(QMainWindow):
 			yaw = euler[2] # yaw gonna make me lose my mind,
 			yaw = yaw + pi
 			self.harris.setRotate(yaw)
-			self.update()
+			self.scene.update()
+			r.sleep()
 
 
 
@@ -195,9 +197,10 @@ class Robot(QGraphicsItem):
 		self.img.scaled(robot_size, robot_size)
 
 		# Make private variables for the orientation and rotation
-		# until we know where the robot is, it will start at map origin
-		self.setPoint(0, 0)
-		self.setRotate(0)
+		# until we know where the robot is, it will start at image origin
+		self.x_pos = 0.0
+		self.y_pos = 0.0
+		self.rotation = 0.0
 		#set up the Qlabel to be an image of the robot
 		#Make private variables for the orientation and rotation
 		#also set up sizehint
@@ -205,10 +208,11 @@ class Robot(QGraphicsItem):
 #Work in progress paint event (trying to draw the robot as an image. Using a square for now
 	def paint(self, painter, option, widget):
 		size = 25
-		painter.drawPixmap(self.x_pos, self.y_pos, size, size, self.img)
+		painter.drawPixmap(QRect(self.x_pos, self.y_pos, size, size), self.img)
 		#painter.setRenderHint(QPainter.Antialiasing)
 		if self.img.width() > size:
 			self.img = self.img.scaled(size, size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+
 
 	def boundingRect(self):
 		width = 20
