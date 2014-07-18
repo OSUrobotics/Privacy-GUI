@@ -8,14 +8,14 @@ class MainWindow(QWidget):
         super(QWidget, self).__init__(parent)
 
         self.setWindowTitle('Main Window')
-        self.source = QGraphicsView()
-        self.destination = QGraphicsView()
 
         layout = QVBoxLayout()
         mapLayout = QHBoxLayout()
         buttonLayout = QHBoxLayout()
  
-
+        # Sets up the maps
+        self.source = QGraphicsView()
+        self.destination = QGraphicsView()
         self.map1 = DrawMap('lab.pgm', self)
         self.source.setScene( self.map1 )
         self.map2 = DrawMap('lab_pretty.pgm', self)
@@ -23,14 +23,7 @@ class MainWindow(QWidget):
         mapLayout.addWidget(self.source)
         mapLayout.addWidget(self.destination)
 
-        # self.map1 = DrawMap('lab.pgm', 'source', self)
-        # self.map1.show()
-        # self.map2 = DrawMap('lab_pretty.pgm', 'destination', self)
-        # self.map2.show()
-
-
-
-
+        # BUTTONS
         register_btn = QtGui.QPushButton('Register Points', self)
         register_btn.setToolTip("Pair the points currently selected in the map")
         register_btn.clicked.connect(self.register_points)
@@ -91,13 +84,12 @@ class DrawMap(QGraphicsScene):
         self.marker = DrawPoint()
         self.is_drawn = False
 
-    def closeEvent(self, event):
-        event.accept()
-
     # Updates the positin and draws a circle around it
     def pixelSelect( self, event ):
         self.position = QPoint(event.pos().x(),  event.pos().y())
         # Draw a circle around the clicked point
+        color = QColor.fromRgb(self.local_image.pixel( self.position ) )
+        # # Draw a circle around the clicked point
         self.marker.update_pos(self.position.x(), self.position.y())
         if not self.is_drawn:
             self.addItem(self.marker)
@@ -107,6 +99,8 @@ class DrawMap(QGraphicsScene):
     # Returns the most recent point
     def getPoint(self):
         return self.position
+    # def getView(self):
+    #     return self.local_grview
 
 def main():
     app = QApplication( sys.argv )
