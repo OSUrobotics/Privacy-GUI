@@ -27,7 +27,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /map
+      Topic: /map2
       Value: true
 
     - Class: rviz/Image

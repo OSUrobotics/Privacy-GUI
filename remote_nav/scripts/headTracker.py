@@ -4,7 +4,8 @@
 import tf
 import rospy
 import numpy
-import datetime
+import math 
+
 import actionlib
 from control_msgs.msg import PointHeadAction, PointHeadGoal
 from ar_track_alvar.msg import AlvarMarkers
@@ -12,14 +13,25 @@ from geometry_msgs.msg import PointStamped
 
 
 client = None 
+oldMarker = 0
+
 def tf_callback(data):
 	print ( "Rospy time: " + str(rospy.get_time()) )
 	print ( "datetime: " + str( datetime.datetime.now()) ) 
 def marker_callback(data):
-	oldPoint = None
+	global oldMarker
 	if len(data.markers) > 0:			
+		print("I found AR tags")
 		marker = data.markers[0]
+		oldMarker = marker
 		look_at(marker.header.frame_id, marker.pose.pose.position.x, marker.pose.pose.position.y, marker.pose.pose.position.z)
+	elif oldMarker is not None and (rospy.get_time() - oldMarker.header.stamp.secs  > 1.5):
+		print ("in search mode")
+		x = oldMarker.pose.pose.position.x
+		y = math.sin(1.5 * rospy.get_time()) * oldMarker.pose.pose.position.y
+		z = oldMarker.pose.pose.position.z
+		look_at(oldMarker.header.frame_id, x, y, z)
+
 
 def look_at(parent_frame, x, y, z):
 	goal = PointHeadGoal()
@@ -44,6 +56,7 @@ def look_at(parent_frame, x, y, z):
 
 if __name__ == '__main__':
 	rospy.init_node('timeTester2')
+	oldMarker = None
 	client = actionlib.SimpleActionClient("/head_traj_controller/point_head_action", PointHeadAction)
 	client.wait_for_server()	
 	# while not rospy.is_shutdown():

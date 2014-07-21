@@ -25,6 +25,10 @@
     <param name="head_server" value="$(arg head_server)" />
     <param name="cancel_topic" value="$(arg cancel_topic)" />
     <param name="is_pr2" type="bool" value="true"/>
-
   </node>
+  <arg name="map_file" default="$(find remote_nav)/maps/betterPrettyMap.yaml"/>
+  <node name="map_server2" pkg="map_server" type="map_server" args="$(arg map_file)">
+    <remap from="/map" to="/map2"/>
+  </node>
+
 </launch>
