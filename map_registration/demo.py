@@ -60,6 +60,17 @@ class MainWindow(QDialog, Ui_Window):
         self.edit_mode = 0
         self.src = [(-1, -1), (-1, -1), (-1, -1)]
         self.dst = [(-1, -1), (-1, -1), (-1, -1)]
+        self.robot_on = False
+        self.robot = RobotHandler()
+
+    # Add (or remove) a robot from the scene
+    def robot_toggle(self):
+        if not self.robot_on:
+            self.robot.setEnabled(True)
+            self.robot_on = True
+        else:
+            self.robot.setEnabled(False)
+            self.robot_on = False
 
     # Edit a different point
     def change_edit_mode(self):
@@ -105,24 +116,28 @@ class MainWindow(QDialog, Ui_Window):
             print "Not all points have been set"
 
 def main(argv):
-    usage = "demo.py -s <source image> -o <destination image>"
+    usage = "demo.py <source image> <destination image>"
     src = ""
     dst = ""
 
     try:
-        opts, args = getopt.getopt(argv, "hs:d:",["src=","dst="])
-    except getoptError:
+        opts, args = getopt.getopt(argv, "h")
+    except getopt.GetoptError as e:
         print usage
         sys.exit(2)
 
-    for opt, arg in opts:
-        if opt == '-h':
-            print usage
-            sys.exit()
-        elif opt in ("-s", "--src"):
-            src = arg
-        elif opt in ("-d", "--dst"):
-            dst = arg
+    if '-h' in opts:
+        print usage
+        sys.exit()
+
+    if len(args) != 2:
+        print usage
+        sys.exit(2)
+
+    src = args[0]
+    dst = args[1]
+
+    print src, dst
 
     if src == "" and dst == "":
         print usage 
