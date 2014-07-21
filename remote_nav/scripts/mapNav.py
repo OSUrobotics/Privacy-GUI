@@ -61,16 +61,12 @@ class Window(QMainWindow):
 	def initMapFrame(self):
 		self.world=QGraphicsView()
 		self.scene=QGraphicsScene()
-		self.scene.addPixmap(QPixmap(self.package_path + "/maps/labtest.pgm"))
+		self.scene.addPixmap(QPixmap(self.package_path + "/maps/betterMap.pgm"))
 
 
 ##ROBOT STUFF
 ##^^^^^^^^^^^
 		self.harris = Robot()
-		print ("Rotation is: " )
-		print self.harris.getRotate()
-
-
 
 		#feel free to make whatever functions you want. You can also edit the  Robot class
 
@@ -127,9 +123,9 @@ class Window(QMainWindow):
 		return start_trans
 	#Get start frame's pose with parent frame /map.
 	def _get_start_pose(self):
-		(trans, rot) = self.listener.lookupTransform("/odom","/start", rospy.Time(0))
+		(trans, rot) = self.listener.lookupTransform("/map","/start", rospy.Time(0))
 		goal = PoseStamped()
-		goal.header.frame_id = "/odom"
+		goal.header.frame_id = "/map"
 		goal.pose.position.x = trans[0]
 		goal.pose.position.y = trans[1]
 
@@ -138,12 +134,16 @@ class Window(QMainWindow):
 		return goal
 	#Returns pose of robot in /map frame.
 	def _get_robot_pose(self):
-		(trans, rot) = self.listener.lookupTransform("/odom","/base_footprint", rospy.Time(0))
+		try:
+			(trans, rot) = self.listener.lookupTransform("/map","/base_footprint", rospy.Time(0))
+		except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+			return None
+
 		goal = PoseStamped()
-		goal.header.frame_id = "/odom"
+		goal.header.frame_id = "/map"
 		goal.pose.position.x = trans[0]
 		goal.pose.position.y = trans[1]
-
+		# print "Robot positin in /map frame: (", goal.pose.position.x, ",", goal.pose.position.y, ")"
 		goal.pose.orientation.z = rot[2]
 		goal.pose.orientation.w = rot[3]
 		return goal
@@ -162,13 +162,14 @@ class Window(QMainWindow):
 		r = rospy.Rate(10)
 		while not rospy.is_shutdown():
 			current_pose = self._get_robot_pose()
-			self.harris.setPoint(current_pose.pose.position.x, current_pose.pose.position.y)
-			quaternion = (current_pose.pose.position.x,current_pose.pose.position.y,current_pose.pose.orientation.z,current_pose.pose.orientation.w)
-			euler = tf.transformations.euler_from_quaternion(quaternion)
-			yaw = euler[2] # yaw gonna make me lose my mind,
-			yaw = yaw + pi
-			self.harris.setRotate(yaw)
-			self.scene.update()
+			if current_pose is not None:
+				self.harris.setPoint(current_pose.pose.position.x, current_pose.pose.position.y)
+				quaternion = (current_pose.pose.position.x,current_pose.pose.position.y,current_pose.pose.orientation.z,current_pose.pose.orientation.w)
+				euler = tf.transformations.euler_from_quaternion(quaternion)
+				yaw = euler[2] # yaw gonna make me lose my mind,
+				yaw = yaw + pi
+				self.harris.setRotate(yaw)
+				self.scene.update()
 			r.sleep()
 
 
@@ -179,6 +180,7 @@ class Robot(QGraphicsItem):
 
 	angleChanged = pyqtSignal(float)
 	robot_width = 0.6 	# meters, in the real world
+	img_height = 1152 # Hardcoded for now
 
 	def __init__(self, parent=None):
 		super(Robot, self).__init__(parent)
@@ -187,14 +189,15 @@ class Robot(QGraphicsItem):
 		package_path = rospack.get_path('remote_nav')
 
 		# Get the relevant information from the yaml
-		map_meta_data = yaml_to_meta_data(package_path + '/maps/labtest.yaml')
+		map_meta_data = yaml_to_meta_data(package_path + '/maps/betterMap.yaml')
 		self.origin = map_meta_data.origin
 		self.resolution = map_meta_data.resolution
+		print "Map Origin: ", self.origin
 
 		# Set the image and scale it 
 		self.img = QPixmap(package_path + '/images/pr2HeadUp.png')
-		robot_size = (int)(self.robot_width / self.resolution)
-		self.img.scaled(robot_size, robot_size)
+		self.robot_size = (int)(self.robot_width / self.resolution)
+		self.img.scaled(self.robot_size, self.robot_size)
 
 		# Make private variables for the orientation and rotation
 		# until we know where the robot is, it will start at image origin
@@ -207,8 +210,9 @@ class Robot(QGraphicsItem):
 
 #Work in progress paint event (trying to draw the robot as an image. Using a square for now
 	def paint(self, painter, option, widget):
-		size = 25
-		painter.drawPixmap(QRect(self.x_pos, self.y_pos, size, size), self.img)
+		size = self.robot_size
+		half_size = size / 2
+		painter.drawPixmap(QRect(self.x_pos - half_size, self.y_pos - half_size, size, size), self.img)
 		#painter.setRenderHint(QPainter.Antialiasing)
 		if self.img.width() > size:
 			self.img = self.img.scaled(size, size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
@@ -217,7 +221,7 @@ class Robot(QGraphicsItem):
 	def boundingRect(self):
 		width = 20
 		height = 20
-		return QRectF(self.x_pos, self.y_pos, width, height)
+		return QRectF(self.x_pos - 10, self.y_pos - 10, width, height)
 
 	# def boundingRect(self):
 	# 	penWidth = 1.0
@@ -237,9 +241,10 @@ class Robot(QGraphicsItem):
 
 	# Sets the coordinates for use in the Image frame based on the 
 	# real-world coordinates (relative to /map frame)
-	def setPoint(self, real_x, real_y):
-		self.x_pos = (real_x - self.origin[0]) / self.resolution
-		self.y_pos = (real_y - self.origin[1]) / self.resolution
+	def setPoint(self, x, y):
+		self.x_pos = ((- self.origin[0] + x) / self.resolution) / 2
+		self.y_pos = (self.img_height + ((self.origin[1] - y) / self.resolution)) / 2
+		# print "Robot position in Image frame: (", self.x_pos, ",", self.y_pos, ")"
 		self.setPos(self.x_pos, self.y_pos)
 	# gets the position in the image
 	def getPoint(self):
