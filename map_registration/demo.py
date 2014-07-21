@@ -6,53 +6,55 @@ import cv2
 import numpy as np
 from components import * 
 
-class MainWindow(QWidget):
-    def __init__(self, map1, map2, parent=None):
-        super(QWidget, self).__init__(parent)
+from PyQt4.QtGui import QDialog
+from mapTransform import Ui_Window
 
+class MainWindow(QDialog, Ui_Window):
+    def __init__(self, map1, map2, parent=None):
+        super(QDialog, self).__init__(parent)
+        self.setupUi(self)
         self.setWindowTitle('Main Window')
 
-        layout = QVBoxLayout()
-        mapLayout = QHBoxLayout()
-        buttonLayout = QHBoxLayout()
  
         # Sets up the maps
         self.img_1 = map1
         self.img_2 = map2
-        self.source = QGraphicsView()
-        self.destination = QGraphicsView()
         self.map1 = DrawMap(self.img_1, self)
         self.source.setScene( self.map1 )
         self.map2 = DrawMap(self.img_2, self)
         self.destination.setScene( self.map2 )
-        mapLayout.addWidget(self.source)
-        mapLayout.addWidget(self.destination)
 
         # BUTTONS
-        register_btn = QtGui.QPushButton('Register Points', self)
-        register_btn.setToolTip("Pair the points currently selected in the map")
-        register_btn.clicked.connect(self.register_points)
-        register_btn.resize(register_btn.sizeHint())
-        buttonLayout.addWidget(register_btn)
+        # register_btn = QtGui.QPushButton('Register Points', self)
+        newPt_btn.setToolTip("Pair the points currently selected in the map")
+        newPt_btn.clicked.connect(self.register_points)
+        # register_btn.resize(register_btn.sizeHint())
+        # buttonLayout.addWidget(register_btn)
 
-        warp_btn = QtGui.QPushButton('Apply Transform', self)
-        warp_btn.setToolTip("Apply Affine Transform defined by the registered points")
-        warp_btn.clicked.connect(self.transform_map)
-        warp_btn.resize(warp_btn.sizeHint())
-        buttonLayout.addWidget(warp_btn)
+        # warp_btn = QtGui.QPushButton('Apply Transform', self)
+        transform_btn.setToolTip("Apply Affine Transform defined by the registered points")
+        transform_btn.clicked.connect(self.transform_map)
+        # warp_btn.resize(warp_btn.sizeHint())
+        # buttonLayout.addWidget(warp_btn)
 
         # Make 3 buttons -- one to edit each point
-        for i in range(1, 4):
-            name = "Edit Point " + str(i)
-            btn = QtGui.QPushButton(name, self)
-            btn.clicked.connect(self.change_edit_mode)
-            btn.resize(btn.sizeHint())
-            buttonLayout.addWidget(btn)
+    ##REPLACE
+    ##^^^^^^^
+    #Replace this code with a toggle state for the three radio buttons:
+        self.point1.clicked.connect(self.change_edit_mode)
+        self.point2.clicked.connect(self.change_edit_mode)
+        self.point3.clicked.connect(self.change_edit_mode)
+        # for i in range(1, 4):
+        #     name = "Edit Point " + str(i)
+        #     btn = QtGui.QPushButton(name, self)
+        #     btn.clicked.connect(self.change_edit_mode)
+        #     btn.resize(btn.sizeHint())
+        #     buttonLayout.addWidget(btn)
 
         # Show the layout
-        layout.addLayout(mapLayout)
-        layout.addLayout(buttonLayout)
-        self.setLayout( layout )
+        # layout.addLayout(mapLayout)
+        # layout.addLayout(buttonLayout)
+        # self.setLayout( layout )
 
         # Set up variables for point registration and transformation, etc
         self.edit_mode = 0
@@ -62,11 +64,11 @@ class MainWindow(QWidget):
     # Edit a different point
     def change_edit_mode(self):
         sender_name = self.sender().text()
-        if sender_name == "Edit Point 1":
+        if sender_name == "point1":
             self.edit_mode = 1
-        elif sender_name == "Edit Point 2":
+        elif sender_name == "point2":
             self.edit_mode = 2
-        elif sender_name == "Edit Point 3":
+        elif sender_name == "point3":
             self.edit_mode = 3
         self.map1.change_edit_mode(self.edit_mode)
         self.map2.change_edit_mode(self.edit_mode)
