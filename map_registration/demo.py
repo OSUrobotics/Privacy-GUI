@@ -26,14 +26,14 @@ class MainWindow(QDialog, Ui_Window):
 
         # BUTTONS
         # register_btn = QtGui.QPushButton('Register Points', self)
-        newPt_btn.setToolTip("Pair the points currently selected in the map")
-        newPt_btn.clicked.connect(self.register_points)
+        self.newPt_btn.setToolTip("Pair the points currently selected in the map")
+        self.newPt_btn.clicked.connect(self.register_points)
         # register_btn.resize(register_btn.sizeHint())
         # buttonLayout.addWidget(register_btn)
 
         # warp_btn = QtGui.QPushButton('Apply Transform', self)
-        transform_btn.setToolTip("Apply Affine Transform defined by the registered points")
-        transform_btn.clicked.connect(self.transform_map)
+        self.transform_btn.setToolTip("Apply Affine Transform defined by the registered points")
+        self.transform_btn.clicked.connect(self.transform_map)
         # warp_btn.resize(warp_btn.sizeHint())
         # buttonLayout.addWidget(warp_btn)
 
