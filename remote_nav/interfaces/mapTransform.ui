@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1027</width>
-    <height>419</height>
+    <height>653</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,8 +32,8 @@
        <cursorShape>CrossCursor</cursorShape>
       </property>
      </widget>
-     <widget class="QWidget" name="">
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
+     <widget class="QWidget" name="layoutWidget">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0">
        <item>
         <widget class="QPushButton" name="export_btn">
          <property name="text">
@@ -49,6 +49,22 @@
         </widget>
        </item>
        <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Minimum</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QTabWidget" name="tools">
          <property name="currentIndex">
           <number>0</number>
@@ -57,129 +73,184 @@
           <attribute name="title">
            <string>Affine</string>
           </attribute>
-          <layout class="QVBoxLayout" name="verticalLayout_5">
+          <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_3">
-             <item>
-              <widget class="QPushButton" name="editPt_btn">
-               <property name="text">
-                <string>Edit Point</string>
-               </property>
-              </widget>
-             </item>
-             <item>
+            <layout class="QVBoxLayout" name="affineLayout">
+             <item alignment="Qt::AlignTop">
               <widget class="QPushButton" name="newPt_btn">
                <property name="text">
-                <string>New Point</string>
+                <string>Register Points</string>
                </property>
               </widget>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="verticalLayout_2">
-               <item>
-                <widget class="QRadioButton" name="point1">
-                 <property name="styleSheet">
-                  <string notr="true">color:red</string>
+              <widget class="QRadioButton" name="point1">
+               <property name="acceptDrops">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color:red</string>
+               </property>
+               <property name="text">
+                <string>Point 1</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup</string>
+               </attribute>
+              </widget>
+             </item>
+             <item>
+              <layout class="QGridLayout" name="gridLayout">
+               <item row="0" column="0">
+                <widget class="QLineEdit" name="p1_x1">
+                 <property name="readOnly">
+                  <bool>true</bool>
                  </property>
-                 <property name="text">
-                  <string>Point 1</string>
+                 <property name="placeholderText">
+                  <string>X</string>
                  </property>
-                 <attribute name="buttonGroup">
-                  <string notr="true">buttonGroup</string>
-                 </attribute>
                 </widget>
                </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_6">
-                 <item>
-                  <widget class="QLineEdit" name="p1_x">
-                   <property name="readOnly">
-                    <bool>true</bool>
-                   </property>
-                   <property name="placeholderText">
-                    <string>X</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="p1_y">
-                   <property name="readOnly">
-                    <bool>true</bool>
-                   </property>
-                   <property name="placeholderText">
-                    <string>Y</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="point2">
-                 <property name="text">
-                  <string>Point 2</string>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="p1_y1">
+                 <property name="readOnly">
+                  <bool>true</bool>
                  </property>
-                 <attribute name="buttonGroup">
-                  <string notr="true">buttonGroup</string>
-                 </attribute>
+                 <property name="placeholderText">
+                  <string>Y</string>
+                 </property>
                 </widget>
                </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_3">
-                 <item>
-                  <widget class="QLineEdit" name="p2_x">
-                   <property name="readOnly">
-                    <bool>true</bool>
-                   </property>
-                   <property name="placeholderText">
-                    <string>X</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="p2_y">
-                   <property name="readOnly">
-                    <bool>true</bool>
-                   </property>
-                   <property name="placeholderText">
-                    <string>Y</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="point3">
-                 <property name="text">
-                  <string>Point 3</string>
+               <item row="1" column="0">
+                <widget class="QLineEdit" name="p1_x2">
+                 <property name="readOnly">
+                  <bool>true</bool>
                  </property>
-                 <attribute name="buttonGroup">
-                  <string notr="true">buttonGroup</string>
-                 </attribute>
+                 <property name="placeholderText">
+                  <string>X</string>
+                 </property>
                 </widget>
                </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_4">
-                 <item>
-                  <widget class="QLineEdit" name="p3_x">
-                   <property name="readOnly">
-                    <bool>true</bool>
-                   </property>
-                   <property name="placeholderText">
-                    <string>X</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="p3_y">
-                   <property name="readOnly">
-                    <bool>true</bool>
-                   </property>
-                   <property name="placeholderText">
-                    <string>Y</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="p1_y2">
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                 <property name="placeholderText">
+                  <string>Y</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="point2">
+               <property name="text">
+                <string>Point 2</string>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup</string>
+               </attribute>
+              </widget>
+             </item>
+             <item>
+              <layout class="QGridLayout" name="gridLayout_2">
+               <item row="0" column="0">
+                <widget class="QLineEdit" name="p2_x1">
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                 <property name="placeholderText">
+                  <string>X</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="p2_y1">
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                 <property name="placeholderText">
+                  <string>Y</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLineEdit" name="p2_x2">
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                 <property name="placeholderText">
+                  <string>X</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="p2_y2">
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                 <property name="placeholderText">
+                  <string>Y</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="point3">
+               <property name="text">
+                <string>Point 3</string>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup</string>
+               </attribute>
+              </widget>
+             </item>
+             <item>
+              <layout class="QGridLayout" name="gridLayout_3">
+               <item row="0" column="0">
+                <widget class="QLineEdit" name="p3_x1">
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                 <property name="placeholderText">
+                  <string>X</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="p3_y1">
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                 <property name="placeholderText">
+                  <string>Y</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLineEdit" name="p3_x2">
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                 <property name="placeholderText">
+                  <string>X</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="p3_y2">
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                 <property name="placeholderText">
+                  <string>Y</string>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -290,39 +361,28 @@
     </widget>
    </item>
   </layout>
-  <zorder>source</zorder>
-  <zorder>destination</zorder>
-  <zorder>tools</zorder>
-  <zorder>transform_btn</zorder>
-  <zorder>export_btn</zorder>
-  <zorder>toggleRobot</zorder>
-  <zorder></zorder>
  </widget>
  <tabstops>
   <tabstop>source</tabstop>
   <tabstop>destination</tabstop>
   <tabstop>export_btn</tabstop>
   <tabstop>transform_btn</tabstop>
-  <tabstop>tools</tabstop>
-  <tabstop>editPt_btn</tabstop>
   <tabstop>newPt_btn</tabstop>
   <tabstop>point1</tabstop>
   <tabstop>point2</tabstop>
   <tabstop>point3</tabstop>
-  <tabstop>p1_x</tabstop>
-  <tabstop>p1_y</tabstop>
-  <tabstop>p2_x</tabstop>
-  <tabstop>p2_y</tabstop>
-  <tabstop>p3_x</tabstop>
-  <tabstop>p3_y</tabstop>
+  <tabstop>p1_x1</tabstop>
+  <tabstop>p1_y1</tabstop>
+  <tabstop>p2_x1</tabstop>
+  <tabstop>p2_y1</tabstop>
+  <tabstop>p3_x1</tabstop>
+  <tabstop>p3_y1</tabstop>
   <tabstop>toggleRobot</tabstop>
   <tabstop>bulge_btn</tabstop>
   <tabstop>indent_btn</tabstop>
   <tabstop>bulgeRadius</tabstop>
   <tabstop>bulge_x</tabstop>
   <tabstop>bulge_y</tabstop>
-  <tabstop>lineEdit_5</tabstop>
-  <tabstop>lineEdit_6</tabstop>
  </tabstops>
  <resources/>
  <connections/>
