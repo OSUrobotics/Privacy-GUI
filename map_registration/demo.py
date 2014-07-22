@@ -24,16 +24,12 @@ class MainWindow(QDialog, Ui_Window):
         self.map2 = DrawMap(self.img_2, self)
         self.destination.setScene( self.map2 )
 
-        # BUTTONS
-        self.newPt_btn.setToolTip("Pair the points currently selected in the map")
-        self.newPt_btn.clicked.connect(self.register_points)
-
         self.transform_btn.setToolTip("Apply Affine Transform defined by the registered points")
         self.transform_btn.clicked.connect(self.transform_map)
 
         # The signals are emitted after a click in the map window
-        self.map1.register.connect(self.register_points)
-        self.map2.register.connect(self.register_points)
+        self.map1.register.connect(self.point_handler)
+        self.map2.register.connect(self.point_handler)
 
         # Make 3 buttons -- one to edit each point
     ##REPLACE
@@ -42,13 +38,6 @@ class MainWindow(QDialog, Ui_Window):
         self.point1.toggled.connect(self.change_edit_mode)
         self.point2.toggled.connect(self.change_edit_mode)
         self.point3.toggled.connect(self.change_edit_mode)
-        # for i in range(1, 4):
-        #     name = "Edit Point " + str(i)
-        #     btn = QtGui.QPushButton(name, self)
-        #     btn.clicked.connect(self.change_edit_mode)
-        #     btn.resize(btn.sizeHint())
-        #     buttonLayout.addWidget(btn)
-
 
         # Set up variables for point registration and transformation, etc
         self.edit_mode = 0
@@ -56,6 +45,8 @@ class MainWindow(QDialog, Ui_Window):
         self.dst = [(-1, -1), (-1, -1), (-1, -1)]
         self.robot_on = False
         self.robot = RobotHandler()
+        self.map_1_set = False
+        self.map_2_set = False
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
@@ -70,10 +61,14 @@ class MainWindow(QDialog, Ui_Window):
     def change_edit_mode(self):
     ##Each of the buttons is associated with an ID number, and we can use this to set the mode.
         buttonId = self.buttonGroup.checkedId()
-        self.edit_mode = buttonId
         if buttonId <= 0:
             print ("No button selected!")
         else:
+            self.edit_mode = buttonId
+            if self.src[buttonId - 1] == (-1, -1):
+                self.map_1_set = False
+            if self.dst[buttonId - 1] == (-1, -1):
+                self.map_2_set = False
             self.map1.change_edit_mode(self.edit_mode)
             self.map2.change_edit_mode(self.edit_mode)
 
@@ -107,6 +102,47 @@ class MainWindow(QDialog, Ui_Window):
                 print "Destination: ", self.dst
         else:
             print "Not all points have been set"
+
+    # triggered when a point is clicked in either map scene
+    def point_handler(self):
+        if self.sender() is self.map1:
+            # Update the label
+            pos = self.map1.getPoint()
+            if self.edit_mode == 1:
+                self.p1_x1.setText(str(pos[0]))
+                self.p1_y1.setText(str(pos[1]))
+            elif  self.edit_mode == 2:
+                self.p2_x1.setText(str(pos[0]))
+                self.p2_y1.setText(str(pos[1]))
+            elif self.edit_mode == 3:
+                self.p3_x1.setText(str(pos[0]))
+                self.p3_y1.setText(str(pos[1]))
+            else:
+                print "Not currently editing a point"
+            self.map_1_set = True
+            # Check if both points have been set
+            if self.map_2_set: 
+                self.register_points()
+        elif self.sender() is self.map2:
+            # update the label
+            pos = self.map2.getPoint()
+            if self.edit_mode == 1:
+                self.p1_x2.setText(str(pos[0]))
+                self.p1_y2.setText(str(pos[1]))
+            elif  self.edit_mode == 2:
+                self.p2_x2.setText(str(pos[0]))
+                self.p2_y2.setText(str(pos[1]))
+            elif self.edit_mode == 3:
+                self.p3_x2.setText(str(pos[0]))
+                self.p3_y2.setText(str(pos[1]))
+            else:
+                print "Not currently editing a point"
+            self.map_2_set = True
+            # Check if both points have been set
+            if self.map_1_set:
+                self.register_points()
+        else:
+            print "Unknown event trigger"
 
 def main(argv):
     usage = "demo.py <source image> <destination image>"
