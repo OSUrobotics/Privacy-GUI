@@ -28,6 +28,8 @@ class DrawPoint(QGraphicsItem):
         return (self.x + (self.size / 2), self.y + (self.size / 2))
 
 class DrawMap(QGraphicsScene): 
+    register = QtCore.pyqtSignal()
+
     def __init__(self, image, parent=None):
         super(QGraphicsScene, self).__init__(parent)
         self.local_image = QImage(image)
@@ -43,7 +45,6 @@ class DrawMap(QGraphicsScene):
         self.marker_2 = DrawPoint(QtCore.Qt.green)
         self.marker_3 = DrawPoint(QtCore.Qt.blue)
         self.robot = DrawRobot()
-        self.register = QtCore.pyqtSignal()
 
     # Updates the positin and draws a circle around it
     def pixelSelect( self, event ):

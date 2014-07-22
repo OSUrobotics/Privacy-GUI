@@ -32,8 +32,8 @@ class MainWindow(QDialog, Ui_Window):
         self.transform_btn.clicked.connect(self.transform_map)
 
         # The signals are emitted after a click in the map window
-        # self.map1.register.connect(self.register_points)
-        # self.map2.register.connect(self.register_points)
+        self.map1.register.connect(self.register_points)
+        self.map2.register.connect(self.register_points)
 
         # Make 3 buttons -- one to edit each point
     ##REPLACE
