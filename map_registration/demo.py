@@ -113,29 +113,7 @@ class MainWindow(QDialog, Ui_Window):
                 print "Destination: ", self.dst
         else:
             print "Not all points have been set"
-    def outputWindow(self, image):
-        cv2.imshow('Preview', image)
-        # child = MyWindow(image, self)
-        # child.show()
-
-class MyWindow(QtGui.QDialog):    # any super class is okay
-    def __init__(self, image, parent=None):
-        super(MyWindow, self).__init__(parent)
-        self.export = QtGui.QPushButton('Export')
-
-        self.pic = QtGui.QLabel()
-        self.pic.setGeometry(10, 10, 100, 400)
-        #use full ABSOLUTE path to the image, not relative
-        self.pic.setPixmap(QtGui.QPixmap(image))
-
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(self.pic)
-        layout.addWidget(self.export)
-        self.setLayout(layout)
-        self.export.clicked.connect(self.export_image)
-    def export_image(self):
-        pass
-
+    
     # triggered when a point is clicked in either map scene
     def point_handler(self):
         if self.sender() is self.map1:
@@ -176,6 +154,29 @@ class MyWindow(QtGui.QDialog):    # any super class is okay
                 self.register_points()
         else:
             print "Unknown event trigger"
+
+    def outputWindow(self, image):
+        cv2.imshow('Preview', image)
+        # child = MyWindow(image, self)
+        # child.show()
+
+class MyWindow(QtGui.QDialog):    # any super class is okay
+    def __init__(self, image, parent=None):
+        super(MyWindow, self).__init__(parent)
+        self.export = QtGui.QPushButton('Export')
+
+        self.pic = QtGui.QLabel()
+        self.pic.setGeometry(10, 10, 100, 400)
+        #use full ABSOLUTE path to the image, not relative
+        self.pic.setPixmap(QtGui.QPixmap(image))
+
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.pic)
+        layout.addWidget(self.export)
+        self.setLayout(layout)
+        self.export.clicked.connect(self.export_image)
+    def export_image(self):
+        pass
 
 def main(argv):
     usage = "demo.py <source image> <destination image>"
