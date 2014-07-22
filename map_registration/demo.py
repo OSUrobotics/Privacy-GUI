@@ -31,9 +31,15 @@ class MainWindow(QDialog, Ui_Window):
         self.transform_btn.setToolTip("Apply Affine Transform defined by the registered points")
         self.transform_btn.clicked.connect(self.transform_map)
 
+        self.export_btn.setToolTip("Save the transformed map")
+        self.export_btn.clicked.connect(self.export_map)
+
         # The signals are emitted after a click in the map window
         self.map1.register.connect(self.register_points)
         self.map2.register.connect(self.register_points)
+
+        #Setting up the robot toggled checkbox
+        self.toggleRobot.stateChanged.connect(self.robot_toggle)
 
         # Make 3 buttons -- one to edit each point
     ##REPLACE
@@ -59,12 +65,13 @@ class MainWindow(QDialog, Ui_Window):
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
-        if not self.robot_on:
-            self.robot.setEnabled(True)
-            self.robot_on = True
-        else:
-            self.robot.setEnabled(False)
-            self.robot_on = False
+        # if not self.robot_on:
+        self.robot.setEnabled(self.toggleRobot.isChecked())
+        self.robot_on = self.toggleRobot.isChecked()
+        print self.toggleRobot.isChecked()
+        # else:
+        #     self.robot.setEnabled(False)
+        #     self.robot_on = False
 
     # Edit a different point
     def change_edit_mode(self):
@@ -91,9 +98,13 @@ class MainWindow(QDialog, Ui_Window):
             src = cv2.imread(self.img_1, 0)
             rows, cols = src.shape
             output = cv2.warpAffine(src, transform, (cols, rows))
-            cv2.imshow('Output', output)
+            self.outputWindow(output)
+            # cv2.imshow('Output', output)
         else:
             print "Not enough pairs to transform"
+
+    def export_map(self):
+        pass
 
     # Reads the most recent points off the maps and puts into the Matrix
     def register_points(self):
@@ -107,6 +118,28 @@ class MainWindow(QDialog, Ui_Window):
                 print "Destination: ", self.dst
         else:
             print "Not all points have been set"
+    def outputWindow(self, image):
+        cv2.imshow('Preview', image)
+        # child = MyWindow(image, self)
+        # child.show()
+
+class MyWindow(QtGui.QDialog):    # any super class is okay
+    def __init__(self, image, parent=None):
+        super(MyWindow, self).__init__(parent)
+        self.export = QtGui.QPushButton('Export')
+
+        self.pic = QtGui.QLabel()
+        self.pic.setGeometry(10, 10, 100, 400)
+        #use full ABSOLUTE path to the image, not relative
+        self.pic.setPixmap(QtGui.QPixmap(image))
+
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.pic)
+        layout.addWidget(self.export)
+        self.setLayout(layout)
+        self.export.clicked.connect(self.export_image)
+    def export_image(self):
+        pass
 
 def main(argv):
     usage = "demo.py <source image> <destination image>"
