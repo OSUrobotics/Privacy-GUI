@@ -65,7 +65,7 @@ class MainWindow(QDialog, Ui_Window):
     # Edit a different point
     def change_edit_mode(self):
     ##Each of the buttons is associated with an ID number, and we can use this to set the mode.
-        buttonId = buttonGroup.checkedId()
+        buttonId = self.buttonGroup.checkedId()
         self.edit_mode = buttonId
         if buttonId <= 0:
             print ("No button selected!")

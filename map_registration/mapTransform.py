@@ -87,8 +87,8 @@ class Ui_Window(object):
     ## point2 - QRadioButton
         self.point2 = QtGui.QRadioButton(self.affine_tool)
         self.point2.setObjectName(_fromUtf8("point2"))
-        self.buttonGroup.addButton(self.point2)
-        self.verticalLayout_2.addWidget(self.point2, 2)
+        self.buttonGroup.addButton(self.point2, 2)
+        self.verticalLayout_2.addWidget(self.point2)
         self.horizontalLayout_3 = QtGui.QHBoxLayout()
         self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
     ## p2_x - QLineEdit
@@ -105,8 +105,8 @@ class Ui_Window(object):
     ## point3 - QRadioButton
         self.point3 = QtGui.QRadioButton(self.affine_tool)
         self.point3.setObjectName(_fromUtf8("point3"))
-        self.buttonGroup.addButton(self.point3)
-        self.verticalLayout_2.addWidget(self.point3, 3)
+        self.buttonGroup.addButton(self.point3, 3)
+        self.verticalLayout_2.addWidget(self.point3)
         self.horizontalLayout_4 = QtGui.QHBoxLayout()
         self.horizontalLayout_4.setObjectName(_fromUtf8("horizontalLayout_4"))
         self.p3_x = QtGui.QLineEdit(self.affine_tool)
