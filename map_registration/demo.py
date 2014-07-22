@@ -51,8 +51,6 @@ class MainWindow(QDialog, Ui_Window):
         self.dst = [(-1, -1), (-1, -1), (-1, -1)]
         self.robot_on = False
         self.robot = RobotHandler()
-        self.map_1_set = False
-        self.map_2_set = False
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
@@ -103,16 +101,12 @@ class MainWindow(QDialog, Ui_Window):
 
     # Reads the most recent points off the maps and puts into the Matrix
     def register_points(self):
-        # check that both map1.getPoint() and map2.getPoint() have been set
-        if (self.map1.getPoint() != (-1, -1)) and (self.map2.getPoint() != (-1, -1)):
-            print "Registering Points"
-            if self.edit_mode != 0:
-                self.src[self.edit_mode - 1] = self.map1.getPoint()
-                self.dst[self.edit_mode - 1] = self.map2.getPoint()
-                print "Source: ", self.src
-                print "Destination: ", self.dst
-        else:
-            print "Not all points have been set"
+        print "Registering Points"
+        if self.edit_mode != 0:
+            self.src[self.edit_mode - 1] = self.map1.getPoint()
+            self.dst[self.edit_mode - 1] = self.map2.getPoint()
+            print "Source: ", self.src
+            print "Destination: ", self.dst
     
     # triggered when a point is clicked in either map scene
     def point_handler(self):
@@ -130,10 +124,7 @@ class MainWindow(QDialog, Ui_Window):
                 self.p3_y1.setText(str(pos[1]))
             else:
                 print "Not currently editing a point"
-            self.map_1_set = True
-            # Check if both points have been set
-            if self.map_2_set: 
-                self.register_points()
+            self.register_points()
         elif self.sender() is self.map2:
             # update the label
             pos = self.map2.getPoint()
@@ -148,10 +139,7 @@ class MainWindow(QDialog, Ui_Window):
                 self.p3_y2.setText(str(pos[1]))
             else:
                 print "Not currently editing a point"
-            self.map_2_set = True
-            # Check if both points have been set
-            if self.map_1_set:
-                self.register_points()
+            self.register_points()
         else:
             print "Unknown event trigger"
 
