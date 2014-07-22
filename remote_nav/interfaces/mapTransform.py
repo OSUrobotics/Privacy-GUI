@@ -69,7 +69,7 @@ class Ui_Window(object):
         self.point1.setObjectName(_fromUtf8("point1"))
         self.buttonGroup = QtGui.QButtonGroup(Window)
         self.buttonGroup.setObjectName(_fromUtf8("buttonGroup"))
-        self.buttonGroup.addButton(self.point1)
+        self.buttonGroup.addButton(self.point1, 1)
         self.verticalLayout_2.addWidget(self.point1)
         self.horizontalLayout_6 = QtGui.QHBoxLayout()
         self.horizontalLayout_6.setObjectName(_fromUtf8("horizontalLayout_6"))
@@ -88,7 +88,7 @@ class Ui_Window(object):
         self.point2 = QtGui.QRadioButton(self.affine_tool)
         self.point2.setObjectName(_fromUtf8("point2"))
         self.buttonGroup.addButton(self.point2)
-        self.verticalLayout_2.addWidget(self.point2)
+        self.verticalLayout_2.addWidget(self.point2, 2)
         self.horizontalLayout_3 = QtGui.QHBoxLayout()
         self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
     ## p2_x - QLineEdit
@@ -106,7 +106,7 @@ class Ui_Window(object):
         self.point3 = QtGui.QRadioButton(self.affine_tool)
         self.point3.setObjectName(_fromUtf8("point3"))
         self.buttonGroup.addButton(self.point3)
-        self.verticalLayout_2.addWidget(self.point3)
+        self.verticalLayout_2.addWidget(self.point3, 3)
         self.horizontalLayout_4 = QtGui.QHBoxLayout()
         self.horizontalLayout_4.setObjectName(_fromUtf8("horizontalLayout_4"))
         self.p3_x = QtGui.QLineEdit(self.affine_tool)
@@ -140,9 +140,11 @@ class Ui_Window(object):
         self.verticalLayout_6.addLayout(self.horizontalLayout_7)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
+    ## radius_lbl - QLabel
         self.radius_lbl = QtGui.QLabel(self.bulge_tool)
         self.radius_lbl.setObjectName(_fromUtf8("radius_lbl"))
         self.horizontalLayout_2.addWidget(self.radius_lbl)
+    ## bulgeRadius - QSlider
         self.bulgeRadius = QtGui.QSlider(self.bulge_tool)
         self.bulgeRadius.setMaximum(255)
         self.bulgeRadius.setSingleStep(5)
@@ -158,10 +160,12 @@ class Ui_Window(object):
         self.label_2 = QtGui.QLabel(self.bulge_tool)
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.horizontalLayout_8.addWidget(self.label_2)
+    ## bulge_x - QLineEdit
         self.bulge_x = QtGui.QLineEdit(self.bulge_tool)
         self.bulge_x.setReadOnly(True)
         self.bulge_x.setObjectName(_fromUtf8("bulge_x"))
         self.horizontalLayout_8.addWidget(self.bulge_x)
+    ## bulge_y - QLineEdit
         self.bulge_y = QtGui.QLineEdit(self.bulge_tool)
         self.bulge_y.setReadOnly(True)
         self.bulge_y.setObjectName(_fromUtf8("bulge_y"))
@@ -169,6 +173,7 @@ class Ui_Window(object):
         self.verticalLayout_6.addLayout(self.horizontalLayout_8)
         self.tools.addTab(self.bulge_tool, _fromUtf8(""))
         self.verticalLayout.addWidget(self.tools)
+    ## toggleRobot - QCheckbox
         self.toggleRobot = QtGui.QCheckBox(self.widget)
         self.toggleRobot.setObjectName(_fromUtf8("toggleRobot"))
         self.verticalLayout.addWidget(self.toggleRobot)

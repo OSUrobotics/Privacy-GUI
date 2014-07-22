@@ -25,25 +25,19 @@ class MainWindow(QDialog, Ui_Window):
         self.destination.setScene( self.map2 )
 
         # BUTTONS
-        # register_btn = QtGui.QPushButton('Register Points', self)
         self.newPt_btn.setToolTip("Pair the points currently selected in the map")
         self.newPt_btn.clicked.connect(self.register_points)
-        # register_btn.resize(register_btn.sizeHint())
-        # buttonLayout.addWidget(register_btn)
 
-        # warp_btn = QtGui.QPushButton('Apply Transform', self)
         self.transform_btn.setToolTip("Apply Affine Transform defined by the registered points")
         self.transform_btn.clicked.connect(self.transform_map)
-        # warp_btn.resize(warp_btn.sizeHint())
-        # buttonLayout.addWidget(warp_btn)
 
         # Make 3 buttons -- one to edit each point
     ##REPLACE
     ##^^^^^^^
     #Replace this code with a toggle state for the three radio buttons:
-        self.point1.clicked.connect(self.change_edit_mode)
-        self.point2.clicked.connect(self.change_edit_mode)
-        self.point3.clicked.connect(self.change_edit_mode)
+        self.point1.toggled.connect(self.change_edit_mode)
+        self.point2.toggled.connect(self.change_edit_mode)
+        self.point3.toggled.connect(self.change_edit_mode)
         # for i in range(1, 4):
         #     name = "Edit Point " + str(i)
         #     btn = QtGui.QPushButton(name, self)
@@ -51,10 +45,6 @@ class MainWindow(QDialog, Ui_Window):
         #     btn.resize(btn.sizeHint())
         #     buttonLayout.addWidget(btn)
 
-        # Show the layout
-        # layout.addLayout(mapLayout)
-        # layout.addLayout(buttonLayout)
-        # self.setLayout( layout )
 
         # Set up variables for point registration and transformation, etc
         self.edit_mode = 0
@@ -74,15 +64,21 @@ class MainWindow(QDialog, Ui_Window):
 
     # Edit a different point
     def change_edit_mode(self):
-        sender_name = self.sender().text()
-        if sender_name == "point1":
-            self.edit_mode = 1
-        elif sender_name == "point2":
-            self.edit_mode = 2
-        elif sender_name == "point3":
-            self.edit_mode = 3
-        self.map1.change_edit_mode(self.edit_mode)
-        self.map2.change_edit_mode(self.edit_mode)
+    ##Each of the buttons is associated with an ID number, and we can use this to set the mode.
+        buttonId = buttonGroup.checkedId()
+        self.edit_mode = buttonId
+        if buttonId <= 0:
+            print ("No button selected!")
+        # sender_name = self.sender().text()
+        # if sender_name == "point1":
+        #     self.edit_mode = 1
+        # elif sender_name == "point2":
+        #     self.edit_mode = 2
+        # elif sender_name == "point3":
+        #     self.edit_mode = 3
+        else:
+            self.map1.change_edit_mode(self.edit_mode)
+            self.map2.change_edit_mode(self.edit_mode)
 
     # Using registred points, transform the maps
     def transform_map(self):
