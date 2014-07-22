@@ -31,6 +31,10 @@ class MainWindow(QDialog, Ui_Window):
         self.transform_btn.setToolTip("Apply Affine Transform defined by the registered points")
         self.transform_btn.clicked.connect(self.transform_map)
 
+        # The signals are emitted after a click in the map window
+        # self.map1.register.connect(self.register_points)
+        # self.map2.register.connect(self.register_points)
+
         # Make 3 buttons -- one to edit each point
     ##REPLACE
     ##^^^^^^^
@@ -69,13 +73,6 @@ class MainWindow(QDialog, Ui_Window):
         self.edit_mode = buttonId
         if buttonId <= 0:
             print ("No button selected!")
-        # sender_name = self.sender().text()
-        # if sender_name == "point1":
-        #     self.edit_mode = 1
-        # elif sender_name == "point2":
-        #     self.edit_mode = 2
-        # elif sender_name == "point3":
-        #     self.edit_mode = 3
         else:
             self.map1.change_edit_mode(self.edit_mode)
             self.map2.change_edit_mode(self.edit_mode)

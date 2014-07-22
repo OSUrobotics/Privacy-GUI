@@ -42,6 +42,8 @@ class DrawMap(QGraphicsScene):
         self.marker_1 = DrawPoint(QtCore.Qt.red)
         self.marker_2 = DrawPoint(QtCore.Qt.green)
         self.marker_3 = DrawPoint(QtCore.Qt.blue)
+        self.robot = DrawRobot()
+        self.register = QtCore.pyqtSignal()
 
     # Updates the positin and draws a circle around it
     def pixelSelect( self, event ):
@@ -59,6 +61,7 @@ class DrawMap(QGraphicsScene):
             marker.update_pos(position.x(), position.y())
             if not marker.is_drawn:
                 self.addItem(marker)
+            self.register.emit()
             self.update()
 
     # Returns the most recent point
@@ -74,3 +77,11 @@ class DrawMap(QGraphicsScene):
 
     def change_edit_mode(self, mode):
         self.edit_mode = mode
+
+class DrawRobot(QGraphicsObject):
+    def __init__(self, parent=None):
+        super(QGraphicsObject, self).__init__(parent)
+
+class RobotHandler(QGraphicsObject):
+    def __init__(self, parent=None):
+        super(QGraphicsObject, self).__init__(parent)
