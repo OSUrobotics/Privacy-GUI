@@ -22,10 +22,7 @@ class MainWindow(QDialog, Ui_Window):
         robot2 = DrawRobot()
         robot1.setVisible(False)
         robot2.setVisible(False)
-        self.map1.addItem(robot1)
-        self.map2.addItem(robot2)
         self.robot = RobotHandler(robot1, robot2)
-
  
         # Sets up the maps
         self.img_1 = map1
@@ -34,6 +31,8 @@ class MainWindow(QDialog, Ui_Window):
         self.source.setScene( self.map1 )
         self.map2 = DrawMap(self.img_2, self)
         self.destination.setScene( self.map2 )
+        self.map1.addItem(robot1)
+        self.map2.addItem(robot2)
 
         self.bulge_btn.setIcon(QIcon("images/bulge.png"))
         self.indent_btn.setIcon(QIcon("images/indent.png"))
