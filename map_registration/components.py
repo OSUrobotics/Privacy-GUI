@@ -86,15 +86,20 @@ class DrawRobot(QGraphicsObject):
 
     def __init__(self, parent=None):
         super(QGraphicsObject, self).__init__(parent)
-        self.img = QPixmap('pr2HeadUp.png')
+
+        #Taking this out and making it just drawing a cool square because this is a simple thing
+
+        # self.img = QPixmap('pr2HeadUp.png')
 
     def boundingRect(self):
         return QRectF(0, 0, self.size, self.size)
 
     def paint(self, painter, option, widget):
-        painter.drawPixmap(QRect(0, 0, self.size, self.size), self.img)
-        if self.img.width() > self.size:
-            self.img = self.img.scaled(self.size, self.size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        painter = QPainter()
+        pen = QPen(Qt.black, 3, Qt.SolidLine)
+        painter.setPen(pen)
+        painter.drawRoundedRect(0, 0, self.size, self.size, self.size / 3, self.size / 3)
+       
 
 class RobotHandler():
     def __init__(self, robot_1, robot_2):
@@ -110,6 +115,7 @@ class RobotHandler():
             self.isenabled = enable_state
             self.robot_1.setVisible(enable_state)
             self.robot_2.setVisible(enable_state)
+        print "Is enabled: "
         print self.isenabled
 
     def setTransforms(self, src, dst):

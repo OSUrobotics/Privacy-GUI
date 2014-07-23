@@ -26,16 +26,17 @@ class MainWindow(QDialog, Ui_Window):
         self.edit_mode = 0
         self.src = [(-1, -1), (-1, -1), (-1, -1)]
         self.dst = [(-1, -1), (-1, -1), (-1, -1)]
-        robot1 = DrawRobot()
-        robot2 = DrawRobot()
-        robot1.setVisible(False)
-        robot2.setVisible(False)
-        self.robot = RobotHandler(robot1, robot2)
+        self.robot1 = DrawRobot()
+        self.robot2 = DrawRobot()
+        self.robot1.setVisible(False)
+        self.robot2.setVisible(False)
+        self.robot = RobotHandler(self.robot1, self.robot2)
 
         #Changes GUI attributes
+        self.toggleRobot.setEnabled(False)
 
-        self.map1.addItem(robot1)
-        self.map2.addItem(robot2)
+        self.map1.addItem(self.robot1)
+        self.map2.addItem(self.robot2)
 
 
         self.bulge_btn.setIcon(QIcon("images/bulge.png"))
@@ -66,6 +67,9 @@ class MainWindow(QDialog, Ui_Window):
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
+        numpy_src = np.array(self.src, dtype='float32')
+        numpy_dst = np.array(self.dst, dtype='float32')
+        transform = self.robot.setTransforms(numpy_src, numpy_dst)
         self.robot.setEnabled(self.toggleRobot.isChecked())
 
     # Edit a different point
@@ -111,8 +115,10 @@ class MainWindow(QDialog, Ui_Window):
         if self.edit_mode != 0:
             self.src[self.edit_mode - 1] = self.map1.getPoint()
             self.dst[self.edit_mode - 1] = self.map2.getPoint()
-            # print "Source: ", self.src
-            # print "Destination: ", self.dst
+        # Check that three pairs have been make
+        if ((-1, -1) not in self.src) and ((-1, -1) not in self.dst):
+            #enable the robot button
+            self.toggleRobot.setEnabled(True)
     
     # triggered when a point is clicked in either map scene
     def point_handler(self):
