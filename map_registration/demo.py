@@ -13,6 +13,14 @@ class MainWindow(QDialog, Ui_Window):
         super(QDialog, self).__init__(parent)
         self.setupUi(self)
         self.setWindowTitle('Main Window')
+ 
+        # Sets up the maps
+        self.img_1 = map1
+        self.img_2 = map2
+        self.map1 = DrawMap(self.img_1, self)
+        self.source.setScene( self.map1 )
+        self.map2 = DrawMap(self.img_2, self)
+        self.destination.setScene( self.map2 )
 
         # Set up variables for point registration and transformation, etc
         self.edit_mode = 0
@@ -26,15 +34,7 @@ class MainWindow(QDialog, Ui_Window):
         self.map2.addItem(robot2)
         self.robot = RobotHandler(robot1, robot2)
 
- 
-        # Sets up the maps
-        self.img_1 = map1
-        self.img_2 = map2
-        self.map1 = DrawMap(self.img_1, self)
-        self.source.setScene( self.map1 )
-        self.map2 = DrawMap(self.img_2, self)
-        self.destination.setScene( self.map2 )
-
+        #Changes GUI attributes
         self.bulge_btn.setIcon(QIcon("images/bulge.png"))
         self.indent_btn.setIcon(QIcon("images/indent.png"))
 
@@ -44,6 +44,9 @@ class MainWindow(QDialog, Ui_Window):
         self.export_btn.setToolTip("Save the transformed map")
         self.export_btn.clicked.connect(self.export_map)
 
+
+    ##SIGNALS AND SLOTS
+    ##^^^^^^^^^^^^^^^^^
         # The signals are emitted after a click in the map window
         self.map1.register.connect(self.point_handler)
         self.map2.register.connect(self.point_handler)
@@ -51,10 +54,6 @@ class MainWindow(QDialog, Ui_Window):
         #Setting up the robot toggled checkbox
         self.toggleRobot.stateChanged.connect(self.robot_toggle)
 
-        # Make 3 buttons -- one to edit each point
-    ##REPLACE
-    ##^^^^^^^
-    #Replace this code with a toggle state for the three radio buttons:
         self.change_edit_mode()
         self.point1.toggled.connect(self.change_edit_mode)
         self.point2.toggled.connect(self.change_edit_mode)

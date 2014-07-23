@@ -18,7 +18,9 @@ class DrawPoint(QGraphicsItem):
 
     def paint(self, painter, option, widget):
         self.is_drawn = True
-        painter.setPen(self.color)
+        pen = QPen(self.color)
+        pen.setWidth(3)
+        painter.setPen(pen)
         painter.drawRoundedRect(self.x, self.y, self.size, self.size, self.size / 3, self.size / 3)
 
     def update_pos(self, x, y):
