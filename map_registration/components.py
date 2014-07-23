@@ -114,8 +114,8 @@ class RobotHandler():
         if self.ready:
             self.isenabled = enable_state
             self.robot_1.setPos(0, 0)
+            self.set_robot_2()
             self.robot_1.setVisible(enable_state)
-            self.robot_2.setPos(self.trans_1_to_2[0][2], self.trans_1_to_2[1][2])
             self.robot_2.setVisible(enable_state)
 
     def setTransforms(self, src, dst):
@@ -128,8 +128,8 @@ class RobotHandler():
 
     def convert_to_2(self, point):
         if self.ready:
-            x = point[0]
-            y = point[1]
+            x = point.x()
+            y = point.y()
             x_prime = (self.trans_1_to_2[0][0] * x) + (self.trans_1_to_2[0][1] * y) + self.trans_1_to_2[0][2]
             y_prime = (self.trans_1_to_2[1][0] * x) + (self.trans_1_to_2[1][1] * y) + self.trans_1_to_2[1][2]
             return (x_prime, y_prime)
@@ -138,10 +138,20 @@ class RobotHandler():
 
     def convert_to_1(self, point):
         if self.ready:
-            x = point[0]
-            y = point[1]
+            x = point.x()
+            y = point.y()
             x_prime = (self.trans_2_to_1[0][0] * x) + (self.trans_2_to_1[0][1] * y) + self.trans_2_to_1[0][2]
             y_prime = (self.trans_2_to_1[1][0] * x) + (self.trans_2_to_1[1][1] * y) + self.trans_2_to_1[1][2]
             return (x_prime, y_prime)
         else:
             return None
+
+    def set_robot_1(self):
+        point = self.robot_2.pos()
+        pos = self.convert_to_1(point)
+        self.robot_1.setPos(pos[0], pos[1])
+
+    def set_robot_2(self):
+        point = self.robot_2.pos()
+        pos = self.convert_to_2(point)
+        self.robot_2.setPos(pos[0], pos[1])
