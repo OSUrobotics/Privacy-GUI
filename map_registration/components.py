@@ -133,7 +133,6 @@ class RobotHandler():
             y = point.y()
             x_prime = (self.trans_1_to_2[0][0] * x) + (self.trans_1_to_2[0][1] * y) + self.trans_1_to_2[0][2]
             y_prime = (self.trans_1_to_2[1][0] * x) + (self.trans_1_to_2[1][1] * y) + self.trans_1_to_2[1][2]
-            print "Robot 2 Position:", (x_prime, y_prime)
             return (x_prime, y_prime)
         else:
             return None
@@ -144,7 +143,6 @@ class RobotHandler():
             y = point.y()
             x_prime = (self.trans_2_to_1[0][0] * x) + (self.trans_2_to_1[0][1] * y) + self.trans_2_to_1[0][2]
             y_prime = (self.trans_2_to_1[1][0] * x) + (self.trans_2_to_1[1][1] * y) + self.trans_2_to_1[1][2]
-            print "Robot 1 Position: ", (x_prime, y_prime)
             return (x_prime, y_prime)
         else:
             return None
