@@ -18,7 +18,9 @@ class DrawPoint(QGraphicsItem):
 
     def paint(self, painter, option, widget):
         self.is_drawn = True
-        painter.setPen(self.color)
+        pen = QPen(self.color)
+        pen.setWidth(3)
+        painter.setPen(pen)
         painter.drawRoundedRect(self.x, self.y, self.size, self.size, self.size / 3, self.size / 3)
 
     def update_pos(self, x, y):
@@ -84,15 +86,16 @@ class DrawRobot(QGraphicsObject):
 
     def __init__(self, parent=None):
         super(QGraphicsObject, self).__init__(parent)
-        self.img = QPixmap('pr2HeadUp.png')
+        self.setFlag(QGraphicsItem.ItemIsMovable)
+        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
 
     def boundingRect(self):
         return QRectF(0, 0, self.size, self.size)
 
     def paint(self, painter, option, widget):
-        painter.drawPixmap(QRect(0, 0, self.size, self.size), self.img)
-        if self.img.width() > self.size:
-            self.img = self.img.scaled(self.size, self.size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        pen = QPen(Qt.black, 3, Qt.SolidLine)
+        painter.setPen(pen)
+        painter.drawRoundedRect(0, 0, self.size, self.size, self.size / 3, self.size / 3)
 
 class RobotHandler():
     def __init__(self, robot_1, robot_2):
@@ -103,12 +106,18 @@ class RobotHandler():
         self.trans_2_to_1 = None
         self.ready = False
 
+        self.robot_1.xChanged.connect(self.set_robot_2)
+        self.robot_1.yChanged.connect(self.set_robot_2)
+        self.robot_2.xChanged.connect(self.set_robot_1)
+        self.robot_2.yChanged.connect(self.set_robot_1)
+        
     def setEnabled(self, enable_state):
         if self.ready:
             self.isenabled = enable_state
+            self.robot_1.setPos(0, 0)
+            self.set_robot_2()
             self.robot_1.setVisible(enable_state)
             self.robot_2.setVisible(enable_state)
-        print self.isenabled
 
     def setTransforms(self, src, dst):
         self.trans_1_to_2 = cv2.getAffineTransform(src, dst)
@@ -120,8 +129,8 @@ class RobotHandler():
 
     def convert_to_2(self, point):
         if self.ready:
-            x = point[0]
-            y = point[1]
+            x = point.x()
+            y = point.y()
             x_prime = (self.trans_1_to_2[0][0] * x) + (self.trans_1_to_2[0][1] * y) + self.trans_1_to_2[0][2]
             y_prime = (self.trans_1_to_2[1][0] * x) + (self.trans_1_to_2[1][1] * y) + self.trans_1_to_2[1][2]
             return (x_prime, y_prime)
@@ -130,10 +139,26 @@ class RobotHandler():
 
     def convert_to_1(self, point):
         if self.ready:
-            x = point[0]
-            y = point[1]
+            x = point.x()
+            y = point.y()
             x_prime = (self.trans_2_to_1[0][0] * x) + (self.trans_2_to_1[0][1] * y) + self.trans_2_to_1[0][2]
             y_prime = (self.trans_2_to_1[1][0] * x) + (self.trans_2_to_1[1][1] * y) + self.trans_2_to_1[1][2]
             return (x_prime, y_prime)
         else:
             return None
+
+    def set_robot_1(self):
+        self.robot_1.blockSignals(True)
+        print "Robot 2 moved. Updating Position of robot 1"
+        point = self.robot_2.pos()
+        pos = self.convert_to_1(point)
+        self.robot_1.setPos(pos[0], pos[1])
+        self.robot_1.blockSignals(False)
+
+    def set_robot_2(self):
+        self.robot_2.blockSignals(True)
+        print "Robot 1 moved. Updating position of robot 2"
+        point = self.robot_2.pos()
+        pos = self.convert_to_2(point)
+        self.robot_2.setPos(pos[0], pos[1])
+        self.robot_2.blockSignals(False)
