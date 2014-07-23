@@ -48,7 +48,13 @@ class MainWindow(QDialog, Ui_Window):
         self.edit_mode = 0
         self.src = [(-1, -1), (-1, -1), (-1, -1)]
         self.dst = [(-1, -1), (-1, -1), (-1, -1)]
-        self.robot = RobotHandler(self.map1.robot, self.map2.robot)
+        robot1 = DrawRobot()
+        robot2 = DrawRobot()
+        robot1.setVisible(False)
+        robot2.setVisible(False)
+        self.map1.addItem(robot1)
+        self.map2.addItem(robot2)
+        self.robot = RobotHandler(robot1, robot2)
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
