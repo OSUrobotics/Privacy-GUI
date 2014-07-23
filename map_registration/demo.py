@@ -99,7 +99,7 @@ class MainWindow(QDialog, Ui_Window):
             if self.transform != None:
                 src = cv2.imread(self.img_1, 0)
                 rows, cols = src.shape
-                output = cv2.warpAffine(src, transform, (cols, rows))
+                output = cv2.warpAffine(src, self.transform, (cols, rows))
                 if self.sender() is self.transform_btn:
                     self.outputWindow(output)
             # cv2.imshow('Output', output)

@@ -122,10 +122,10 @@ class RobotHandler():
     def setEnabled(self, enable_state):
         if self.ready:
             self.isenabled = enable_state
+            self.robot_1.setPos(0, 0)
             self.robot_1.setVisible(enable_state)
+            self.robot_2.setPos(self.trans_1_to_2[0][2], self.trans_1_to_2[1][2])
             self.robot_2.setVisible(enable_state)
-        print "Is enabled: "
-        print self.isenabled
 
     def setTransforms(self, src, dst):
         self.trans_1_to_2 = cv2.getAffineTransform(src, dst)
