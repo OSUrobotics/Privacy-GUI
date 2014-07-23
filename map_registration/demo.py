@@ -30,11 +30,14 @@ class MainWindow(QDialog, Ui_Window):
         robot2 = DrawRobot()
         robot1.setVisible(False)
         robot2.setVisible(False)
-        self.map1.addItem(robot1)
-        self.map2.addItem(robot2)
         self.robot = RobotHandler(robot1, robot2)
 
         #Changes GUI attributes
+
+        self.map1.addItem(robot1)
+        self.map2.addItem(robot2)
+
+
         self.bulge_btn.setIcon(QIcon("images/bulge.png"))
         self.indent_btn.setIcon(QIcon("images/indent.png"))
 
