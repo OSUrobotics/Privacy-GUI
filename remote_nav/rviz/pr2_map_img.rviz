@@ -61,6 +61,13 @@ Visualization Manager:
       Head Length: 0.3
       Head Radius: 0.1
 
+    - Class: rviz/Range
+      Enabled: true
+      Topic: /vision_range
+      Color: 255; 112, 255
+      Alpha: 0.5
+      Buffer Length: 1
+
     - Class: rviz/RobotModel
       Alpha: 0.5
       Collision Enabled: false
