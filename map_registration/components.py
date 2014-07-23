@@ -133,6 +133,7 @@ class RobotHandler():
             y = point.y()
             x_prime = (self.trans_1_to_2[0][0] * x) + (self.trans_1_to_2[0][1] * y) + self.trans_1_to_2[0][2]
             y_prime = (self.trans_1_to_2[1][0] * x) + (self.trans_1_to_2[1][1] * y) + self.trans_1_to_2[1][2]
+            print "Robot 2 Position:", (x_prime, y_prime)
             return (x_prime, y_prime)
         else:
             return None
@@ -143,13 +144,13 @@ class RobotHandler():
             y = point.y()
             x_prime = (self.trans_2_to_1[0][0] * x) + (self.trans_2_to_1[0][1] * y) + self.trans_2_to_1[0][2]
             y_prime = (self.trans_2_to_1[1][0] * x) + (self.trans_2_to_1[1][1] * y) + self.trans_2_to_1[1][2]
+            print "Robot 1 Position: ", (x_prime, y_prime)
             return (x_prime, y_prime)
         else:
             return None
 
     def set_robot_1(self):
         self.robot_1.blockSignals(True)
-        print "Robot 2 moved. Updating Position of robot 1"
         point = self.robot_2.pos()
         pos = self.convert_to_1(point)
         self.robot_1.setPos(pos[0], pos[1])
@@ -157,8 +158,7 @@ class RobotHandler():
 
     def set_robot_2(self):
         self.robot_2.blockSignals(True)
-        print "Robot 1 moved. Updating position of robot 2"
-        point = self.robot_2.pos()
+        point = self.robot_1.pos()
         pos = self.convert_to_2(point)
         self.robot_2.setPos(pos[0], pos[1])
         self.robot_2.blockSignals(False)
