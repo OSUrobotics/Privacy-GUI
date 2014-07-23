@@ -41,12 +41,15 @@ class MainWindow(QDialog, Ui_Window):
         self.bulge_btn.setIcon(QIcon("images/bulge.png"))
         self.indent_btn.setIcon(QIcon("images/indent.png"))
 
-        self.transform_btn.setToolTip("Apply Affine Transform defined by the registered points")
+        self.transform_btn.setToolTip("Apply Affine Transform and show the result")
         self.transform_btn.clicked.connect(self.transform_map)
 
         self.export_btn.setToolTip("Save the transformed map")
         self.export_btn.clicked.connect(self.export_map)
 
+        self.newPt_btn.setText(QtGui.QApplication.translate("Window", "Apply Transform", None, QtGui.QApplication.UnicodeUTF8))
+        self.newPt_btn.setToolTip("Applies the transform defined by the current points")
+        self.newPt_btn.clicked.connect(self.transform_map)
 
     ##SIGNALS AND SLOTS
     ##^^^^^^^^^^^^^^^^^
@@ -97,7 +100,8 @@ class MainWindow(QDialog, Ui_Window):
                 src = cv2.imread(self.img_1, 0)
                 rows, cols = src.shape
                 output = cv2.warpAffine(src, transform, (cols, rows))
-                self.outputWindow(output)
+                if self.sender() is self.transform_btn:
+                    self.outputWindow(output)
             # cv2.imshow('Output', output)
         else:
             print "Not enough pairs to transform"
