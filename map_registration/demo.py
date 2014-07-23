@@ -15,6 +15,13 @@ class MainWindow(QDialog, Ui_Window):
         self.setupUi(self)
         self.setWindowTitle('Main Window')
 
+         # Set up variables for point registration and transformation, etc
+        self.edit_mode = 0
+        self.src = [(-1, -1), (-1, -1), (-1, -1)]
+        self.dst = [(-1, -1), (-1, -1), (-1, -1)]
+        self.robot_on = False
+        self.robot = RobotHandler()
+
  
         # Sets up the maps
         self.img_1 = map1
@@ -23,6 +30,9 @@ class MainWindow(QDialog, Ui_Window):
         self.source.setScene( self.map1 )
         self.map2 = DrawMap(self.img_2, self)
         self.destination.setScene( self.map2 )
+
+        self.bulge_btn.setIcon(QIcon("images/bulge.png"))
+        self.indent_btn.setIcon(QIcon("images/indent.png"))
 
         self.transform_btn.setToolTip("Apply Affine Transform defined by the registered points")
         self.transform_btn.clicked.connect(self.transform_map)
@@ -41,16 +51,12 @@ class MainWindow(QDialog, Ui_Window):
     ##REPLACE
     ##^^^^^^^
     #Replace this code with a toggle state for the three radio buttons:
+        self.change_edit_mode()
         self.point1.toggled.connect(self.change_edit_mode)
         self.point2.toggled.connect(self.change_edit_mode)
         self.point3.toggled.connect(self.change_edit_mode)
 
-        # Set up variables for point registration and transformation, etc
-        self.edit_mode = 0
-        self.src = [(-1, -1), (-1, -1), (-1, -1)]
-        self.dst = [(-1, -1), (-1, -1), (-1, -1)]
-        self.robot_on = False
-        self.robot = RobotHandler()
+
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
