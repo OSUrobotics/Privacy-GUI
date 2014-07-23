@@ -88,9 +88,6 @@ class DrawRobot(QGraphicsObject):
         super(QGraphicsObject, self).__init__(parent)
         self.setFlag(QGraphicsItem.ItemIsMovable)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
-        #Taking this out and making it just drawing a cool square because this is a simple thing
-
-        # self.img = QPixmap('pr2HeadUp.png')
 
     def boundingRect(self):
         return QRectF(0, 0, self.size, self.size)
@@ -99,10 +96,6 @@ class DrawRobot(QGraphicsObject):
         pen = QPen(Qt.black, 3, Qt.SolidLine)
         painter.setPen(pen)
         painter.drawRoundedRect(0, 0, self.size, self.size, self.size / 3, self.size / 3)
-    
-    #overloading the mouseMoveEvent to 
-    # def mouseMoveEvent(self, event):   
-    #     pass
 
 class RobotHandler():
     def __init__(self, robot_1, robot_2):
@@ -113,11 +106,10 @@ class RobotHandler():
         self.trans_2_to_1 = None
         self.ready = False
 
-        self.robot_1.xChanged.connect(self.robotMatch)
-        self.robot_2.xChanged.connect(self.robotMatch)
-
-    def robotMatch(self):
-        print "The robots are moving!"
+        self.robot_1.xChanged.connect(self.set_robot_2)
+        self.robot_1.yChanged.connect(self.set_robot_2)
+        self.robot_2.xChanged.connect(self.set_robot_1)
+        self.robot_2.yChanged.connect(self.set_robot_1)
         
     def setEnabled(self, enable_state):
         if self.ready:
@@ -156,11 +148,17 @@ class RobotHandler():
             return None
 
     def set_robot_1(self):
+        self.robot_1.blockSignals(True)
+        print "Robot 2 moved. Updating Position of robot 1"
         point = self.robot_2.pos()
         pos = self.convert_to_1(point)
         self.robot_1.setPos(pos[0], pos[1])
+        self.robot_1.blockSignals(False)
 
     def set_robot_2(self):
+        self.robot_2.blockSignals(True)
+        print "Robot 1 moved. Updating position of robot 2"
         point = self.robot_2.pos()
         pos = self.convert_to_2(point)
         self.robot_2.setPos(pos[0], pos[1])
+        self.robot_2.blockSignals(False)
