@@ -1,6 +1,7 @@
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
+import cv2
 
 class DrawPoint(QGraphicsItem):
     size = 10
@@ -83,6 +84,41 @@ class DrawRobot(QGraphicsObject):
     def __init__(self, parent=None):
         super(QGraphicsObject, self).__init__(parent)
 
-class RobotHandler(QGraphicsObject):
-    def __init__(self, parent=None):
-        super(QGraphicsObject, self).__init__(parent)
+class RobotHandler():
+    def __init__(self, robot_1, robot_2):
+        self.isenabled = False
+        self.robot_1 = robot_1
+        self.robot_2 = robot_2
+        self.trans_1_to_2 = None
+        self.trans_2_to_1 = None
+
+    def setEnabled(self, enable_state):
+        self.isenabled = enable_state
+        print self.isenabled
+
+    def setTransforms(self, src, dst):
+        self.trans_1_to_2 = cv2.getAffineTransform(src, dst)
+        print "Transform from 1 to 2:", self.trans_1_to_2
+        self.trans_2_to_1 = cv2.getAffineTransform(dst, src)
+        print "Transform from 2 to 1:", self.trans_2_to_1
+        return self.trans_1_to_2
+
+    def convert_to_2(self, point):
+        if self.trans_1_to_2 != None:
+            x = point[0]
+            y = point[1]
+            x_prime = (self.trans_1_to_2[0][0] * x) + (self.trans_1_to_2[0][1] * y) + self.trans_1_to_2[0][2]
+            y_prime = (self.trans_1_to_2[1][0] * x) + (self.trans_1_to_2[1][1] * y) + self.trans_1_to_2[1][2]
+            return (x_prime, y_prime)
+        else:
+            return None
+
+    def convert_to_1(self, point):
+        if self.trans_2_to_1 != None:
+            x = point[0]
+            y = point[1]
+            x_prime = (self.trans_2_to_1[0][0] * x) + (self.trans_2_to_1[0][1] * y) + self.trans_2_to_1[0][2]
+            y_prime = (self.trans_2_to_1[1][0] * x) + (self.trans_2_to_1[1][1] * y) + self.trans_2_to_1[1][2]
+            return (x_prime, y_prime)
+        else:
+            return None

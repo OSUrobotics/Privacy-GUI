@@ -2,7 +2,6 @@ import sys, getopt
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
-import cv2
 import numpy as np
 from components import * 
 
@@ -49,18 +48,11 @@ class MainWindow(QDialog, Ui_Window):
         self.edit_mode = 0
         self.src = [(-1, -1), (-1, -1), (-1, -1)]
         self.dst = [(-1, -1), (-1, -1), (-1, -1)]
-        self.robot_on = False
-        self.robot = RobotHandler()
+        self.robot = RobotHandler(self.map1.robot, self.map2.robot)
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
-        # if not self.robot_on:
         self.robot.setEnabled(self.toggleRobot.isChecked())
-        self.robot_on = self.toggleRobot.isChecked()
-        print self.toggleRobot.isChecked()
-        # else:
-        #     self.robot.setEnabled(False)
-        #     self.robot_on = False
 
     # Edit a different point
     def change_edit_mode(self):
@@ -85,13 +77,13 @@ class MainWindow(QDialog, Ui_Window):
             # Turn the pairs into an Affine Transformation matrix
             numpy_src = np.array(self.src, dtype='float32')
             numpy_dst = np.array(self.dst, dtype='float32')
-            transform = cv2.getAffineTransform(numpy_src, numpy_dst)
-            print transform
+            transform = self.robot.setTransforms(numpy_src, numpy_dst)
             # Apply the transform 
-            src = cv2.imread(self.img_1, 0)
-            rows, cols = src.shape
-            output = cv2.warpAffine(src, transform, (cols, rows))
-            self.outputWindow(output)
+            if transform != None:
+                src = cv2.imread(self.img_1, 0)
+                rows, cols = src.shape
+                output = cv2.warpAffine(src, transform, (cols, rows))
+                self.outputWindow(output)
             # cv2.imshow('Output', output)
         else:
             print "Not enough pairs to transform"
@@ -105,8 +97,8 @@ class MainWindow(QDialog, Ui_Window):
         if self.edit_mode != 0:
             self.src[self.edit_mode - 1] = self.map1.getPoint()
             self.dst[self.edit_mode - 1] = self.map2.getPoint()
-            print "Source: ", self.src
-            print "Destination: ", self.dst
+            # print "Source: ", self.src
+            # print "Destination: ", self.dst
     
     # triggered when a point is clicked in either map scene
     def point_handler(self):
