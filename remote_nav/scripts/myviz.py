@@ -11,7 +11,7 @@ from math import *
 import sys
 import copy
 
-## Next import all the Qt bindings into the current namespace, for
+## Import all the Qt bindings into the current namespace, for
 ## convenience. This uses the "python_qt_binding" package which hides
 ## differences between PyQt and PySide, and works if at least one of
 ## the two is installed. The RViz Python bindings use
@@ -19,16 +19,18 @@ import copy
 from python_qt_binding.QtGui import *
 from python_qt_binding.QtCore import *
 
+## Finally import the RViz bindings themselves.
+import rviz
+
 #Get moving!
 from geometry_msgs.msg import Twist, PoseStamped, PoseWithCovarianceStamped, PointStamped
 from actionlib_msgs.msg import GoalID
 # from pr2_controllers_msgs.msg import PointHeadActionGoal
 from control_msgs.msg import PointHeadAction, PointHeadGoal
 import actionlib
-
-## Finally import the RViz bindings themselves.
-import rviz
+#tf for more navigation stuff
 import tf
+#rospkg is to handle possible pathing issues when finding images and configuration files.
 import rospkg
 
 
@@ -74,8 +76,6 @@ class MyViz( QWidget ):
 		
 	##LAYOUT
 	##^^^^^^
-	# 	layout = QVBoxLayout()
-	# 	layout.addWidget( self.frame )
 		layout = QGridLayout()
 		layout.setSpacing(10)
 
@@ -92,56 +92,31 @@ class MyViz( QWidget ):
 		self.stop_button.clicked.connect( self.onStopButtonClick )
 		self.stop_button.setToolTip('Press this to immediately <b>STOP</b> the robot')
 		self.stop_button.setStyleSheet("background-color: #700000 ; font-weight: bold; color: white")
-		layout.addWidget( self.stop_button, 6, 1 )
-
-		# debug_button = QPushButton( "Reset Position" )
-		# debug_button.clicked.connect( self.onDebugButtonClick )
-		# debug_button.setToolTip('Set a navigation goal at the starting point')
-		# h_layout.addWidget( debug_button )
-
-		# reset_dir_btn = QPushButton( "Reset Orientation" )
-		# reset_dir_btn.clicked.connect( self.onResetDirButtonClick )
-		# reset_dir_btn.setToolTip('Reset to the original orientation')
-		# h_layout.addWidget( reset_dir_btn )
+		layout.addWidget( self.stop_button, 7, 1 )
 		
-
 		self.fwd_button = PicButton(QPixmap(package_path + "/images/up.png"))
 		self.fwd_button.setClickPix(QPixmap(package_path + "/images/upDark.png"))
 		# self.fwd_button = QPushButton("Move Forward")
 		self.fwd_button.pressed.connect( self.onFwdPress )
 		self.fwd_button.setToolTip('While held, the robot will move forward')
-		layout.addWidget( self.fwd_button, 4, 1 )
+		layout.addWidget( self.fwd_button, 5, 1 )
 		layout.setAlignment(self.fwd_button, Qt.AlignHCenter)
 
 		turn_button = PicButton(QPixmap(package_path + "/images/rotate.png"))
 		turn_button.setClickPix(QPixmap(package_path + "/images/rotateDark.png"))
-		# turn_button = QPushButton( "Turn Around[ALEX DEBUG - Nav Goals]" )
 		turn_button.clicked.connect( self.onTurnButtonClick )
 		turn_button.setToolTip('The robot will turn around 180 degrees')
-		# layout.addWidget( turn_button, 5, 1 )
-		# layout.setAlignment(turn_button, Qt.AlignHCenter)
-
-		# turn_twist_button = QPushButton( "Turn Around[ALEX DEBUG - Twist message]" )
-		# # turn_button.clicked.connect( self.onTurnButtonClick )
-		# turn_twist_button.clicked.connect( self.onTurnTwistButtonClick)
-		# turn_twist_button.setToolTip('The robot will turn around 180 degrees')
-		# h_layout.addWidget( turn_twist_button )
-
-
 
 		self.look_left_btn = PicButton(QPixmap(package_path + "/images/left.png"))
 		self.look_left_btn.setClickPix(QPixmap(package_path + "/images/leftDark.png"))
-		# layout.addWidget(look_left_btn, 2, 0)
-		# layout.setAlignment(look_left_btn, Qt.AlignLeft)
 
 		self.look_right_btn = PicButton(QPixmap(package_path + "/images/right.png"))
 		self.look_right_btn.setClickPix(QPixmap(package_path + "/images/rightDark.png"))
+
 		# Only actually connect these to the moving of the head if there is in fact a head.
 		if (self.is_pr2):
 			self.look_left_btn.pressed.connect( self.onLeftButtonClick )
 			self.look_right_btn.pressed.connect( self.onRightButtonClick )
-		# layout.addWidget(look_right_btn, 2, 2)
-		# layout.setAlignment(look_right_btn, Qt.AlignRight)
 		
 
 		#Finalizing layout and placing components
@@ -152,14 +127,13 @@ class MyViz( QWidget ):
 		h_layout.addWidget(self.look_right_btn)
 		h_layout.setAlignment(self.look_right_btn, Qt.AlignLeft)
 
-		layout.addLayout( h_layout, 5, 1 )	
+		layout.addLayout( h_layout, 7, 1 )	
 		self.setLayout( layout )
-	#The initializer was getting crowded. Here's all the ros/alex stuff
-	def init_ros_variables(self):
-	#The twist commands
-		# self.pub = rospy.Publisher('mobile_base/commands/velocity', Twist) 
-		# self.zero_cmd_sent = False
 
+	
+
+	#Initialize ROS variables, listeners, publishers, etc. Here.
+	def init_ros_variables(self):
 	#For sending nav goals.
 		nav_topic = rospy.get_param("remote_nav/nav_topic", "/move_base_simple/goal")
 		self.nav_pub = rospy.Publisher(nav_topic, PoseStamped)
@@ -209,31 +183,22 @@ class MyViz( QWidget ):
 	def onFwdPress(self):
 		self.moveNav()
 
-
-	def onDebugButtonClick(self):
-	#Tells robot to return to home base.
-		goal = self._get_start_pose()
-
-		self._send_nav_goal(goal)
-		self.isForward = True
-
 	def onStopButtonClick(self):
 		QApplication.processEvents()
 		self._cancel_goals()
 
-#
 	def onTurnButtonClick(self):
 		if self.isForward:
 			self.faceBackward()
 		else:
 			self.faceForward()
-	def onTurnTwistButtonClick(self):
-		self.turnAround()
 
 	def onResetDirButtonClick(self):
 		self.faceForward()
+
 	def onLeftButtonClick(self):
 		self.lookLeft()
+
 	def onRightButtonClick(self):
 		self.lookRight()
 
@@ -302,129 +267,6 @@ class MyViz( QWidget ):
 			QApplication.processEvents()
 		self._cancel_goals()
 		
-	#Moves ahead via nav goals while the button is pressed.
-	# def moveNav(self, dist):
-	# 	toStart = self._get_pose_from_start()
-
-	# 	# Keep track of how far we've travelled in order to only send new nav goals when need be. 
-	# 	travelled = 0.0
-	# 	goal = self._get_pose_from_start()
-	# 	#oldX indicates our first nav x position.
-	# 	oldX = goal.pose.position.x
-		
-	# 	#If we say "travel 1 meter" the robot will probably just travel ~0.9 meters. This trys to account for that by grabbing the x, y tolerance.
-	# 	tolerance = rospy.get_param("/move_base/TrajectoryPlannerROS/xy_goal_tolerance", "0.25")
-		
-	# 	i = 0
-	# 	#give an initial command to go.
-	# 	goal.pose.position.y = 0.0
-	# 	goal.pose.orientation.z = 0.0
-	# 	goal.pose.orientation.w = 0.0
-	# 	if (self.isForward):
-	# 		goal.pose.position.x += dist
-	# 		goal.pose.orientation.w = 1.0
-	# 	else:
-	# 		goal.pose.position.x -= dist
-	# 		goal.pose.orientation.z = 1.0
-
-	# 	self._send_nav_goal(goal)
-
-	# 	while self.fwd_button.isDown():
-	# 		QApplication.processEvents()
-	# 		goal = self._get_pose_from_start()
-	# 		travelled = abs(goal.pose.position.x - oldX)
-	# 		if (travelled >= (dist - tolerance) ):
-	# 			#Reset our variables tracking our distance travelled.
-	# 			oldX = goal.pose.position.x
-	# 			travelled = 0
-
-	# 			goal.pose.position.y = 0.0
-	# 			goal.pose.orientation.z = 0.0
-	# 			goal.pose.orientation.w = 0.0
-	# 			if (self.isForward):
-	# 				goal.pose.position.x += dist
-	# 				goal.pose.orientation.w = 1.0
-	# 			else:
-	# 				goal.pose.position.x -= dist
-	# 				goal.pose.orientation.z = 1.0
-	# 			self._send_nav_goal(goal)
-	# 		i += 1
-		#TODO: THIS RESULTS IN 
-		#THE ROBOT GOING  BACKWARDS DUE TO SENDING MSG TO CURRENT POSITION BEFORE FULLY STOPPING
-		#PLEASE FIX THIS
-		# if self.isForward:
-		# 	self.faceForward()
-		# else:
-		# 	self.faceBackward()
-
-	#Rotate the robot exactly 180 degrees with a twist command
-	# def turnAround(self):
-	# 	command = Twist()
-	# 	command.angular.z = 0.5
-	# 	now = rospy.Time.now()
-	# 	r = rospy.Rate(50) 
-	# 	while rospy.Time.now() - now <= rospy.Duration(2*pi):
-	# 		QApplication.processEvents()
-	# 		print (rospy.Time.now() - now)
-	# 	#An attempt to stop it while it is in motion
-	# 		if self.stop_button.isDown():
-	# 			command.angular.z = 0.0
-	# 			break
-	# 		self.pub.publish(command)
-	# 		r.sleep()
-	# 	command.angular.z = 0.0
-	# 	self.pub.publish(command)
-			
-
-		
-
-	# #Moves the robot at a given max velocity whenever the forward button is pressed
-	# #It still works while the button is held down
-	# def moveWhilePressed(self, velocity):
-	# 	now = rospy.get_time()
-	# 	#Speed up until max velocity
-	# 	while rospy.get_time() - now < 2:
-	# 		QApplication.processEvents()
-	# 		x = rospy.get_time() - now            
-	# 		xVel = tanh(x) * velocity
-	# 		self._send_twist(xVel)
-	# 		if self.stop_button.isDown():
-	# 			break
-	# 		if not self.fwd_button.isDown():
-	# 			break
-	# 	#Continue at max while pressed
-	# 	while self.fwd_button.isDown():
-	# 		QApplication.processEvents()
-	# 		if self.stop_button.isDown():
-	# 			break
-	# 		xVel = velocity
-	# 		self._send_twist(xVel)
-
-	# 	#Slow down on button release
-	# 	now = rospy.get_time()
-	# 	while rospy.get_time() - now < 2:			
-	# 		QApplication.processEvents()
-	# 		if self.stop_button.isDown():
-	# 			break
-	# 		x = 2 - (rospy.get_time() - now) 
-	# 		xVel = tanh(x) * velocity
-	# 		self._send_twist(xVel)
-	# 	#Check orientation
-	# 	#Realign orientation
-
-	# # Give the turtlebot a distance to travel and a velocity and it follows the command + slows down accordingly as it reaches its destination.
-	# def moveAhead(self, distance, velocity):
-	# 	# By what facter we scale/lengthen the tanh function.
-	# 	s = 1
-	# 	# Integrate the x function below and set it equal to distance to find movingTime.
-	# 	movingTime = 1.0/s * acosh( exp( s/velocity * distance ) )
-	# 	now = rospy.get_time()
-	# 	while rospy.get_time() - now < movingTime:
-	# 		QApplication.processEvents()
-	# 		x = movingTime - (rospy.get_time() - now)            
-	# 		xVel = tanh(s * x) * velocity
-	# 		self._send_twist(xVel)
-
 
 #PRIVATE FUNCTIONS
 #^^^^^^^^^^^^^^^^
@@ -462,10 +304,12 @@ class MyViz( QWidget ):
 		pose.pose.orientation.w = 1.0
 		return pose
 
+	#Cancels the current nav goal
 	def _cancel_goals(self):
 		goalID = GoalID()
 		self.cancel_pub.publish(goalID)
 
+	#Sets a 3D goal for the head of the PR2 to look. Do not use with turtlebot.
 	def _look_at(self, parent_frame, x, y, z):
 		goal = PointHeadGoal()
 		#the point to be looking at is expressed in the "base_link" frame
@@ -486,65 +330,19 @@ class MyViz( QWidget ):
 		goal.max_velocity = 0.85
 		self.client.send_goal(goal)
 
-	# def _send_twist(self, x_linear):
-	# 	if self.pub is None:
-	# 		return
-	# 	twist = Twist()
-	# 	twist.linear.x = x_linear
-	# 	twist.linear.y = 0
-	# 	twist.linear.z = 0
-	# 	twist.angular.x = 0
-	# 	twist.angular.y = 0
-	# 	twist.angular.z = 0
 
-	# 	# Only send the zero command once so other devices can take control
-	# 	if x_linear == 0:
-	# 		if not self.zero_cmd_sent:
-	# 			self.zero_cmd_sent = True
-	# 			self.pub.publish(twist)
-	# 	else:
-	# 		self.zero_cmd_sent = False
-	# 		self.pub.publish(twist)
-
-	# Returns a nav goal set to the current position of the robot with orientation of /initialpose to keep it along ze track.
-	# def _get_current_pose(self):
-	# 	(trans, rot) = self.listener.lookupTransform("/map", "/base_footprint", rospy.Time(0))
-
-	# 	goal = PoseStamped()
-	# 	goal.header.frame_id = "/map"
-	# 	goal.header.stamp = rospy.Time.now()
-
-	# 	goal.pose.position.x = trans[0]
-	# 	goal.pose.position.y = trans[1]
-	# 	goal.pose.position.z = trans[2]
-	# 	if (self.isForward):
-	# 		goal.pose.orientation.z = self.start.pose.orientation.z
-	# 		goal.pose.orientation.w = self.start.pose.orientation.w
-	# 	else:
-	# 		quaternion = (self.start.pose.orientation.x,self.start.pose.orientation.y,self.start.pose.orientation.z,self.start.pose.orientation.w)
-	# 		euler = tf.transformations.euler_from_quaternion(quaternion)
-	# 		yaw = euler[2] # yaw gonna make me lose my mind,
-	# 		pitch = euler[1] #up in pitch
-	# 		roll = euler[0] #up in roll (see photo at bottom)
-	# 		yaw = yaw + pi
-
-	# 		newQuat = tf.transformations.quaternion_from_euler(roll,pitch, yaw)
-	# 		goal.pose.orientation.x = newQuat[0]
-	# 		goal.pose.orientation.y = newQuat[1]
-	# 		goal.pose.orientation.z = newQuat[2]
-	# 		goal.pose.orientation.w = newQuat[3]
-	# 	return goal
-
-
-
-
-#SPECIAL SNOWFLAKE CLASSES
+#Unique UI Classes
 #^^^^^^^^^^^^^^^^
+
+#This class makes a button that is a picture instead of text.  
+#After initializing, passing in a QPixmap, you can call setClickPix to add an onClick image.
 class PicButton(QAbstractButton):
 	def __init__(self, pixmap, parent=None):
 		super(PicButton, self).__init__(parent)
 		self.pixmap = pixmap
 		self.clickpix = pixmap
+
+		#If the image may end up too large, scale it down to 50x50.
 		if self.pixmap.width() > 50:
 			self.pixmap = self.pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
@@ -561,13 +359,6 @@ class PicButton(QAbstractButton):
 	def sizeHint(self):
 		return self.pixmap.size()
 
-	# def mousePressEvent (self, event):
-	# 	self.setPixmap(self.clickpix)
-
-	# def mouseReleaseEvent (self, event):
-	# 	self.setPixmap(self.pixmap)
-
-
 ## Start the Application
 ## ^^^^^^^^^^^^^^^^^^^^^
 if __name__ == '__main__':
@@ -581,40 +372,40 @@ if __name__ == '__main__':
 	app.exec_()
 
 """
-                                                                                             `   `    `,:::,:,:::::,,:,,,,,,.`      `                                                                          
-                                                                                           ``     ``,::,::,,::::::::,,,,,,,,,,..``                                                                             
-                                                                                            `   `.,:::::::::::::::::,,,,,,,,,,,,,,`   ``                                                                       
-                                                                                            ```.::::::::::::::::::::,,,,,,,,,,,,,,,,``                                                                         
-                                                                                           ` `,::::::::::;::;:::::::,,,,,,,,,,,,,,,,,.`                                                                        
-                                                                                            .:;::::;;;;;;;;;::::::::,,,,,,,,,,,,,,,,,,,`                                                                       
-                                                                                      ```  .;;;;;;;;;;;;;:;;::::::::::,,,,,,,,,,,,,,,,,,.  `                                                                   
+                                                                                                       ,:::,:,:::::,,:,,,,,,.                                                                                  
+                                                                                           ``     ``,::,::,,::::::::,,,,,,,,,,..                                                                              
+                                                                                            `   `.,:::::::::::::::::,,,,,,,,,,,,,,                                                                             
+                                                                                            ```.::::::::::::::::::::,,,,,,,,,,,,,,,,                                                                         
+                                                                                           ` `,::::::::::;::;:::::::,,,,,,,,,,,,,,,,,.                                                                        
+                                                                                            .:;::::;;;;;;;;;::::::::,,,,,,,,,,,,,,,,,,,                                                                      
+                                                                                      ```  .;;;;;;;;;;;;;:;;::::::::::,,,,,,,,,,,,,,,,,,.                                                                     
                                                                                       `   .;::;;;;;;;;;;;:;;;;::::::::::::,,,,,,,,,,,,,,,.                                                                     
-                                                                                       ` ,::::;;;;;;;;;;;:;::::::::::::::::,,,,,,,,,,,,,,,. `                                                                  
+                                                                                       ` ,::::;;;;;;;;;;;:;::::::::::::::::,,,,,,,,,,,,,,,.                                                                   
                                                                                         .::;;;;;;;;;;;;;;;;;;;;;;;;;;:::::::,,,,,,,,,,,,,,,.                                                                   
-                                                                                       .;:;;;;;;;;;;;;;;;;;;;;;;;;;;;::::::::,,,,,,,,,,,,,,,`  `                                                               
-                                                                                   `` .:;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::::::,,,,,,,,,,,,,,,`  ``                                                             
-                                                                                 `   `:;;;;;;'''';;;;;;;;;;;;;;';;;;;;;;;::::,:,,,,,,,,,,,,,,,``                                                               
-                                                                                `    ,;;;;'''''';;;;;;'';;;;;;;''';;;;;;;::::,,,,:,,,,,,,,,,,,.  `                                                             
+                                                                                       .;:;;;;;;;;;;;;;;;;;;;;;;;;;;;::::::::,,,,,,,,,,,,,,,`                                                                
+                                                                                   `` .:;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::::::,,,,,,,,,,,,,,,`                                                               
+                                                                                 `   `:;;;;;;'''';;;;;;;;;;;;;;';;;;;;;;;::::,:,,,,,,,,,,,,,,,`                                                               
+                                                                                `    ,;;;;'''''';;;;;;'';;;;;;;''';;;;;;;::::,,,,:,,,,,,,,,,,,.                                                              
                                                                                     .;;;;;'''''';;;;;;'''''''''''';;;;;;;:::::,,:,,,,,,,,,,,,,,.                                                               
                                                                                  `  :;;;;''''''';;''''''''''''''''';;;;;;;::,,,,,,,,,,,,,,,,,,,,`                                                              
-                                                                                 ` `;;;'''''''''''''''''''''''''''';;;;;:;:::,,,,,,,,,,,,,,,,,,,.` `                                                           
+                                                                                 ` `;;;'''''''''''''''''''''''''''';;;;;:;:::,,,,,,,,,,,,,,,,,,,.`                                                            
                                                                                   `:;;;''''''''''''''''''''''''''''';;;;;;:::,,,,,,,,,,,,,,,,,,,,.                                                             
-                                                                                  `;;;;''''''''''''''''''''''''''''';;;;;;:::,,,,,,::,,,,,,,,,,,,,`    `                                                       
-                                                                                  .;;;''''+'''''''+'''''++''''''''''';';;;::,,,,,,,,:,,,,,,,,,,,,,. `                                                          
-                                                                                ` :;';'''''''''''+++++''+'''''''''''';;;;;;:,,,,,,,,,,::,,,,,,,,,,,` `                                                         
+                                                                                  `;;;;''''''''''''''''''''''''''''';;;;;;:::,,,,,,::,,,,,,,,,,,,,`                                                           
+                                                                                  .;;;''''+'''''''+'''''++''''''''''';';;;::,,,,,,,,:,,,,,,,,,,,,,.                                                          
+                                                                                ` :;';'''''''''''+++++''+'''''''''''';;;;;;:,,,,,,,,,,::,,,,,,,,,,,`                                                          
                                                                                ` `:;;''''''''''''++'++++''+++''''''''';;;;;::,,,,,,,,,,:,,,,,,,,,,,.                                                           
-                                                                             `   .;;;''''''''''''+''+++++''++''''''''';;;;;:::,,,,,,,:,,,,,,:,,,,,,,  `                                                        
+                                                                             `   .;;;''''''''''''+''+++++''++''''''''';;;;;:::,,,,,,,:,,,,,,:,,,,,,,                                                          
                                                                                  ,;;;'''''''''''++'+++++++'++''''''''';;;;;:::,,,,,,,,,,,,,,:,,,,,,,`                                                          
-                                                                                `;;;;'''''''''''++'++++++++++++'''''''';;;::::,,,,,,,,,,,,,,:::,,,,,.  `                                                       
+                                                                                `;;;;'''''''''''++'++++++++++++'''''''';;;::::,,,,,,,,,,,,,,:::,,,,,.                                                         
                                                                               ` .;;;;'''''''''''''+++++++++'++++'''''''';;::::,,,,,,,,,,,,,,::::,,,,,                                                          
                                                                                 ,;;;;''''''''''''''+++++++++++++'''''''';;::::,,,.,,,,,,,,:,::::,,,,,`                                                         
                                                                                `,;;;;'''''''''''''++++++++++++++''''''';;;::::,,,,,,,,,,,:::::::,,,,,`                                                         
                                                                                `:;;;;''''''''''''''+++++++++++++'''''''';;:::::,,,,,,,,,,:::::::,,,,,.                                                         
-                                                                            `  .:;;;;''''''''''''''+++++++++++++'''''''';;:::::,,,,,,,,:,:::::::,,,,,. `                                                       
-                                                                               .;;;;;''''''''''''''++++++++++++++''''';;;;:::::::,,,,,,:::::::::,,,,,, `                                                       
+                                                                            `  .:;;;;''''''''''''''+++++++++++++'''''''';;:::::,,,,,,,,:,:::::::,,,,,.                                                        
+                                                                               .;;;;;''''''''''''''++++++++++++++''''';;;;:::::::,,,,,,:::::::::,,,,,,                                                       
                                                                                ,;';;;'''''''''''''''+++++++++++++'''';;;;;;:::::::,,,:::::::;;::,,,,,,                                                         
                                                                                :;';;;'''''''''''''''+++++++++++++'''';;;;;;;::,::,:,,:,,::::;;::,:::,.                                                         
-                                                                              `:;;;;;';''''''''''''''++++++++++++'''';;';;;;:::::::,::::::;;;;::::,,,.           `                                             
+                                                                              `:;;;;;';''''''''''''''++++++++++++'''';;';;;;:::::::,::::::;;;;::::,,,.                                                        
                                                                       ` `     `:;;;;;;;'''''''''''''''+++++++++++''''';'';;;:::::::::::::;:;;;;::::,,.                                                         
                                                                               .:;;;;;;'''''''''''''''''+++++++++++'''';;';;;:::::::::::::;::;;;:::::,.                                                         
                                                                          `    .;;;;;;;'''''''''''''''''+++++++++++''''''';;;;::::::::::;;;;;;;;:;;::,.                                                         
@@ -624,61 +415,61 @@ if __name__ == '__main__':
                                                                       .;'#@:``;''';;:;''''''''''+++++''''''+++++++''''';';;;;;;;;;;;;;;;;;;;;:;;;::::`                                                         
                                                                       '#'+##``'''';;;;''''''''''+++++'''''+++++++++'''''';;;;;;;;;;;;;;;;;;;;;;:;::,,`                                                         
                                                                      .###'##@;'''';:;''''''''''''++++++'''+++++++++''';';;;;;;;;;;;;;;;;;;;;;;;;;::,,`                                                         
-                                                                     :##+'####+';';;;'''''''''''+++++++++++++++++++'''';;;;;;;;;;;;;;;;;;;;;;;;;:::,,  `                                                       
+                                                                     :##+'####+';';;;'''''''''''+++++++++++++++++++'''';;;;;;;;;;;;;;;;;;;;;;;;;:::,,                                                        
                                                                      ;##''+###+';;;;''''''''''''++++++++++++++++++++''';;;;;;;;;;'';;;;;;;;;;;;;::,,.                                                          
                                                                      ;@+'''+#++';;;;''''''''''++'+++++++++++++++++++''';;;;;;;;;'''';;;;;;;;;;;;,,,,`                                                          
                                                                      ;#'''''+++';;;;'''''''''''''+++++++++++++++++++'';;;;;;;;;;;;;;;;;;;;;;;;;:,:,,                                                           
-                                                                     :+'++'''''';;;''''''''++++'++'++++++++++++++++''';;;;;;;;;;;;;;;;;;;;;;;;;,,,:, `                                                         
-                                                                     :+++++''''+;;;'''''+++++++++'++++++++++++++++''''';;;;;;:::;;::;;;;;;;;;;:,:,:.   `                                                       
-                                                                     :+++##+'''+;;;''''+++++++++++''++++++++++++++'''''';;;;;;::::::;;;;;;;;;;,,::,`                                                           
-                                                                     ;####+++'+;;;''''''''++#+++++++++++++'''++++''''''';;;;:::::::::;;;;;;;;:,,,,,` `                                                         
-                                                                    `'####+'+'';;;''';;''''''++##++++++''+'''''''''''''';;;;:::::::::;;;;;;;;:,:::. `                                                          
+                                                                     :+'++'''''';;;''''''''++++'++'++++++++++++++++''';;;;;;;;;;;;;;;;;;;;;;;;;,,,:,                                                          
+                                                                     :+++++''''+;;;'''''+++++++++'++++++++++++++++''''';;;;;;:::;;::;;;;;;;;;;:,:,:.                                                          
+                                                                     :+++##+'''+;;;''''+++++++++++''++++++++++++++'''''';;;;;;::::::;;;;;;;;;;,,::,`                                                          
+                                                                     ;####+++'+;;;''''''''++#+++++++++++++'''++++''''''';;;;:::::::::;;;;;;;;:,,,,,`                                                          
+                                                                    `'####+'+'';;;''';;''''''++##++++++''+'''''''''''''';;;;:::::::::;;;;;;;;:,:::.                                                           
                                                                     `'##@@+'++';;''''';;'''''''+###+++++'''''''''''''''';;;::::::::::;;;;;;';:,,:,`                                                            
-                                                                `   `'#@@@+''';;;'''''''''+++''''++##+++''''''''''''''';;';;:::::::::;;;;;;;:,,::. ``                                                          
+                                                                `   `'#@@@+''';;;'''''''''+++''''++##+++''''''''''''''';;';;:::::::::;;;;;;;:,,::.                                                           
                                                                     `'+#@@+'';;'''''''''+########++++#+++''''''''''''';;';;;::::::::::;;;;;;:,:::`                                                             
                                                                      ;''+@''';''''''''''+++++###@@@##+++'''''''''''''''''';;;:::::::,:::;;;;:,::,                                                              
-                                                                     :#'+#'';'''''''++'''#@##+@@@##@@#++++''''''';;;;;;;'';;;:::::,,::::;;;;:,::` `    `                                                       
-                                                                     .#++@#';''''''++++'''+#,.'#@@@##@#++''''''''';;;;'''';;;::;::::::::;;;;:::,  ``` `                                                        
-                                                                     `+++@#;'''''''++++++''#'`;++;+###@#+'''''''''';;'''''''''''';;;;;:::;;;:::` .;,,`                                                         
-                                                                      ;+'++;'''''''++++#''''#;,'+++:+###++''''''';;;''''''+++++++'''';;;::;;::;:;;,,:. `                                                       
+                                                                     :#'+#'';'''''''++'''#@##+@@@##@@#++++''''''';;;;;;;'';;;:::::,,::::;;;;:,::`                                                        
+                                                                     .#++@#';''''''++++'''+#,.'#@@@##@#++''''''''';;;;'''';;;::;::::::::;;;;:::,                                                          
+                                                                     `+++@#;'''''''++++++''#'`;++;+###@#+'''''''''';;'''''''''''';;;;;:::;;;:::` .;,,                                                         
+                                                                      ;+'++;'''''''++++#''''#;,'+++:+###++''''''';;;''''''+++++++'''';;;::;;::;:;;,,:.                                                       
                                                                       .+''+'''''''''+++#+'';'##+++'+#####+''''''';;;'''+++##+++#++++'''';;;;:::,:;;::`                                                         
-                                                                     ` ;''+;''''''''+++++''';''#@@@@@@###+''''''';;''''+++####++'+''''''';;;::::;''#'  `                                                       
+                                                                     ` ;''+;''''''''+++++''';''#@@@@@@###+''''''';;''''+++####++'+''''''';;;::::;''#'                                                         
                                                                        `;'+;'''''''''++++'''''''++++#####+''''''';;'''+'+@@@@@###+''''''';;;,;;;''#@:                                                          
                                                                         `'+;''+'''''''++++''''++++++####++''''''''''+++#@@#####+++##+''';;;;:';'''##.                                                          
-                                                                         .';'''''';''''+++++'''+++++##+#+++''++'''''++####'@@@@@##++#++';;;::';'';++  `                                                        
-                                                                        ` .;'''''''''''++++++++++++++#+++++''+++';'+++#+##;##+;'+'@#+#++';;::'''';+; `                                                         
+                                                                         .';'''''';''''+++++'''+++++##+#+++''++'''''++####'@@@@@##++#++';;;::';'';++                                                          
+                                                                        ` .;'''''''''''++++++++++++++#+++++''+++';'+++#+##;##+;'+'@#+#++';;::'''';+;                                                          
                                                                         ` ,'''''''';''''+++++++++++++++++++++'+';:''+++##@#++'':.,+@#+++'';::'+++'+.                                                           
                                                                           ,';'''''';;''''++++++++++++++++++'''+';,;'++++####@+;..'+##++''';::#+++';                                                            
-                                                                          ,';''''''';'''''+++++++++'''+++++''++';,:;++++##++++';''''''''';;::#+++'. `                                                          
+                                                                          ,';''''''';'''''+++++++++'''+++++''++';,:;++++##++++';''''''''';;::#+++'.                                                           
                                                                        `  :'''''''';''''''++++++++''''''+++''+'':,:;'+++++++''''''';;;;;;;::,++++;                                                             
-                                                                       `  :'''''''';''''''+'+++++'''''''''''++';:,::;'++++++'''''';;::::;;:::#++',  `                                                          
+                                                                       `  :'''''''';''''''+'+++++'''''''''''++';:,::;'++++++'''''';;::::;;:::#++',                                                            
                                                                           ;'''''''''''''''''''+++'''''''++''++';::::;;''++'+''''';;:,,,::::::+;;'`                                                             
                                                                          `;'''''''''''''''''''+++'''''''++++++';::::;;;;''''''';;::,,,,,;;::::,;:                                                              
-                                                                         `;'''''''''''';'''''''+++''''''++++++':,::::;;;;;''''';::,,,,,::::,,:':``                                                             
+                                                                         `;'''''''''''';'''''''+++''''''++++++':,::::;;;;;''''';::,,,,,::::,,:':                                                             
                                                                          `;'''''''''''';'''''''+++'''''''+++'';,,,,::;;;;;;;';;;::,,,,:::;::,''`                                                               
-                                                                         .'''''''''''''''''''''+++''++''++++';:,.,,,:;;;:;:;;;;;:::,:::;;;::,:. `                                                              
+                                                                         .'''''''''''''''''''''+++''++''++++';:,.,,,:;;;:;:;;;;;:::,:::;;;::,:.                                                               
                                                                      `   .''''''''''';''''''''''++'++++''+++';:..,,,::;;:::::;;;:;::::;;;;:::,`                                                                
                                                                          ,+'''''''''''''''''''''+'''+++''+++';:,..,,:;;;;;;:;;;;;;;;;;;;;;:;:.                                                                 
                                                                          ,+'''''''''''''''''''''+'''+++''++++;:,,,,,,;'';;;;:;;;';;;;;;;;;::,`                                                                 
                                                                        ` ,+'''''''''''''''''''+++''''''''++++':,,:,,,;+';;;;;;;;;;;;'''';:::,                                                                  
-                                                                         ,'''''''''''''''''''+++++''''''''+++';:::::,;+''';;;;;;;;;''''';::`. `                                                                
+                                                                         ,'''''''''''''''''''+++++''''''''+++';:::::,;+''';;;;;;;;;''''';::`.                                                                 
                                                                          ,+''''''''''''''''''+++++'''''';''''';;;;;::;++'';;;;;;;''''''';;, .                                                                  
                                                                          .+''''''''''''''''''++++##+'+++''''';;;;;;;;;++''';;;;;'''''''';'`,,                                                                  
                                                                          .''''''''''''''''''+++++++#+''''''';;''+'''''++'''''';;'''''''':+,,                                                                   
                                                                          .+'''''''''''''''''++++++++++++#+''''++++++'''+''''''''''''''''``.`                                                                   
                                                                        ` `'''''''''''''''''++++++++++#####+'+++++++';''++'''''''''''''+:                                                                       
-                                                                          ''''''''''''''''++++++++++++##+++++++++';;;''++'''''''''++++'`  `                                                                    
-                                                                          ;+'''''''''''''''+++++++++++##+++++++++;;;;;''++''''''++++++;   `                                                                    
-                                                                        ` .+''''''''''''''''++'++#++++#+#+++++++';;;;;'''''''''+++++++. `                                                                      
+                                                                          ''''''''''''''''++++++++++++##+++++++++';;;''++'''''''''++++'`                                                                      
+                                                                          ;+'''''''''''''''+++++++++++##+++++++++;;;;;''++''''''++++++;                                                                       
+                                                                        ` .+''''''''''''''''++'++#++++#+#+++++++';;;;;'''''''''+++++++.                                                                       
                                                                           `''''''''''''''''++############+###+'';;;;;''''''''++++++++'`                                                                        
                                                                            ,''''''+'''''''+++################++'';'''';''''++++++++++,                                                                         
-                                                                           .'''''++''''''++++++############@#+++''';;';''''+++++++++'`    ``                                                                   
+                                                                           .'''''++''''''++++++############@#+++''';;';''''+++++++++'`                                                                       
                                                                            `+''''''''''''+''''''+++++##+##@@##+#++'';'''''+++++++++++;:,.`                                                                     
-                                                                 `   `      :+'''''''+''+'+++';''''''''+++++'''++#+'''''''++'++++++++##@##+':.      `                                                          
-                                                                    `  `.:'##'''''''''''+'++@@#+''''''++'''''';;;'+++'''''++++++++++.###@@@@@@#+;,.``                                                          
-                                                                 `   ,;+#@@@@#''''''+'''+'''+@####+''''''''''++';;'+#++'''+++++++++'.:@##@@@@@@@@@##+;,.`                                                      
-                                                               `  `,#@@@@@@@@#+'''''+''+'''''#+'+####+''''''''''+';+++++'++++++++++;;.+@++#@@@@@@@@@@@@##+';,.```                                              
-                                                                 ,+@@@@@@@@@@#++'''''+++''''''+''++#########+++++++++##+++++++++++;;#;,##++#@@@@@@@@@@@@@@@@@##+'::.`                                          
+                                                                 `   `      :+'''''''+''+'+++';''''''''+++++'''++#+'''''''++'++++++++##@##+':.                                                                
+                                                                    `  `.:'##'''''''''''+'++@@#+''''''++'''''';;;'+++'''''++++++++++.###@@@@@@#+;,.                                                          
+                                                                 `   ,;+#@@@@#''''''+'''+'''+@####+''''''''''++';;'+#++'''+++++++++'.:@##@@@@@@@@@##+;,.                                                      
+                                                               `  `,#@@@@@@@@#+'''''+''+'''''#+'+####+''''''''''+';+++++'++++++++++;;.+@++#@@@@@@@@@@@@##+';,                                              
+                                                                 ,+@@@@@@@@@@#++'''''+++''''''+''++#########+++++++++##+++++++++++;;#;,##++#@@@@@@@@@@@@@@@@@##+'::.                                          
                                                                `'@#@@@@@@@@@@#'++''+'+++''''''+'''++#++++######++@##++++++++++++++':++,;##++#@@@@@@@@@@@@@@@@@@@@@##+',``                                      
                                                            `  ,#@@@@@@@@@@@@@#'++''+++++'''''''''''+++';++'':,:''++++#++++'++++++';::;::;#++++##@@@@@@@@@@@@@@@@@@@@@@#+':.`                                   
                                                              ;@#@@@@@@@@@@@@@;+++''+'+++''''''''''''''''+'';::;'';'++++++++++++#';;::#:,##+##+++###@@@@@@@@@@@@@@@@@@@@@@##+,`  `                              

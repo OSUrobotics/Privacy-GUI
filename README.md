@@ -15,14 +15,30 @@ Authors:
 * If you are running any of these packages, **have a separate groovy workspace**
 
 ##Package list and info
-* remote_nav - The real package and current implementation of our navigation UI
-* map_registration - not a ROS package but a pyQT program which is used for map registration
 
-##custom_nav package
-The custom_nav package is to be used ON THE TURTLEBOT. Copy this repo to your turtlebot and rosmake this package. It is simply a modified version of turtlebot_navigation to better fit our needs. Changes include, but are not limited to: resetting the default map_file, turning on rgb_processing,
+###remote_nav 
+The real package and current implementation of our navigation UI
+
+**Dependencies**
+* ROS Groovy
+* rviz-visualization library (librviz)
+* amcl
+* tf
+* PyQt4+ or PySide
+
+###map_registration 
+Not a ROS package but a python program which is used for map registration
+
+**Dependencies**
+* opencv2 (included with ROS)
+* Python
+* PyQt or PySide
+
+###custom_nav package
+The custom_nav package is to be used ON THE TURTLEBOT when running remote_nav. Copy this repo to your turtlebot/robot and rosmake this package. It is simply a modified version of turtlebot_navigation to better fit our needs. Changes include, but are not limited to: resetting the default map_file, turning on rgb_processing,
 and tinkering with the .yaml configuration files. 
 
-###Running remote_nav
+##Running remote_nav
 In order for remote_nav to run, several things need to be set up (this may be fixed with a future update)
 * turtlebot bringup
 * ROS_MASTER_URI must be set to the robot
