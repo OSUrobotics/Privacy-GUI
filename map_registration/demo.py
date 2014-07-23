@@ -70,9 +70,8 @@ class MainWindow(QDialog, Ui_Window):
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
-        numpy_src = np.array(self.src, dtype='float32')
-        numpy_dst = np.array(self.dst, dtype='float32')
-        transform = self.robot.setTransforms(numpy_src, numpy_dst)
+        if self.toggleRobot.isChecked():
+            self.transform_array()
         self.robot.setEnabled(self.toggleRobot.isChecked())
 
     # Edit a different point
@@ -95,12 +94,9 @@ class MainWindow(QDialog, Ui_Window):
         # Check that three pairs have been make
         if ((-1, -1) not in self.src) and ((-1, -1) not in self.dst):
             print "Transforming Maps"
-            # Turn the pairs into an Affine Transformation matrix
-            numpy_src = np.array(self.src, dtype='float32')
-            numpy_dst = np.array(self.dst, dtype='float32')
-            transform = self.robot.setTransforms(numpy_src, numpy_dst)
+            self.transform_array()
             # Apply the transform 
-            if transform != None:
+            if self.transform != None:
                 src = cv2.imread(self.img_1, 0)
                 rows, cols = src.shape
                 output = cv2.warpAffine(src, transform, (cols, rows))
@@ -109,6 +105,13 @@ class MainWindow(QDialog, Ui_Window):
             # cv2.imshow('Output', output)
         else:
             print "Not enough pairs to transform"
+
+    #Turn point pairs into an affine transformation matrix and pass to the robot handler
+    def transform_array(self):
+        # Turn the pairs into an Affine Transformation matrix
+        numpy_src = np.array(self.src, dtype='float32')
+        numpy_dst = np.array(self.dst, dtype='float32')
+        self.transform = self.robot.setTransforms(numpy_src, numpy_dst)
 
     def export_map(self):
         pass

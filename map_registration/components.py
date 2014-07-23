@@ -86,7 +86,8 @@ class DrawRobot(QGraphicsObject):
 
     def __init__(self, parent=None):
         super(QGraphicsObject, self).__init__(parent)
-
+        self.setFlag(QGraphicsItem.ItemIsMovable)
+        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
         #Taking this out and making it just drawing a cool square because this is a simple thing
 
         # self.img = QPixmap('pr2HeadUp.png')
@@ -95,7 +96,6 @@ class DrawRobot(QGraphicsObject):
         return QRectF(0, 0, self.size, self.size)
 
     def paint(self, painter, option, widget):
-        painter = QPainter()
         pen = QPen(Qt.black, 3, Qt.SolidLine)
         painter.setPen(pen)
         painter.drawRoundedRect(0, 0, self.size, self.size, self.size / 3, self.size / 3)
