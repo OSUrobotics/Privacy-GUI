@@ -99,7 +99,10 @@ class DrawRobot(QGraphicsObject):
         pen = QPen(Qt.black, 3, Qt.SolidLine)
         painter.setPen(pen)
         painter.drawRoundedRect(0, 0, self.size, self.size, self.size / 3, self.size / 3)
-       
+    
+    #overloading the mouseMoveEvent to 
+    # def mouseMoveEvent(self, event):   
+    #     pass
 
 class RobotHandler():
     def __init__(self, robot_1, robot_2):
@@ -110,6 +113,12 @@ class RobotHandler():
         self.trans_2_to_1 = None
         self.ready = False
 
+        self.robot_1.xChanged.connect(self.robotMatch)
+        self.robot_2.xChanged.connect(self.robotMatch)
+
+    def robotMatch(self):
+        print "The robots are moving!"
+        
     def setEnabled(self, enable_state):
         if self.ready:
             self.isenabled = enable_state
