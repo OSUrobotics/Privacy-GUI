@@ -2,7 +2,6 @@ import sys, getopt
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
-import cv2
 import numpy as np
 from components import * 
 
@@ -15,12 +14,17 @@ class MainWindow(QDialog, Ui_Window):
         self.setupUi(self)
         self.setWindowTitle('Main Window')
 
-         # Set up variables for point registration and transformation, etc
+        # Set up variables for point registration and transformation, etc
         self.edit_mode = 0
         self.src = [(-1, -1), (-1, -1), (-1, -1)]
         self.dst = [(-1, -1), (-1, -1), (-1, -1)]
-        self.robot_on = False
-        self.robot = RobotHandler()
+        robot1 = DrawRobot()
+        robot2 = DrawRobot()
+        robot1.setVisible(False)
+        robot2.setVisible(False)
+        self.map1.addItem(robot1)
+        self.map2.addItem(robot2)
+        self.robot = RobotHandler(robot1, robot2)
 
  
         # Sets up the maps
@@ -60,13 +64,7 @@ class MainWindow(QDialog, Ui_Window):
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
-        # if not self.robot_on:
         self.robot.setEnabled(self.toggleRobot.isChecked())
-        self.robot_on = self.toggleRobot.isChecked()
-        print self.toggleRobot.isChecked()
-        # else:
-        #     self.robot.setEnabled(False)
-        #     self.robot_on = False
 
     # Edit a different point
     def change_edit_mode(self):
@@ -91,13 +89,13 @@ class MainWindow(QDialog, Ui_Window):
             # Turn the pairs into an Affine Transformation matrix
             numpy_src = np.array(self.src, dtype='float32')
             numpy_dst = np.array(self.dst, dtype='float32')
-            transform = cv2.getAffineTransform(numpy_src, numpy_dst)
-            print transform
+            transform = self.robot.setTransforms(numpy_src, numpy_dst)
             # Apply the transform 
-            src = cv2.imread(self.img_1, 0)
-            rows, cols = src.shape
-            output = cv2.warpAffine(src, transform, (cols, rows))
-            self.outputWindow(output)
+            if transform != None:
+                src = cv2.imread(self.img_1, 0)
+                rows, cols = src.shape
+                output = cv2.warpAffine(src, transform, (cols, rows))
+                self.outputWindow(output)
             # cv2.imshow('Output', output)
         else:
             print "Not enough pairs to transform"
@@ -111,8 +109,8 @@ class MainWindow(QDialog, Ui_Window):
         if self.edit_mode != 0:
             self.src[self.edit_mode - 1] = self.map1.getPoint()
             self.dst[self.edit_mode - 1] = self.map2.getPoint()
-            print "Source: ", self.src
-            print "Destination: ", self.dst
+            # print "Source: ", self.src
+            # print "Destination: ", self.dst
     
     # triggered when a point is clicked in either map scene
     def point_handler(self):
