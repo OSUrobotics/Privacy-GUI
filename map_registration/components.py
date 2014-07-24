@@ -89,6 +89,8 @@ class DrawRobot(QGraphicsObject):
         self.setFlag(QGraphicsItem.ItemIsMovable)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
 
+        self.setZValue(10)
+
     def boundingRect(self):
         return QRectF(0, 0, self.size, self.size)
 
@@ -98,7 +100,8 @@ class DrawRobot(QGraphicsObject):
         painter.setPen(pen)
         painter.setBrush(brush)
         painter.drawRoundedRect(0, 0, self.size, self.size, self.size / 3, self.size / 3)
-
+    def get_pos(self):
+        return (self.x + (self.size / 2), self.y + (self.size / 2))
 class RobotHandler():
     def __init__(self, robot_1, robot_2):
         self.isenabled = False
