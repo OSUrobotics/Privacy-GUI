@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mapTransform.ui'
 #
-# Created: Tue Jul 22 11:53:52 2014
+# Created: Thu Jul 24 09:31:28 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -23,11 +23,11 @@ class Ui_Window(object):
         self.splitter = QtGui.QSplitter(Window)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
         self.splitter.setObjectName(_fromUtf8("splitter"))
-        self.source = QtGui.QGraphicsView(self.splitter)
+        self.source = customView(self.splitter)
         self.source.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.CrossCursor))
         self.source.setMouseTracking(False)
         self.source.setObjectName(_fromUtf8("source"))
-        self.destination = QtGui.QGraphicsView(self.splitter)
+        self.destination = customView(self.splitter)
         self.destination.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.CrossCursor))
         self.destination.setObjectName(_fromUtf8("destination"))
         self.layoutWidget = QtGui.QWidget(self.splitter)
@@ -56,7 +56,7 @@ class Ui_Window(object):
         self.affineLayout.addWidget(self.newPt_btn)
         self.point1 = QtGui.QRadioButton(self.affine_tool)
         self.point1.setAcceptDrops(False)
-        # self.point1.setStyleSheet(_fromUtf8("color:red"))
+        self.point1.setStyleSheet(_fromUtf8("color:red"))
         self.point1.setChecked(True)
         self.point1.setObjectName(_fromUtf8("point1"))
         self.buttonGroup = QtGui.QButtonGroup(Window)
@@ -232,6 +232,7 @@ class Ui_Window(object):
         self.tools.setTabText(self.tools.indexOf(self.bulge_tool), QtGui.QApplication.translate("Window", "Bulge", None, QtGui.QApplication.UnicodeUTF8))
         self.toggleRobot.setText(QtGui.QApplication.translate("Window", "Show Robot", None, QtGui.QApplication.UnicodeUTF8))
 
+from customview import customView
 
 if __name__ == "__main__":
     import sys
