@@ -38,7 +38,7 @@ class MainWindow(QDialog, Ui_Window):
         self.map1.addItem(self.robot1)
         self.map2.addItem(self.robot2)
 
-
+        self.point1.setStyleSheet("color:red") 
         self.bulge_btn.setIcon(QIcon("images/bulge.png"))
         self.indent_btn.setIcon(QIcon("images/indent.png"))
 

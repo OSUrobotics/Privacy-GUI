@@ -45,7 +45,7 @@ class DrawMap(QGraphicsScene):
         self.edit_mode = 0
 
         self.marker_1 = DrawPoint(QtCore.Qt.red)
-        self.marker_2 = DrawPoint(QtCore.Qt.green)
+        self.marker_2 = DrawPoint(QtCore.Qt.darkGreen)
         self.marker_3 = DrawPoint(QtCore.Qt.blue)
 
     # Updates the positin and draws a circle around it
@@ -94,7 +94,9 @@ class DrawRobot(QGraphicsObject):
 
     def paint(self, painter, option, widget):
         pen = QPen(Qt.black, 3, Qt.SolidLine)
+        brush = QBrush(Qt.cyan)
         painter.setPen(pen)
+        painter.setBrush(brush)
         painter.drawRoundedRect(0, 0, self.size, self.size, self.size / 3, self.size / 3)
 
 class RobotHandler():
@@ -149,7 +151,6 @@ class RobotHandler():
 
     def set_robot_1(self):
         self.robot_1.blockSignals(True)
-        print "Robot 2 moved. Updating Position of robot 1"
         point = self.robot_2.pos()
         pos = self.convert_to_1(point)
         self.robot_1.setPos(pos[0], pos[1])
@@ -157,8 +158,7 @@ class RobotHandler():
 
     def set_robot_2(self):
         self.robot_2.blockSignals(True)
-        print "Robot 1 moved. Updating position of robot 2"
-        point = self.robot_2.pos()
+        point = self.robot_1.pos()
         pos = self.convert_to_2(point)
         self.robot_2.setPos(pos[0], pos[1])
         self.robot_2.blockSignals(False)

@@ -56,7 +56,7 @@ class Ui_Window(object):
         self.affineLayout.addWidget(self.newPt_btn)
         self.point1 = QtGui.QRadioButton(self.affine_tool)
         self.point1.setAcceptDrops(False)
-        self.point1.setStyleSheet(_fromUtf8("color:red"))
+        # self.point1.setStyleSheet(_fromUtf8("color:red"))
         self.point1.setChecked(True)
         self.point1.setObjectName(_fromUtf8("point1"))
         self.buttonGroup = QtGui.QButtonGroup(Window)
