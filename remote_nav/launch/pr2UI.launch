@@ -30,5 +30,9 @@
   <node name="map_server2" pkg="map_server" type="map_server" args="$(arg map_file)">
     <remap from="/map" to="/map2"/>
   </node>
+  
+  <node name="vision_range" pkg="remote_nav" type="rangePub.py"/>
+
+
 
 </launch>
