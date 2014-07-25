@@ -114,7 +114,38 @@ class MainWindow(QDialog, Ui_Window):
         self.transform = self.robot.setTransforms(numpy_src, numpy_dst)
 
     def export_map(self):
-        pass
+        yaml = "---\nsemantic_map: " + self.img_1 + "\n"
+        yaml += "slam_map: " + self.img_2 + "\n"
+        yaml += "origin: [0.0, 0.0, 0.0]\n" # for now
+        yaml += "resolution: 0.05\n" # for now
+        src = cv2.imread(self.img_1, 0)
+        dst = cv2.imread(self.img_2, 0)
+        src_rows, src_cols = src.shape
+        dst_rows, dst_cols = dst.shape
+        yaml += "slam_width: " + str(dst_cols) + "\n"
+        yaml += "slam_height: " + str(dst_rows) + "\n"
+        yaml += "semantic_width: " + str(src_cols) + "\n"
+        yaml += "semantic_height: " + str(src_rows) + "\n"
+        yaml += "semantic_to_slam:\n"
+        yaml += "- affine: " + self.printable_1_to_2() + "\n"
+        yaml += "slam_to_semantic:\n"
+        yaml += "- affine: " +  self.printable_1_to_2() + "\n"
+        f = open('registration.yaml', 'w')
+        f.write(yaml)
+
+    def printable_1_to_2(self):
+        self.transform_array()
+        trans = self.robot.trans_1_to_2
+        transform = "\"[[ " + str(trans[0][0]) + " " + str(trans[0][1]) + " " + str(trans[0][2]) + " ] "
+        transform += "[ " + str(trans[1][0]) + " " + str(trans[1][1]) + " " + str(trans[1][2]) + " ]]\""
+        return transform
+
+    def printable_2_to_1(self):
+        self.transform_array()
+        trans = self.robot.trans_2_to_1
+        transform = "\"[[ " + str(trans[0][0]) + " " + str(trans[0][1]) + " " + str(trans[0][2]) + " ] "
+        transform += "[ " + str(trans[1][0]) + " " + str(trans[1][1]) + " " + str(trans[1][2]) + " ]]\""
+        return transform
 
     # Reads the most recent points off the maps and puts into the Matrix
     def register_points(self):
