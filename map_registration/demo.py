@@ -66,8 +66,6 @@ class MainWindow(QDialog, Ui_Window):
         self.point2.toggled.connect(self.change_edit_mode)
         self.point3.toggled.connect(self.change_edit_mode)
 
-
-
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
         if self.toggleRobot.isChecked():
@@ -113,11 +111,14 @@ class MainWindow(QDialog, Ui_Window):
         numpy_dst = np.array(self.dst, dtype='float32')
         self.transform = self.robot.setTransforms(numpy_src, numpy_dst)
 
+    # Saves the values in a yaml file in the current directory
     def export_map(self):
         yaml = "---\nsemantic_map: " + self.img_1 + "\n"
         yaml += "slam_map: " + self.img_2 + "\n"
-        yaml += "origin: [0.0, 0.0, 0.0]\n" # for now
-        yaml += "resolution: 0.05\n" # for now
+        # These are just dummy values for now. TODO: change to values in
+        # the slam map's yaml file.
+        yaml += "origin: [0.0, 0.0, 0.0]\n" 
+        yaml += "resolution: 0.05\n"
         src = cv2.imread(self.img_1, 0)
         dst = cv2.imread(self.img_2, 0)
         src_rows, src_cols = src.shape

@@ -13,8 +13,9 @@ import rospy
 from math import *
 
 #stuff for sys.argv
-import sys
+import sys, getopt
 import copy
+from os import path
 
 #Qt Bindings
 from python_qt_binding.QtGui import *
@@ -38,7 +39,7 @@ from MapMetaData import *
 
 class Window(QMainWindow): 
 	# Window Constructor
-	def __init__(self):
+	def __init__(self, yaml):
 
 		QWidget.__init__(self)
 		# We use rospack to find the filepath for remote_nav.
@@ -52,6 +53,8 @@ class Window(QMainWindow):
 		self.track_length = rospy.get_param('remote_nav/track_length', 5.0)
 		self.robot_frame = rospy.get_param('remote_nav/robot_frame', "/base_footprint")
 
+		self.meta_data = yaml_to_registered(yaml)
+		self.img = path.dirname(yaml) + "/" + self.meta_data.semantic_map
 		self.initMapFrame()
 		self.setGeometry(300, 300, 350, 250)
 		self.setWindowTitle('Robot Map')
@@ -61,16 +64,14 @@ class Window(QMainWindow):
 	def initMapFrame(self):
 		self.world=QGraphicsView()
 		self.scene=QGraphicsScene()
-		self.scene.addPixmap(QPixmap(self.package_path + "/maps/betterMap.pgm"))
+		self.scene.addPixmap(QPixmap(self.img))
 
 
 ##ROBOT STUFF
 ##^^^^^^^^^^^
-		self.harris = Robot()
+		self.harris = Robot(self.meta_data)
 
 		#feel free to make whatever functions you want. You can also edit the  Robot class
-
-
 
 		#For now, this is the robot.  Will change soon. 
 		self.scene.addItem(self.harris)
@@ -172,28 +173,27 @@ class Window(QMainWindow):
 				self.scene.update()
 			r.sleep()
 
-
-
 ##ROBOT OBJECT CLASS
 ##^^^^^^^^^^^^^^^^^^
 class Robot(QGraphicsItem):
 
 	angleChanged = pyqtSignal(float)
-	robot_width = 0.6 	# meters, in the real world
-	img_height = 1152 # Hardcoded for now
+	robot_width = 0.6   # meters, in the real world
 
-	def __init__(self, parent=None):
+	def __init__(self, meta_data, parent=None):
 		super(Robot, self).__init__(parent)
 
-		rospack = rospkg.RosPack()
-		package_path = rospack.get_path('remote_nav')
-
 		# Get the relevant information from the yaml
-		map_meta_data = yaml_to_meta_data(package_path + '/maps/betterMap.yaml')
+		map_meta_data = meta_data
 		self.origin = map_meta_data.origin
 		self.resolution = map_meta_data.resolution
-		print "Map Origin: ", self.origin
+		# print "Map Origin: ", self.origin
+		self.img_height = map_meta_data.slam_height
+		self.transform = parse_transform(map_meta_data.slam_to_semantic[0]['affine'])
 
+		# We use rospack to find the filepath for pr2headUp.png.
+		self.rospack = rospkg.RosPack()
+		package_path = self.rospack.get_path('remote_nav')
 		# Set the image and scale it 
 		self.img = QPixmap(package_path + '/images/pr2HeadUp.png')
 		self.robot_size = (int)(self.robot_width / self.resolution)
@@ -204,9 +204,6 @@ class Robot(QGraphicsItem):
 		self.x_pos = 0.0
 		self.y_pos = 0.0
 		self.rotation = 0.0
-		#set up the Qlabel to be an image of the robot
-		#Make private variables for the orientation and rotation
-		#also set up sizehint
 
 #Work in progress paint event (trying to draw the robot as an image. Using a square for now
 	def paint(self, painter, option, widget):
@@ -217,19 +214,10 @@ class Robot(QGraphicsItem):
 		if self.img.width() > size:
 			self.img = self.img.scaled(size, size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
-
 	def boundingRect(self):
 		width = 20
 		height = 20
 		return QRectF(self.x_pos - 10, self.y_pos - 10, width, height)
-
-	# def boundingRect(self):
-	# 	penWidth = 1.0
-	# 	return QRectF(-10 - penWidth / 2, -10 - penWidth / 2,
-	# 		20 + penWidth, 20 + penWidth)
-
-	# def paint(self, painter, option, widget):
-	# 	painter.drawRoundedRect(-10, -10, 20, 20, 5, 5)
 	
 	#Sets the rotation in the Image frame, given real-world rotation
 	def setRotate(self, yaw):
@@ -242,24 +230,52 @@ class Robot(QGraphicsItem):
 	# Sets the coordinates for use in the Image frame based on the 
 	# real-world coordinates (relative to /map frame)
 	def setPoint(self, x, y):
-		self.x_pos = ((- self.origin[0] + x) / self.resolution) / 2
-		self.y_pos = (self.img_height + ((self.origin[1] - y) / self.resolution)) / 2
-		# print "Robot position in Image frame: (", self.x_pos, ",", self.y_pos, ")"
+		x = ((- self.origin[0] + x) / self.resolution) 
+		y = (self.img_height + ((self.origin[1] - y) / self.resolution)) 
+		print "Robot position in SLAM map: (", x, ",", y, ")"
+		trans = self.transform
+		self.x_pos = (trans[0][0] * x) + (trans[0][1] * y) + trans[0][2]
+		self.y_pos = (trans[1][0] * x) + (trans[1][1] * y) + trans[1][2]
+		self.x_pos /= 2
+		self.y_pos /= 2
+		print "Robot position in Image frame: (", self.x_pos, ",", self.y_pos, ")"
 		self.setPos(self.x_pos, self.y_pos)
 	# gets the position in the image
 	def getPoint(self):
 		return {'x': self.x_pos, 'y': self.y_pos}
 
+def parse_input(argv):
+	usage = argv[0] + " <registered map file>"
+	f = ""
 
+	try:
+		opts, args = getopt.getopt(argv, "h")
+	except getopt.GetoptError as e:
+		print usage
+		sys.exit(2)
 
+	if '-h' in opts:
+		print usage
+		sys.exit()
+
+	if len(args) != 2:
+		print usage
+		sys.exit(2)
+
+	f = args[1]
+	return f
 
 ## Start the Application
 ## ^^^^^^^^^^^^^^^^^^^^^
 if __name__ == '__main__':
 	app = QApplication( sys.argv )
+
+	f = parse_input(sys.argv)
+	print f
+
 	rospy.init_node('move')
 
-	mainWindow = Window()
+	mainWindow = Window(f)
 	mainWindow.resize( 1000, 1000 )
 	mainWindow.show()
 

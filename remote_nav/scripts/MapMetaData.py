@@ -39,3 +39,28 @@ def yaml_to_meta_data(file_name):
 
 	# return MapMetaData object
 	return meta_data
+
+def yaml_to_registered(file_name):
+	fo = open(file_name)
+	file_text = fo.read()
+	meta_data = yaml.load("--- !RegisteredMapMetaData \n" + file_text)
+	fo.close()
+	return meta_data
+
+def parse_transform(str):
+	transform = []
+	row_1 = []
+	row_2 = []
+	count = 0
+	for val in str.split():
+		try:
+			if count < 3:
+				row_1.append(float(val))
+				count += 1
+			else:
+				row_2.append(float(val))
+		except ValueError:
+			pass
+	transform.append(row_1)
+	transform.append(row_2)
+	return transform

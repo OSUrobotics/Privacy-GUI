@@ -1,4 +1,4 @@
-image: betterPrettyMap.pgm
+image: pretty_map_zoomed.pgm
 resolution: 0.025000
 origin: [-10.000000, -7.000000, 0.000000]
 negate: 0
