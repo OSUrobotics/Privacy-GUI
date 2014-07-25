@@ -7,16 +7,20 @@ from components import *
 
 from PyQt4.QtGui import QDialog
 from mapTransform import Ui_Window
+from os import path
 
 class MainWindow(QDialog, Ui_Window):
-    def __init__(self, map1, map2, parent=None):
+    def __init__(self, semantic, slam, parent=None):
         super(QDialog, self).__init__(parent)
         self.setupUi(self)
         self.setWindowTitle('Main Window')
  
         # Sets up the maps
-        self.img_1 = map1
-        self.img_2 = map2
+        self.img_1 = semantic
+        slam_meta_data = yaml_to_meta_data(slam)
+        self.slam_origin = slam_meta_data.origin
+        self.slam_res = slam_meta_data.resolution
+        self.img_2 = path.dirname(slam) + "/" + slam_meta_data.image
         self.map1 = DrawMap(self.img_1, self)
         self.source.setScene( self.map1 )
         self.map2 = DrawMap(self.img_2, self)
@@ -113,12 +117,12 @@ class MainWindow(QDialog, Ui_Window):
 
     # Saves the values in a yaml file in the current directory
     def export_map(self):
-        yaml = "---\nsemantic_map: " + self.img_1 + "\n"
+        yaml = "semantic_map: " + self.img_1 + "\n"
         yaml += "slam_map: " + self.img_2 + "\n"
         # These are just dummy values for now. TODO: change to values in
         # the slam map's yaml file.
-        yaml += "origin: [0.0, 0.0, 0.0]\n" 
-        yaml += "resolution: 0.05\n"
+        yaml += "origin: " + str(self.slam_origin) + "\n" 
+        yaml += "resolution: " + str(self.slam_res) + "\n"
         src = cv2.imread(self.img_1, 0)
         dst = cv2.imread(self.img_2, 0)
         src_rows, src_cols = src.shape
@@ -130,22 +134,22 @@ class MainWindow(QDialog, Ui_Window):
         yaml += "semantic_to_slam:\n"
         yaml += "- affine: " + self.printable_1_to_2() + "\n"
         yaml += "slam_to_semantic:\n"
-        yaml += "- affine: " +  self.printable_1_to_2() + "\n"
+        yaml += "- affine: " +  self.printable_2_to_1() + "\n"
         f = open('registration.yaml', 'w')
         f.write(yaml)
 
     def printable_1_to_2(self):
         self.transform_array()
         trans = self.robot.trans_1_to_2
-        transform = "\"[[ " + str(trans[0][0]) + " " + str(trans[0][1]) + " " + str(trans[0][2]) + " ] "
-        transform += "[ " + str(trans[1][0]) + " " + str(trans[1][1]) + " " + str(trans[1][2]) + " ]]\""
+        transform = "\"[[ " + '{:e}'.format(trans[0][0]) + " " + '{:e}'.format(trans[0][1]) + " " + '{:e}'.format(trans[0][2]) + " ] "
+        transform += "[ " + '{:e}'.format(trans[1][0]) + " " + '{:e}'.format(trans[1][1]) + " " + '{:e}'.format(trans[1][2]) + " ]]\""
         return transform
 
     def printable_2_to_1(self):
         self.transform_array()
         trans = self.robot.trans_2_to_1
-        transform = "\"[[ " + str(trans[0][0]) + " " + str(trans[0][1]) + " " + str(trans[0][2]) + " ] "
-        transform += "[ " + str(trans[1][0]) + " " + str(trans[1][1]) + " " + str(trans[1][2]) + " ]]\""
+        transform = "\"[[ " + '{:e}'.format(trans[0][0]) + " " + '{:e}'.format(trans[0][1]) + " " + '{:e}'.format(trans[0][2]) + " ] "
+        transform += "[ " + '{:e}'.format(trans[1][0]) + " " + '{:e}'.format(trans[1][1]) + " " + '{:e}'.format(trans[1][2]) + " ]]\""
         return transform
 
     # Reads the most recent points off the maps and puts into the Matrix
@@ -218,7 +222,7 @@ class MyWindow(QtGui.QDialog):    # any super class is okay
         pass
 
 def main(argv):
-    usage = "demo.py <source image> <destination image>"
+    usage = "demo.py <Semantic Map Image> <SLAM Map Yaml>"
     src = ""
     dst = ""
 
@@ -238,8 +242,6 @@ def main(argv):
 
     src = args[0]
     dst = args[1]
-
-    print src, dst
 
     if src == "" and dst == "":
         print usage 
