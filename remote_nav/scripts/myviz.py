@@ -88,11 +88,11 @@ class MyViz( QWidget ):
 		# 2. Connect Signal to Slot
 		# 3. Add to layout
 
-		self.stop_button = QPushButton( "STOP" )
-		self.stop_button.clicked.connect( self.onStopButtonClick )
-		self.stop_button.setToolTip('Press this to immediately <b>STOP</b> the robot')
-		self.stop_button.setStyleSheet("background-color: #700000 ; font-weight: bold; color: white")
-		layout.addWidget( self.stop_button, 7, 1 )
+		self.look_fwd_button = QPushButton( "Look Forward" )
+		self.look_fwd_button.clicked.connect( self.onLookFwdButtonClick )
+		self.look_fwd_button.setToolTip('Press this to look forward.')
+		self.look_fwd_button.setStyleSheet("background-color: #700000 ; font-weight: bold; color: white")
+		layout.addWidget( self.look_fwd_button, 8, 1 )
 		
 		self.fwd_button = PicButton(QPixmap(package_path + "/images/up.png"))
 		self.fwd_button.setClickPix(QPixmap(package_path + "/images/upDark.png"))
@@ -183,9 +183,6 @@ class MyViz( QWidget ):
 	def onFwdPress(self):
 		self.moveNav()
 
-	def onStopButtonClick(self):
-		QApplication.processEvents()
-		self._cancel_goals()
 
 	def onTurnButtonClick(self):
 		if self.isForward:
@@ -201,6 +198,10 @@ class MyViz( QWidget ):
 
 	def onRightButtonClick(self):
 		self.lookRight()
+
+	def onLookFwdButtonClick(self):
+		QApplication.processEvents()
+		self.lookFwd()
 
 ## MOVE ZE HEAD FUNCTIONS
 ## ^^^^^^^^^^^^^^^^^^^^
@@ -226,6 +227,14 @@ class MyViz( QWidget ):
 		while self.look_right_btn.isDown():
 			QApplication.processEvents()
 		self.client.cancel_all_goals()
+	def lookFwd(self):
+		parent_frame = "base_link"
+		x = 1.0
+		y = 0.0
+		z = 1.2
+
+		self._look_at(parent_frame, x, y, z)
+
 
 ## NAVIGATION FUNCTIONS
 ## ^^^^^^^^^^^^^^^^^^^^
