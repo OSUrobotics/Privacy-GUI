@@ -22,6 +22,7 @@ class Ui_Paths(object):
         self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
         self.map_view = customView(Paths)
         self.map_view.setObjectName(_fromUtf8("map_view"))
+        self.map_view.setEnabled(False)
         self.horizontalLayout_3.addWidget(self.map_view)
         self.verticalLayout = QtGui.QVBoxLayout()
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))

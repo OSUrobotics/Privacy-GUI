@@ -89,11 +89,12 @@ class MainWindow(QDialog, Ui_Paths):
 		self.zone_name.setEnabled(True)
 		self.privacy_type.setEnabled(True)
 		self.save_zone_btn.setEnabled(True)
-
+		self.map_view.setEnabled(True)
 	def disableUI(self):
 		self.save_zone_btn.setEnabled(False)
 		self.zone_name.setEnabled(False)
 		self.privacy_type.setEnabled(False)
+		self.map_view.setEnabled(False)
 
 
 

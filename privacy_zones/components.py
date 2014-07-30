@@ -3,7 +3,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
 import cv2
 
-class DrawPoint(QGraphicsItem):
+class DrawPoint(QGraphicsObject):
     size =  10
 
     def __init__(self, parent=None):
@@ -11,7 +11,10 @@ class DrawPoint(QGraphicsItem):
         self.x = -1 - (self.size / 2)
         self.y = -1 - (self.size / 2)
         self.is_drawn = False
-        self.setFlag(QGraphicsItem.ItemIsMovable)
+        # self.setFlag(QGraphicsItem.ItemIsMovable)
+
+        self.xChanged.connect(self.update_self)
+        self.yChanged.connect(self.update_pos)
 
     def boundingRect(self):
         return QRectF(self.x, self.y, self.size, self.size)
@@ -24,6 +27,11 @@ class DrawPoint(QGraphicsItem):
         painter.setPen(pen)
         painter.setBrush(brush)
         painter.drawEllipse(self.x, self.y, self.size, self.size)
+    def update_self(self):
+        self.blockSignals(True)
+        self.x = self.x()
+        self.y = self.y()
+        self.blockSignals(False)
 
     def update_pos(self, x, y):
         self.x = x - (self.size / 2)
