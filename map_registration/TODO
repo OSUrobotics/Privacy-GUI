@@ -1,23 +1,6 @@
-Map Registration
-
-Preliminary:
-	Crop & Rotate SLAM
-	Obtain floor plan/human map
-
-UI:
-	Add/remove corresponding points
-	Check corresponding points:
-		warped Grid
-		Ping on one map to other
-	Save warp
-
-Warp:
-	Scale/Resize
-	Transform -- Rotate & Move
-	Skew
-	non-linear Bend
-	Bulge
-
-Later:
-	Semantic Labeling
-	Fixing SLAM with floor plan
+Triangulate src, dst
+Generate color'd image
+update YAML representation
+use the triangle'd transform for robot model
+preview triangle'd transform
+Make point update properly when dragged

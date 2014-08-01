@@ -73,7 +73,6 @@ class DrawMap(QGraphicsScene):
     def __init__(self, image, parent=None):
         super(QGraphicsScene, self).__init__(parent)
         self.local_image = QImage(image)
-
         self.image_format = self.local_image.format()
         self.pixMapItem = QGraphicsPixmapItem(QPixmap(self.local_image), None, self)
 
@@ -109,7 +108,24 @@ class DrawMap(QGraphicsScene):
                 self.points[index - 1] = marker
 
             print self.points
+            self.register.emit()
             self.update()
+
+    def get_num_points(self):
+        num = 0
+        for p in self.points:
+            if p != None:
+                num += 1
+        return num
+
+    def get_points(self):
+        pts = []
+        for p in self.points:
+            if p != None:
+                pts.append(p.get_pos())
+            else:
+                pts.append(None)
+        return pts
 
     def delete_marker(self):
         print "You right-clicked a point"
@@ -121,6 +137,7 @@ class DrawMap(QGraphicsScene):
         while self.points[index] == None and len(self.points) > 1:
             self.points.pop()
             index -= 1
+        self.register.emit()
         print self.points
 
 class DrawRobot(QGraphicsObject):

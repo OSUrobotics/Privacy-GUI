@@ -4,6 +4,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
 import numpy as np
 from components import * 
+from itertools import izip
 
 from PyQt4.QtGui import QDialog
 from mapTransform import Ui_Window
@@ -51,6 +52,7 @@ class MainWindow(QDialog, Ui_Window):
 
         self.export_btn.setToolTip("Save the transformed map")
         self.export_btn.clicked.connect(self.export_map)
+        self.update_labels()
 
         # self.newPt_btn.setToolTip("Applies the transform defined by the current points")
         # self.newPt_btn.clicked.connect(self.transform_map)
@@ -64,10 +66,10 @@ class MainWindow(QDialog, Ui_Window):
         #Setting up the robot toggled checkbox
         # self.toggleRobot.stateChanged.connect(self.robot_toggle)
 
-        self.change_edit_mode()
-        # self.point1.toggled.connect(self.change_edit_mode)
-        # self.point2.toggled.connect(self.change_edit_mode)
-        # self.point3.toggled.connect(self.change_edit_mode)
+    # Updates the labels telling how many points there are
+    def update_labels(self):
+        self.label_4.setText(str(self.map1.get_num_points()))
+        self.label_5.setText(str(self.map2.get_num_points()))
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
@@ -75,24 +77,9 @@ class MainWindow(QDialog, Ui_Window):
             self.transform_array()
         self.robot.setEnabled(self.toggleRobot.isChecked())
 
-    # Edit a different point
-    def change_edit_mode(self):
-    ##Each of the buttons is associated with an ID number, and we can use this to set the mode.
-        # buttonId = self.buttonGroup.checkedId()
-        buttonId = 0
-        if buttonId <= 0:
-            print ("No button selected!")
-        else:
-            self.edit_mode = buttonId
-            if self.src[buttonId - 1] == (-1, -1):
-                self.map_1_set = False
-            if self.dst[buttonId - 1] == (-1, -1):
-                self.map_2_set = False
-            self.map1.change_edit_mode(self.edit_mode)
-            self.map2.change_edit_mode(self.edit_mode)
-
     # Using registred points, transform the maps
     def transform_map(self):
+        self.register_points()
         # Check that three pairs have been make
         if ((-1, -1) not in self.src) and ((-1, -1) not in self.dst):
             print "Transforming Maps"
@@ -155,17 +142,13 @@ class MainWindow(QDialog, Ui_Window):
     # Reads the most recent points off the maps and puts into the Matrix
     def register_points(self):
         print "Registering Points"
-        if self.edit_mode != 0:
-            self.src[self.edit_mode - 1] = self.map1.getPoint()
-            self.dst[self.edit_mode - 1] = self.map2.getPoint()
-        # Check that three pairs have been make
-        if ((-1, -1) not in self.src) and ((-1, -1) not in self.dst):
-            #enable the robot button
-            self.toggleRobot.setEnabled(True)
+        for p1, p2 in izip(self.map1.get_points(), self.map2.get_points()):
+            if p1 != None and p2 != None:
+                print p1, p2
     
     # triggered when a point is clicked in either map scene
     def point_handler(self):
-        pass
+        self.update_labels()
 
     def outputWindow(self, image):
         cv2.imshow('Preview', image)
