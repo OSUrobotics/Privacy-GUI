@@ -79,6 +79,7 @@ class DrawMap(QGraphicsScene):
         self.pixMapItem.mousePressEvent = self.pixelSelect
         self.position = QPoint(-1, -1)
         self.points = []
+        self.nodes = []
 
     # Updates the positin and draws a circle around it
     def pixelSelect( self, event ):

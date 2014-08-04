@@ -9,6 +9,7 @@ from itertools import izip
 from PyQt4.QtGui import QDialog
 from mapTransform import Ui_Window
 from os import path
+from subprocess import call
 
 class MainWindow(QDialog, Ui_Window):
     def __init__(self, semantic, slam, parent=None):
@@ -104,10 +105,32 @@ class MainWindow(QDialog, Ui_Window):
 
     # Saves the values in a yaml file in the current directory
     def export_map(self):
-        yaml = "semantic_map: " + self.img_1 + "\n"
-        yaml += "slam_map: " + self.img_2 + "\n"
-        # These are just dummy values for now. TODO: change to values in
-        # the slam map's yaml file.
+        num_pts = self.register_points()
+        semantic = str(num_pts) + " 2 0\n"
+        slam = str(num_pts) + " 2 0\n"
+        semantic += "# Nodes:\n"
+        slam += "# Nodes:\n"
+        counter = 0
+        for p1, p2 in izip(self.map1.get_points(), self.map2.get_points()):
+            if p1 != None and p2 != None:
+                counter += 1
+                semantic += str(counter) + " " + str(p1[0]) + " " + str(p1[1]) + "\n"
+                slam += str(counter) + " " + str(p2[0]) + " " + str(p2[1]) + "\n"
+        f1 = open('semantic.node', 'w')
+        f2 = open('slam.node', 'w')
+        f1.write(semantic)
+        f2.write(slam)
+        f1.close()
+        f2.close()
+        print semantic
+        print slam
+        # Triangulate the points
+        call(["./triangle/triangle", "semantic.node"])
+        call(["./triangle/triangle", "slam.node"])
+
+        # Write the file that relates the two maps. 
+        yaml = "semantic_map: " + path.basename(self.img_1) + "\n"
+        yaml += "slam_map: " + path.basename(self.img_2) + "\n"
         yaml += "origin: " + str(self.slam_origin) + "\n" 
         yaml += "resolution: " + str(self.slam_res) + "\n"
         src = cv2.imread(self.img_1, 0)
@@ -119,11 +142,23 @@ class MainWindow(QDialog, Ui_Window):
         yaml += "semantic_width: " + str(src_cols) + "\n"
         yaml += "semantic_height: " + str(src_rows) + "\n"
         yaml += "semantic_to_slam:\n"
-        yaml += "- affine: " + self.printable_1_to_2() + "\n"
         yaml += "slam_to_semantic:\n"
-        yaml += "- affine: " +  self.printable_2_to_1() + "\n"
         f = open('registration.yaml', 'w')
         f.write(yaml)
+        f.close()
+
+        # Move everything into register'd folder. 
+        # call santises inputs so we can't use wildcards
+        call(["mkdir", "register/"])
+        call(["mv", "semantic.node", "register/"])
+        call(["mv", "semantic.1.ele", "register/"])
+        call(["mv", "semantic.1.node", "register/"])
+        call(["mv", "slam.node", "register/"])
+        call(["mv", "slam.1.ele", "register/"])
+        call(["mv", "slam.1.node", "register/"])
+        call(["mv", "registration.yaml", "register/"])
+        call(["cp", self.img_1, "register/"])
+        call(["cp", self.img_2, "register/"])
 
     def printable_1_to_2(self):
         self.transform_array()
@@ -141,10 +176,14 @@ class MainWindow(QDialog, Ui_Window):
 
     # Reads the most recent points off the maps and puts into the Matrix
     def register_points(self):
+        counter = 0
         print "Registering Points"
         for p1, p2 in izip(self.map1.get_points(), self.map2.get_points()):
             if p1 != None and p2 != None:
+                # Trianglulate points here
                 print p1, p2
+                counter += 1
+        return counter
     
     # triggered when a point is clicked in either map scene
     def point_handler(self):
