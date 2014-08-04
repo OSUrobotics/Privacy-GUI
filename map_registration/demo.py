@@ -29,7 +29,6 @@ class MainWindow(QDialog, Ui_Window):
         self.destination.setScene( self.map2 )
 
         # Set up variables for point registration and transformation, etc
-        self.edit_mode = 0
         self.src = [(-1, -1), (-1, -1), (-1, -1)]
         self.dst = [(-1, -1), (-1, -1), (-1, -1)]
         self.robot1 = DrawRobot()
@@ -147,9 +146,12 @@ class MainWindow(QDialog, Ui_Window):
         f.write(yaml)
         f.close()
 
+        # Make a new directory to hold the output. It's okay if it fails,
+        # because that means the directory already exists and it will just 
+        # overwrite the stuff already there. 
+        call(["mkdir", "register/"])
         # Move everything into register'd folder. 
         # call santises inputs so we can't use wildcards
-        call(["mkdir", "register/"])
         call(["mv", "semantic.node", "register/"])
         call(["mv", "semantic.1.ele", "register/"])
         call(["mv", "semantic.1.node", "register/"])
