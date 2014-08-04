@@ -9,18 +9,16 @@ from components import *
 
 
 class MainWindow(QDialog, Ui_Paths):
-	#List of zones for later use
-	zoneList = []
-	#Has the currentZone been saved?
+	
+	namedFlag = False	#Does the zone at the very minimum have a name?
 	savedFlag = True
-	#Does the zone at the very minimum have a name?
-	namedFlag = False
-	#Are we editing an existing zone?
-	editFlag = False
+	editFlag = False	#Are we editing an existing zone?
+
 	def __init__(self, parent=None):
 		super(QDialog, self).__init__(parent)
 		self.setupUi(self)
-		self.scene=DrawMap(QImage("maps/lab_pretty.pgm"), self)
+		self.controller = ZoneHandler()
+		self.scene=DrawMap(QImage("maps/lab_pretty.pgm"), self.controller, self)
 		self.map_view.setScene(self.scene)
 
 		## Signals and Slots
@@ -65,34 +63,52 @@ class MainWindow(QDialog, Ui_Paths):
 			self.addtoList()
 		else:
 			i = self.edit_zone.currentIndex()
-			self.zoneList[i] = self.currentZone
-			self.edit_zone.setItemText(i, self.zoneList[i].name)
+			self.updateList(i)
 		self.zone_name.clear()
 		self.savedFlag = True
 		self.disableUI()
 
-
+	# Sets the current zone to the specified object in the zone list
+	# populates the 
 	def loadZone(self, index):
-		self.currentZone = self.zoneList[index]
+		self.currentZone = self.controller.zoneList[index]
 		self.zone_name.setText(self.currentZone.name)
 		self.privacy_type.setCurrentIndex(self.currentZone.mode)
-		self.scene.addPolygon(self.zoneList[index].drawPoly())
+		# self.scene.addItem(self.controller.zoneList[index])
+		self.controller.zoneList[index].drawPoly()
+		self.scene.update()
 		self.editFlag = True
 		self.enableUI()
 
+	#Changes the data of the zoneList at a given index
+	#Updates the zone's name, mode, and list of points
+	# It also redraws the polygon into the graphics scene
+	def updateList(self, index):
+		self.currentZone.import_points(self.scene.getPoints())
+		self.controller.zoneList[index] = self.currentZone
+		self.edit_zone.setItemText(index, self.controller.zoneList[index].name)
+		# self.scene.addItem(self.controller.zoneList[i])
+		self.controller.zoneList[index].drawPoly()
+		self.scene.update()
+
+	# Adds a new zone to the ZoneList and also adds the zone to the edit dropdown
 	def addtoList(self):
 		self.currentZone.import_points(self.scene.getPoints())
-		self.zoneList.append(self.currentZone)
-		recentIndex = len(self.zoneList) - 1
-		self.edit_zone.addItem(self.zoneList[recentIndex].name)
-		self.scene.addPolygon(self.zoneList[recentIndex].drawPoly())
+		self.controller.zoneList.append(self.currentZone)
+		recentIndex = len(self.controller.zoneList) - 1
+		self.edit_zone.addItem(self.controller.zoneList[recentIndex].name)
+		self.scene.addItem(self.controller.zoneList[recentIndex])
+		self.scene.update()
 
+	#Enables various UI Elements
 	def enableUI(self):
 		self.edit_zone.setEnabled(True)
 		self.zone_name.setEnabled(True)
 		self.privacy_type.setEnabled(True)
 		self.save_zone_btn.setEnabled(True)
 		self.map_view.setEnabled(True)
+
+	#Disables various UI Elements
 	def disableUI(self):
 		self.save_zone_btn.setEnabled(False)
 		self.zone_name.setEnabled(False)
