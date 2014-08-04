@@ -152,7 +152,7 @@ class DrawRobot(QGraphicsObject):
         self.setZValue(10)
 
     def boundingRect(self):
-        return QRectF(0, 0, self.size, self.size)
+        return QRectF(0, 0, self.size+2, self.size+2)
 
     def paint(self, painter, option, widget):
         pen = QPen(Qt.black, 3, Qt.SolidLine)

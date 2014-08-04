@@ -76,13 +76,16 @@ class MainWindow(QDialog, Ui_Paths):
 		self.currentZone = self.zoneList[index]
 		self.zone_name.setText(self.currentZone.name)
 		self.privacy_type.setCurrentIndex(self.currentZone.mode)
+		self.scene.addPolygon(self.zoneList[index].drawPoly())
 		self.editFlag = True
 		self.enableUI()
 
 	def addtoList(self):
+		self.currentZone.import_points(self.scene.getPoints())
 		self.zoneList.append(self.currentZone)
 		recentIndex = len(self.zoneList) - 1
 		self.edit_zone.addItem(self.zoneList[recentIndex].name)
+		self.scene.addPolygon(self.zoneList[recentIndex].drawPoly())
 
 	def enableUI(self):
 		self.edit_zone.setEnabled(True)
