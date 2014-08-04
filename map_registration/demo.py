@@ -42,19 +42,18 @@ class MainWindow(QDialog, Ui_Window):
         self.map1.addItem(self.robot1)
         self.map2.addItem(self.robot2)
 
-        self.point1.setStyleSheet("color:red") 
+        # self.point1.setStyleSheet("color:red") 
         self.bulge_btn.setIcon(QIcon("images/bulge.png"))
         self.indent_btn.setIcon(QIcon("images/indent.png"))
 
-        self.transform_btn.setToolTip("Apply Affine Transform and show the result")
+        self.transform_btn.setToolTip("Apply Transform and show the result")
         self.transform_btn.clicked.connect(self.transform_map)
 
         self.export_btn.setToolTip("Save the transformed map")
         self.export_btn.clicked.connect(self.export_map)
 
-        self.newPt_btn.setText(QtGui.QApplication.translate("Window", "Apply Transform", None, QtGui.QApplication.UnicodeUTF8))
-        self.newPt_btn.setToolTip("Applies the transform defined by the current points")
-        self.newPt_btn.clicked.connect(self.transform_map)
+        # self.newPt_btn.setToolTip("Applies the transform defined by the current points")
+        # self.newPt_btn.clicked.connect(self.transform_map)
 
     ##SIGNALS AND SLOTS
     ##^^^^^^^^^^^^^^^^^
@@ -63,12 +62,12 @@ class MainWindow(QDialog, Ui_Window):
         self.map2.register.connect(self.point_handler)
 
         #Setting up the robot toggled checkbox
-        self.toggleRobot.stateChanged.connect(self.robot_toggle)
+        # self.toggleRobot.stateChanged.connect(self.robot_toggle)
 
         self.change_edit_mode()
-        self.point1.toggled.connect(self.change_edit_mode)
-        self.point2.toggled.connect(self.change_edit_mode)
-        self.point3.toggled.connect(self.change_edit_mode)
+        # self.point1.toggled.connect(self.change_edit_mode)
+        # self.point2.toggled.connect(self.change_edit_mode)
+        # self.point3.toggled.connect(self.change_edit_mode)
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
@@ -79,7 +78,8 @@ class MainWindow(QDialog, Ui_Window):
     # Edit a different point
     def change_edit_mode(self):
     ##Each of the buttons is associated with an ID number, and we can use this to set the mode.
-        buttonId = self.buttonGroup.checkedId()
+        # buttonId = self.buttonGroup.checkedId()
+        buttonId = 0
         if buttonId <= 0:
             print ("No button selected!")
         else:
@@ -165,38 +165,7 @@ class MainWindow(QDialog, Ui_Window):
     
     # triggered when a point is clicked in either map scene
     def point_handler(self):
-        if self.sender() is self.map1:
-            # Update the label
-            pos = self.map1.getPoint()
-            if self.edit_mode == 1:
-                self.p1_x1.setText(str(pos[0]))
-                self.p1_y1.setText(str(pos[1]))
-            elif  self.edit_mode == 2:
-                self.p2_x1.setText(str(pos[0]))
-                self.p2_y1.setText(str(pos[1]))
-            elif self.edit_mode == 3:
-                self.p3_x1.setText(str(pos[0]))
-                self.p3_y1.setText(str(pos[1]))
-            else:
-                print "Not currently editing a point"
-            self.register_points()
-        elif self.sender() is self.map2:
-            # update the label
-            pos = self.map2.getPoint()
-            if self.edit_mode == 1:
-                self.p1_x2.setText(str(pos[0]))
-                self.p1_y2.setText(str(pos[1]))
-            elif  self.edit_mode == 2:
-                self.p2_x2.setText(str(pos[0]))
-                self.p2_y2.setText(str(pos[1]))
-            elif self.edit_mode == 3:
-                self.p3_x2.setText(str(pos[0]))
-                self.p3_y2.setText(str(pos[1]))
-            else:
-                print "Not currently editing a point"
-            self.register_points()
-        else:
-            print "Unknown event trigger"
+        pass
 
     def outputWindow(self, image):
         cv2.imshow('Preview', image)

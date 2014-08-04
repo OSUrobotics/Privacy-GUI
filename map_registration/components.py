@@ -29,8 +29,9 @@ def yaml_to_meta_data(file_name):
     # return MapMetaData object
     return meta_data
 
-class DrawPoint(QGraphicsItem):
+class DrawPoint(QGraphicsObject):
     size = 10
+    delete_me = QtCore.pyqtSignal()
 
     def __init__(self, color, parent=None):
         super(DrawPoint, self).__init__(parent)
@@ -38,15 +39,25 @@ class DrawPoint(QGraphicsItem):
         self.x = -1 - (self.size / 2)
         self.y = -1 - (self.size / 2)
         self.is_drawn = False
+        self.setFlag(QGraphicsItem.ItemIsMovable)
+        self.mousePressEvent = self.ask_to_be_deleted
+
+    def ask_to_be_deleted(self, event):
+        if event.button() == 2:
+            self.delete_me.emit()
+            self.setEnabled(False)
+            self.setVisible(False)
 
     def boundingRect(self):
         return QRectF(self.x, self.y, self.size, self.size)
 
     def paint(self, painter, option, widget):
         self.is_drawn = True
-        pen = QPen(self.color)
-        pen.setWidth(3)
+        pen = QPen(Qt.black)
+        pen.setWidth(1)
+        brush = QBrush(self.color)
         painter.setPen(pen)
+        painter.setBrush(brush)
         painter.drawRoundedRect(self.x, self.y, self.size, self.size, self.size / 3, self.size / 3)
 
     def update_pos(self, x, y):
@@ -68,44 +79,49 @@ class DrawMap(QGraphicsScene):
 
         self.pixMapItem.mousePressEvent = self.pixelSelect
         self.position = QPoint(-1, -1)
-        self.edit_mode = 0
-
-        self.marker_1 = DrawPoint(QtCore.Qt.red)
-        self.marker_2 = DrawPoint(QtCore.Qt.darkGreen)
-        self.marker_3 = DrawPoint(QtCore.Qt.blue)
+        self.points = []
 
     # Updates the positin and draws a circle around it
     def pixelSelect( self, event ):
         position = QPoint(event.pos().x(),  event.pos().y())
-        marker = None
-        if self.edit_mode == 1:
-            marker = self.marker_1
-        elif self.edit_mode == 2:
-            marker = self.marker_2
-        elif self.edit_mode == 3:
-            marker = self.marker_3
-
-        if marker != None:
-            # Draw a circle around the clicked point
+        btn = event.button()
+        if btn == 1:
+            no_empty_space = True
+            index = 0
+            while no_empty_space and index < len(self.points):
+                if self.points[index] == None:
+                    no_empty_space = False
+                index += 1
+            if no_empty_space:
+                hue = (index * 30) % 360
+            else:
+                hue = ((index - 1) * 30) % 360
+            marker = DrawPoint(QColor.fromHsv(hue, 255, 255, 128))
             marker.update_pos(position.x(), position.y())
             if not marker.is_drawn:
                 self.addItem(marker)
-            self.register.emit()
+            marker.delete_me.connect(self.delete_marker)
+            if no_empty_space:
+                # print "Adding point to end of list, index: ", len(self.points)
+                self.points.append(marker)
+            else:
+                # print "Adding point to blank space in list, index: ", index - 1
+                self.points[index - 1] = marker
+
+            print self.points
             self.update()
 
-    # Returns the most recent point
-    def getPoint(self):
-        if self.edit_mode == 1:
-            return self.marker_1.get_pos()
-        elif self.edit_mode == 2:
-            return self.marker_2.get_pos()
-        elif self.edit_mode == 3:
-            return self.marker_3.get_pos()
-        else:
-            return (-1, -1)
-
-    def change_edit_mode(self, mode):
-        self.edit_mode = mode
+    def delete_marker(self):
+        print "You right-clicked a point"
+        print self.sender()
+        index = self.points.index(self.sender())
+        self.points[index] = None
+        # Remove Nones from end of list
+        index = len(self.points) - 1
+        while self.points[index] == None and len(self.points) > 1:
+            self.points.pop()
+            index -= 1
+        print self.points
 
 class DrawRobot(QGraphicsObject):
     size = 20
@@ -126,8 +142,10 @@ class DrawRobot(QGraphicsObject):
         painter.setPen(pen)
         painter.setBrush(brush)
         painter.drawRoundedRect(0, 0, self.size, self.size, self.size / 3, self.size / 3)
+    
     def get_pos(self):
         return (self.x + (self.size / 2), self.y + (self.size / 2))
+
 class RobotHandler():
     def __init__(self, robot_1, robot_2):
         self.isenabled = False
