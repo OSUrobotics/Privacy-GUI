@@ -5,6 +5,7 @@ import cv2
 import yaml
 
 # Taken from MapMetaData.py in the remote_nav package
+# Class representing MapMetaData from ROS
 class MapMetaData(yaml.YAMLObject):
     yaml_tag = u'!MapMetaData'
 
@@ -16,6 +17,8 @@ class MapMetaData(yaml.YAMLObject):
         self.occupied_thresh = occupied_thresh
         self.free_thresh = free_thresh
 
+# Taken from MapMetaData.py in the remote_nav package
+# Converts a yaml file to MapMetaData. returns a MapMetaData object
 def yaml_to_meta_data(file_name):
     # Open the file -- no error cehcking here
     fo = open(file_name)
@@ -29,6 +32,7 @@ def yaml_to_meta_data(file_name):
     # return MapMetaData object
     return meta_data
 
+# Simple draggable box which is placed on a map and may be deleted.
 class DrawPoint(QGraphicsObject):
     size = 10
     delete_me = QtCore.pyqtSignal()
@@ -42,6 +46,7 @@ class DrawPoint(QGraphicsObject):
         self.setFlag(QGraphicsItem.ItemIsMovable)
         self.mousePressEvent = self.ask_to_be_deleted
 
+    # Called when clicked. If Right-click, delete it.
     def ask_to_be_deleted(self, event):
         if event.button() == 2:
             self.delete_me.emit()
@@ -60,14 +65,19 @@ class DrawPoint(QGraphicsObject):
         painter.setBrush(brush)
         painter.drawRoundedRect(self.x, self.y, self.size, self.size, self.size / 3, self.size / 3)
 
+    # Sets the (x, y) given to be the center of the resutling shape
     def update_pos(self, x, y):
         self.x = x - (self.size / 2)
         self.y = y - (self.size / 2)
 
+    # Returns center-point of marker
+    # Returns a tuple (point)
     def get_pos(self):
         return (self.x + (self.size / 2), self.y + (self.size / 2))
 
+# Scene representing the map image
 class DrawMap(QGraphicsScene): 
+    # Signal indicating the number of points has changed
     register = QtCore.pyqtSignal()
 
     def __init__(self, image, parent=None):
@@ -112,6 +122,7 @@ class DrawMap(QGraphicsScene):
             self.register.emit()
             self.update()
 
+    # Returns the number of points that are not None
     def get_num_points(self):
         num = 0
         for p in self.points:
@@ -119,6 +130,8 @@ class DrawMap(QGraphicsScene):
                 num += 1
         return num
 
+    # Constructs a list of positions corresponding to the clicked points
+    # Returns a list of tuples and Nones
     def get_points(self):
         pts = []
         for p in self.points:
@@ -128,9 +141,9 @@ class DrawMap(QGraphicsScene):
                 pts.append(None)
         return pts
 
+    # Called when a point is right-clicked. This removes the point from 
+    # the list and also removes Nones from the end.
     def delete_marker(self):
-        print "You right-clicked a point"
-        print self.sender()
         index = self.points.index(self.sender())
         self.points[index] = None
         # Remove Nones from end of list
@@ -139,9 +152,11 @@ class DrawMap(QGraphicsScene):
             self.points.pop()
             index -= 1
         self.register.emit()
-        print self.points
+        # print self.points
 
+# Simple box that is draggable
 class DrawRobot(QGraphicsObject):
+    # This is arbitrary and should probably be scalable
     size = 20
 
     def __init__(self, parent=None):
@@ -161,9 +176,12 @@ class DrawRobot(QGraphicsObject):
         painter.setBrush(brush)
         painter.drawRoundedRect(0, 0, self.size, self.size, self.size / 3, self.size / 3)
     
+    # Get the center point of the "robot"
+    # Returns a tuple (point)
     def get_pos(self):
         return (self.x + (self.size / 2), self.y + (self.size / 2))
 
+# Handles communication between the two maps and the transform between them
 class RobotHandler():
     def __init__(self, robot_1, robot_2):
         self.isenabled = False
@@ -173,27 +191,29 @@ class RobotHandler():
         self.trans_2_to_1 = None
         self.ready = False
 
+        # Set up signals for when the robots move
         self.robot_1.xChanged.connect(self.set_robot_2)
         self.robot_1.yChanged.connect(self.set_robot_2)
         self.robot_2.xChanged.connect(self.set_robot_1)
         self.robot_2.yChanged.connect(self.set_robot_1)
         
+    # Set the visibility of the robots based on if they are enabled
     def setEnabled(self, enable_state):
         if self.ready:
             self.isenabled = enable_state
             self.robot_1.setPos(0, 0)
+            # Set robot 2 position based on robot 1 position
             self.set_robot_2()
             self.robot_1.setVisible(enable_state)
             self.robot_2.setVisible(enable_state)
 
-    def setTransforms(self, src, dst):
-        self.trans_1_to_2 = cv2.getAffineTransform(src, dst)
-        print "Transform from 1 to 2:", self.trans_1_to_2
-        self.trans_2_to_1 = cv2.getAffineTransform(dst, src)
-        print "Transform from 2 to 1:", self.trans_2_to_1
+    # Set the transforms needed to transform between maps. This also sets the 
+    # "ready" flag to True.
+    def setTransforms(self):
         self.ready = True
-        return self.trans_1_to_2
 
+    # Convert a position in map 1 to the map 2 frame
+    # Returns a tutle (point) or None
     def convert_to_2(self, point):
         if self.ready:
             x = point.x()
@@ -204,6 +224,8 @@ class RobotHandler():
         else:
             return None
 
+    # Convert a position in map 2 to the map 1 frame
+    # Returns a tuple (point) or None
     def convert_to_1(self, point):
         if self.ready:
             x = point.x()
@@ -214,14 +236,18 @@ class RobotHandler():
         else:
             return None
 
+    # Callback for when robot 2's position is changed. Set robot 1 accordingly.
     def set_robot_1(self):
+        # Disable signals to prevent blowing the stack
         self.robot_1.blockSignals(True)
         point = self.robot_2.pos()
         pos = self.convert_to_1(point)
         self.robot_1.setPos(pos[0], pos[1])
         self.robot_1.blockSignals(False)
 
+    # Callback for when robot 1's position is changed. Set robot 2 accordingly.
     def set_robot_2(self):
+        # Disable signals to prevent blowing the stack. 
         self.robot_2.blockSignals(True)
         point = self.robot_1.pos()
         pos = self.convert_to_2(point)

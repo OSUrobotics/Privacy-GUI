@@ -55,17 +55,12 @@ class MainWindow(QDialog, Ui_Window):
         self.export_btn.clicked.connect(self.export_map)
         self.update_labels()
 
-        # self.newPt_btn.setToolTip("Applies the transform defined by the current points")
-        # self.newPt_btn.clicked.connect(self.transform_map)
-
-    ##SIGNALS AND SLOTS
-    ##^^^^^^^^^^^^^^^^^
         # The signals are emitted after a click in the map window
-        self.map1.register.connect(self.point_handler)
-        self.map2.register.connect(self.point_handler)
+        self.map1.register.connect(self.update_labels)
+        self.map2.register.connect(self.update_labels)
 
-        #Setting up the robot toggled checkbox
-        # self.toggleRobot.stateChanged.connect(self.robot_toggle)
+        # Setting up the robot toggled checkbox 
+        self.toggleRobot.stateChanged.connect(self.robot_toggle)
 
     # Updates the labels telling how many points there are
     def update_labels(self):
@@ -78,34 +73,30 @@ class MainWindow(QDialog, Ui_Window):
             self.transform_array()
         self.robot.setEnabled(self.toggleRobot.isChecked())
 
-    # Using registred points, transform the maps
+    # Using matching points, transform the maps
     def transform_map(self):
-        self.register_points()
+        self.triangulate()
         # Check that three pairs have been make
-        if ((-1, -1) not in self.src) and ((-1, -1) not in self.dst):
-            print "Transforming Maps"
-            self.transform_array()
-            # Apply the transform 
-            if self.transform != None:
-                src = cv2.imread(self.img_1, 0)
-                rows, cols = src.shape
-                output = cv2.warpAffine(src, self.transform, (cols, rows))
-                if self.sender() is self.transform_btn:
-                    self.outputWindow(output)
-            # cv2.imshow('Output', output)
-        else:
-            print "Not enough pairs to transform"
-
-    #Turn point pairs into an affine transformation matrix and pass to the robot handler
-    def transform_array(self):
-        # Turn the pairs into an Affine Transformation matrix
-        numpy_src = np.array(self.src, dtype='float32')
-        numpy_dst = np.array(self.dst, dtype='float32')
-        self.transform = self.robot.setTransforms(numpy_src, numpy_dst)
+        # if ((-1, -1) not in self.src) and ((-1, -1) not in self.dst):
+        #     print "Transforming Maps"
+        #     self.transform_array()
+        #     # Apply the transform 
+        #     if self.transform != None:
+        #         src = cv2.imread(self.img_1, 0)
+        #         rows, cols = src.shape
+        #         output = cv2.warpAffine(src, self.transform, (cols, rows))
+        #         if self.sender() is self.transform_btn:
+        #             self.outputWindow(output)
+        #     # cv2.imshow('Output', output)
+        # else:
+        #     print "Not enough pairs to transform"
 
     # Saves the values in a yaml file in the current directory
     def export_map(self):
-        num_pts = self.register_points()
+        num_pts = 0
+        for p1, p2 in izip(self.map1.get_points(), self.map2.get_points()):
+            if p1 != None and p2 != None:
+                num_pts += 1
         semantic = str(num_pts) + " 2 0\n"
         slam = str(num_pts) + " 2 0\n"
         semantic += "# Nodes:\n"
@@ -150,32 +141,19 @@ class MainWindow(QDialog, Ui_Window):
         # Move everything into register'd folder. 
         # call santises inputs so we can't use wildcards
         call(["mkdir", "register/"])
-        call(["mv", "semantic.node", "register/"])
+        call(["rm", "semantic.node"])
         call(["mv", "semantic.1.ele", "register/"])
         call(["mv", "semantic.1.node", "register/"])
-        call(["mv", "slam.node", "register/"])
+        call(["rm", "slam.node"])
         call(["mv", "slam.1.ele", "register/"])
         call(["mv", "slam.1.node", "register/"])
         call(["mv", "registration.yaml", "register/"])
         call(["cp", self.img_1, "register/"])
         call(["cp", self.img_2, "register/"])
 
-    def printable_1_to_2(self):
-        self.transform_array()
-        trans = self.robot.trans_1_to_2
-        transform = "\"[[ " + '{:e}'.format(trans[0][0]) + " " + '{:e}'.format(trans[0][1]) + " " + '{:e}'.format(trans[0][2]) + " ] "
-        transform += "[ " + '{:e}'.format(trans[1][0]) + " " + '{:e}'.format(trans[1][1]) + " " + '{:e}'.format(trans[1][2]) + " ]]\""
-        return transform
-
-    def printable_2_to_1(self):
-        self.transform_array()
-        trans = self.robot.trans_2_to_1
-        transform = "\"[[ " + '{:e}'.format(trans[0][0]) + " " + '{:e}'.format(trans[0][1]) + " " + '{:e}'.format(trans[0][2]) + " ] "
-        transform += "[ " + '{:e}'.format(trans[1][0]) + " " + '{:e}'.format(trans[1][1]) + " " + '{:e}'.format(trans[1][2]) + " ]]\""
-        return transform
-
-    # Reads the most recent points off the maps and puts into the Matrix
-    def register_points(self):
+    # Triangulates both maps and writes these to file, along with the 
+    # colored triangle images
+    def triangulate(self):
         counter = 0
         print "Registering Points"
         for p1, p2 in izip(self.map1.get_points(), self.map2.get_points()):
@@ -183,11 +161,8 @@ class MainWindow(QDialog, Ui_Window):
                 # Trianglulate points here
                 print p1, p2
                 counter += 1
+        self.robot.setTransforms()
         return counter
-    
-    # triggered when a point is clicked in either map scene
-    def point_handler(self):
-        self.update_labels()
 
     def outputWindow(self, image):
         cv2.imshow('Preview', image)
