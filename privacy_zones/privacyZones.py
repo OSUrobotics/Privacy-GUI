@@ -11,13 +11,13 @@ from components import *
 class MainWindow(QDialog, Ui_Paths):
 	
 	namedFlag = False	#Does the zone at the very minimum have a name?
-	savedFlag = True
-	editFlag = False	#Are we editing an existing zone?
+	savedFlag = True	#Has the currentZone been saved?
+	editFlag = False	#Are we editing an already existing zone?
 
 	def __init__(self, parent=None):
 		super(QDialog, self).__init__(parent)
 		self.setupUi(self)
-		self.controller = ZoneHandler()
+		self.controller = ZoneHandler() #Deals with the multiple zones and selection
 		self.scene=DrawMap(QImage("maps/lab_pretty.pgm"), self.controller, self)
 		self.map_view.setScene(self.scene)
 
@@ -27,9 +27,12 @@ class MainWindow(QDialog, Ui_Paths):
 		self.save_zone_btn.clicked.connect(self.onSaveClick)
 		self.edit_zone.currentIndexChanged.connect(self.loadZone)
 
+	# What happens when you click the save button
 	def onSaveClick(self):
 		self.saveZone(self.editFlag)
 
+	# Creates a new zone as long as the current zone has been saved
+	# Creates an alert if the zone has not been saved.
 	def createZone(self):
 		if self.savedFlag:
 			if not self.zone_name.isEnabled():
@@ -44,6 +47,8 @@ class MainWindow(QDialog, Ui_Paths):
 			saveplz.setIcon(QMessageBox.Warning)
 			saveplz.exec_()
 
+	# Takes a name value and if it is a proper value, stores it in the current zone
+	#and sets the flag to true.
 	def nameZone(self, name):
 		# self.currentZone.name = "BillY"
 		if (name == "" or name== None): 
@@ -52,6 +57,8 @@ class MainWindow(QDialog, Ui_Paths):
 		self.currentZone.name = name
 		self.namedFlag = True
 
+	# Stores all of the newly edited values (name, privacy type, points) into the zone object
+	# and either updates the zone object in the list or 
 	def saveZone(self, editing):
 		#There are two kinds of save modes. The first mode is for a completely new zone
 		self.nameZone(self.zone_name.text())
@@ -74,8 +81,8 @@ class MainWindow(QDialog, Ui_Paths):
 		self.currentZone = self.controller.zoneList[index]
 		self.zone_name.setText(self.currentZone.name)
 		self.privacy_type.setCurrentIndex(self.currentZone.mode)
-		# self.scene.addItem(self.controller.zoneList[index])
-		self.controller.zoneList[index].drawPoly()
+		self.controller.setActiveZone(index)
+		# self.controller.zoneList[index].drawPoly()
 		self.scene.update()
 		self.editFlag = True
 		self.enableUI()
@@ -84,20 +91,21 @@ class MainWindow(QDialog, Ui_Paths):
 	#Updates the zone's name, mode, and list of points
 	# It also redraws the polygon into the graphics scene
 	def updateList(self, index):
-		self.currentZone.import_points(self.scene.getPoints())
+		self.currentZone.import_points(self.controller.getPoints())
 		self.controller.zoneList[index] = self.currentZone
 		self.edit_zone.setItemText(index, self.controller.zoneList[index].name)
 		# self.scene.addItem(self.controller.zoneList[i])
-		self.controller.zoneList[index].drawPoly()
+		self.controller.setActiveZone(index)
 		self.scene.update()
 
 	# Adds a new zone to the ZoneList and also adds the zone to the edit dropdown
 	def addtoList(self):
-		self.currentZone.import_points(self.scene.getPoints())
+		self.currentZone.import_points(self.controller.getPoints())
 		self.controller.zoneList.append(self.currentZone)
 		recentIndex = len(self.controller.zoneList) - 1
 		self.edit_zone.addItem(self.controller.zoneList[recentIndex].name)
 		self.scene.addItem(self.controller.zoneList[recentIndex])
+		self.controller.setActiveZone(recentIndex)
 		self.scene.update()
 
 	#Enables various UI Elements
