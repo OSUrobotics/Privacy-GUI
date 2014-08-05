@@ -73,9 +73,14 @@ class MainWindow(QDialog, Ui_Window):
             self.transform_array()
         self.robot.setEnabled(self.toggleRobot.isChecked())
 
-    # Using matching points, transform the maps
+    # Using matching points, view the transformation of the maps
     def transform_map(self):
         self.triangulate()
+        # for each triangle:
+        #   calculate affine transform using endpoints
+        #   Draw just that region morphed
+        #   Append to whole image 
+
         # Check that three pairs have been make
         # if ((-1, -1) not in self.src) and ((-1, -1) not in self.dst):
         #     print "Transforming Maps"
@@ -85,39 +90,14 @@ class MainWindow(QDialog, Ui_Window):
         #         src = cv2.imread(self.img_1, 0)
         #         rows, cols = src.shape
         #         output = cv2.warpAffine(src, self.transform, (cols, rows))
-        #         if self.sender() is self.transform_btn:
-        #             self.outputWindow(output)
+        #         self.outputWindow(output)
         #     # cv2.imshow('Output', output)
         # else:
         #     print "Not enough pairs to transform"
 
     # Saves the values in a yaml file in the current directory
     def export_map(self):
-        num_pts = 0
-        for p1, p2 in izip(self.map1.get_points(), self.map2.get_points()):
-            if p1 != None and p2 != None:
-                num_pts += 1
-        semantic = str(num_pts) + " 2 0\n"
-        slam = str(num_pts) + " 2 0\n"
-        semantic += "# Nodes:\n"
-        slam += "# Nodes:\n"
-        counter = 0
-        for p1, p2 in izip(self.map1.get_points(), self.map2.get_points()):
-            if p1 != None and p2 != None:
-                counter += 1
-                semantic += str(counter) + " " + str(p1[0]) + " " + str(p1[1]) + "\n"
-                slam += str(counter) + " " + str(p2[0]) + " " + str(p2[1]) + "\n"
-        f1 = open('semantic.node', 'w')
-        f2 = open('slam.node', 'w')
-        f1.write(semantic)
-        f2.write(slam)
-        f1.close()
-        f2.close()
-        print semantic
-        print slam
-        # Triangulate the points
-        call(["./triangle/triangle", "semantic.node"])
-        call(["./triangle/triangle", "slam.node"])
+        self.triangulate()
 
         # Write the file that relates the two maps. 
         yaml = "semantic_map: " + path.basename(self.img_1) + "\n"
@@ -132,37 +112,103 @@ class MainWindow(QDialog, Ui_Window):
         yaml += "slam_height: " + str(dst_rows) + "\n"
         yaml += "semantic_width: " + str(src_cols) + "\n"
         yaml += "semantic_height: " + str(src_rows) + "\n"
-        yaml += "semantic_to_slam:\n"
-        yaml += "slam_to_semantic:\n"
+        yaml += "semantic_nodes: semantic.1.node\n"
+        yaml += "slam_nodes: slam.1.node\n"
+        yaml += "semantic_triangles: semantic.1.ele\n"
+        yaml += "slam_triangles: slam.1.ele\n"
         f = open('registration.yaml', 'w')
         f.write(yaml)
         f.close()
-
-        # Move everything into register'd folder. 
-        # call santises inputs so we can't use wildcards
-        call(["mkdir", "register/"])
-        call(["rm", "semantic.node"])
-        call(["mv", "semantic.1.ele", "register/"])
-        call(["mv", "semantic.1.node", "register/"])
-        call(["rm", "slam.node"])
-        call(["mv", "slam.1.ele", "register/"])
-        call(["mv", "slam.1.node", "register/"])
         call(["mv", "registration.yaml", "register/"])
-        call(["cp", self.img_1, "register/"])
         call(["cp", self.img_2, "register/"])
+        call(["cp", self.img_1, "register/"])
 
     # Triangulates both maps and writes these to file, along with the 
     # colored triangle images
     def triangulate(self):
         counter = 0
-        print "Registering Points"
+        slam = ""
+        semantic = "" 
         for p1, p2 in izip(self.map1.get_points(), self.map2.get_points()):
             if p1 != None and p2 != None:
-                # Trianglulate points here
-                print p1, p2
                 counter += 1
-        self.robot.setTransforms()
-        return counter
+                semantic += str(counter) + " " + str(p1[0]) + " " + str(p1[1]) + "\n"
+                slam += str(counter) + " " + str(p2[0]) + " " + str(p2[1]) + "\n"
+        semantic = str(counter) + " 2 0 1\n" + semantic
+        slam = str(counter) + " 2 0 1\n" + slam
+        f1 = open('semantic.node', 'w')
+        f2 = open('slam.node', 'w')
+        f1.write(semantic)
+        f2.write(slam)
+        f1.close()
+        f2.close()
+
+        # Triangulate the nodes
+        call(["./triangle/triangle", "semantic.node"])
+        call(["./triangle/triangle", "slam.node"])
+
+        # Build the triangulated, colored things
+        self.color_triangles("slam")
+        self.color_triangles("semantic")
+
+        # Move the files to the register folder
+        call(["rm", "semantic.node"])
+        call(["mv", "semantic.1.node", "register/semantic.1.node"])
+        call(["mv", "semantic.1.ele", "register/semantic.1.ele"])
+        call(["rm", "slam.node"])
+        call(["mv", "slam.1.node", "register/slam.1.node"])
+        call(["mv", "slam.1.ele", "register/slam.1.ele"])
+
+    # Creates and writes the triangules based on the triangulation
+    def color_triangles(self, image):
+        if image == "semantic":
+            node_file = "semantic.1.node"
+            ele_file = "semantic.1.ele"
+            rows, cols = cv2.imread(self.img_1, 0).shape
+        elif image == "slam":
+            node_file = "slam.1.node"
+            ele_file = "slam.1.ele"
+            rows, cols = cv2.imread(self.img_2, 0).shape
+        else:
+            return
+
+        tri_img = np.zeros((rows, cols,3), np.uint8)
+        first_line = True
+        # Seed nodes with None since triangles are 1-indexed
+        nodes = [None]
+        # From node file, construct ordered list of nodes
+        with open(node_file, 'r') as f:
+            for line in f:
+                if first_line:
+                    # do nothing
+                    first_line = False
+                elif '#' not in line:
+                    # This line is not a comment
+                    s = line.split()
+                    x = int(s[1])
+                    y = int(s[2])
+                    nodes.append((x, y))
+        # From the ele file, color triangles
+        first_line = True
+        color = 0
+        with open(ele_file, 'r') as f:
+            for line in f:
+                if first_line:
+                    # Do nothing
+                    first_line = False 
+                elif '#' not in line:
+                    # This line is not a comment
+                    s = line.split()
+                    v1 = nodes[int(s[1])]
+                    v2 = nodes[int(s[2])]
+                    v3 = nodes[int(s[3])]
+                    pts = np.array([v1, v2, v3], np.int32)
+                    pts = pts.reshape((-1,1,2))
+                    cv2.fillPoly(tri_img,[pts],(0,color,255))
+                    color += 64
+        img_name = image + ".png"
+        cv2.imwrite(img_name, tri_img)
+        call(["mv", img_name, "register/" + img_name])
 
     def outputWindow(self, image):
         cv2.imshow('Preview', image)
@@ -212,6 +258,9 @@ def main(argv):
     if src == "" and dst == "":
         print usage 
         sys.exit(2)
+
+    # Make the output directory
+    call(["mkdir", "register/"])
 
     app = QApplication( sys.argv )
     mainWindow = MainWindow(src, dst)

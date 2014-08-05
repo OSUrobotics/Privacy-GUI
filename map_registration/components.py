@@ -118,7 +118,7 @@ class DrawMap(QGraphicsScene):
                 # print "Adding point to blank space in list, index: ", index - 1
                 self.points[index - 1] = marker
 
-            print self.points
+            # print self.points
             self.register.emit()
             self.update()
 
