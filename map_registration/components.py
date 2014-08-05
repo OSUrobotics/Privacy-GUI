@@ -54,7 +54,7 @@ class DrawPoint(QGraphicsObject):
             self.setVisible(False)
 
     def boundingRect(self):
-        return QRectF(self.x, self.y, self.size, self.size)
+        return QRectF(self.x - 1, self.y - 1, self.size + 2, self.size + 2)
 
     def paint(self, painter, option, widget):
         self.is_drawn = True

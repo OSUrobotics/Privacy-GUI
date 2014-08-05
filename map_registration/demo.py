@@ -29,7 +29,6 @@ class MainWindow(QDialog, Ui_Window):
         self.destination.setScene( self.map2 )
 
         # Set up variables for point registration and transformation, etc
-        self.edit_mode = 0
         self.src = [(-1, -1), (-1, -1), (-1, -1)]
         self.dst = [(-1, -1), (-1, -1), (-1, -1)]
         self.robot1 = DrawRobot()
@@ -119,6 +118,7 @@ class MainWindow(QDialog, Ui_Window):
         f = open('registration.yaml', 'w')
         f.write(yaml)
         f.close()
+
         call(["mv", "registration.yaml", "register/"])
         call(["cp", self.img_2, "register/"])
         call(["cp", self.img_1, "register/"])
