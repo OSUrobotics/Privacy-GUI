@@ -170,7 +170,7 @@ class DrawRobot(QGraphicsObject):
         self.setZValue(10)
 
     def boundingRect(self):
-        return QRectF(0, 0, self.size+2, self.size+2)
+        return QRectF(-1, -1, self.size+2, self.size+2)
 
     def paint(self, painter, option, widget):
         pen = QPen(Qt.black, 3, Qt.SolidLine)
@@ -347,6 +347,12 @@ class TrianglePoints():
         self.semantic_pts = semantic_pts
         self.slam_pts = slam_pts
 
+        # Precompute determinates
+        self.slam_det = (self.slam_pts[1][1] - self.slam_pts[2][1]) * (self.slam_pts[0][0] - self.slam_pts[2][0])
+        self.slam_det += (self.slam_pts[2][0] - self.slam_pts[1][0]) * (self.slam_pts[0][1] - self.slam_pts[2][1])
+        self.semantic_det = (self.semantic_pts[1][1] - self.semantic_pts[2][1]) * (self.semantic_pts[0][0] - self.semantic_pts[2][0])
+        self.semantic_det += (self.semantic_pts[2][0] - self.semantic_pts[1][0]) * (self.semantic_pts[0][1] - self.semantic_pts[2][1])
+
     # Given a point in the (x, y) frame of the slam map, return the (x, y)
     # coordinates in the semantic frame. If the given point is not in the 
     # triangle, return None
@@ -354,18 +360,16 @@ class TrianglePoints():
         slam_1 = self.slam_pts[0]
         slam_2 = self.slam_pts[1]
         slam_3 = self.slam_pts[2]
-        det_T = ((slam_2[1] - slam_3[1]) * (slam_1[0] - slam_3[0]))
-        det_T += ((slam_3[0] - slam_2[0]) * (slam_1[1] - slam_3[1]))
         lambda_1 = ((slam_2[1] - slam_3[1]) * (pt[0] - slam_3[0]))
         lambda_1 += ((slam_3[0] - slam_2[0]) * (pt[1] - slam_3[1]))
-        lambda_1 /= det_T
+        lambda_1 /= self.slam_det
         if lambda_1 < 0 or lambda_1 > 1:
             print lambda_1
             print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_2 = ((slam_3[1] - slam_1[1]) * (pt[0] - slam_3[0]))
         lambda_2 += ((slam_1[0] - slam_3[0]) * (pt[1] - slam_3[1]))
-        lambda_2 /= det_T
+        lambda_2 /= self.slam_det
         if lambda_2 < 0 or lambda_2 > 1:
             print lambda_2
             print "pt ", pt, " not in triangle ", self.id_num
@@ -385,18 +389,16 @@ class TrianglePoints():
         semantic_1 = self.semantic_pts[0]
         semantic_2 = self.semantic_pts[1]
         semantic_3 = self.semantic_pts[2]
-        det_T = ((semantic_2[1] - semantic_3[1]) * (semantic_1[0] - semantic_3[0]))
-        det_T += ((semantic_3[0] - semantic_2[0]) * (semantic_1[1] - semantic_3[1]))
         lambda_1 = ((semantic_2[1] - semantic_3[1]) * (pt[0] - semantic_3[0]))
         lambda_1 += ((semantic_3[0] - semantic_2[0]) * (pt[1] - semantic_3[1]))
-        lambda_1 /= det_T
+        lambda_1 /= self.semantic_det
         if lambda_1 < 0 or lambda_1 > 1:
             # print lambda_1
             # print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_2 = ((semantic_3[1] - semantic_1[1]) * (pt[0] - semantic_3[0]))
         lambda_2 += ((semantic_1[0] - semantic_3[0]) * (pt[1] - semantic_3[1]))
-        lambda_2 /= det_T
+        lambda_2 /= self.semantic_det
         if lambda_2 < 0 or lambda_2 > 1:
             # print lambda_2
             # print "pt ", pt, " not in triangle ", self.id_num
