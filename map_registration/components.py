@@ -3,6 +3,8 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
 import cv2
 import yaml
+import numpy as np
+from itertools import izip
 
 # Taken from MapMetaData.py in the remote_nav package
 # Class representing MapMetaData from ROS
@@ -209,18 +211,58 @@ class RobotHandler():
 
     # Set the transforms needed to transform between maps. This also sets the 
     # "ready" flag to True.
-    def setTransforms(self):
+    def setTransforms(self, map1_points, map2_points):
+        # Set up the dictionary 
+        self.trans_1_to_2 = {}
+        self.trans_2_to_1 = {}
+        first_line = True
+        registered_points = []
+        for p1, p2 in izip(map1_points, map2_points):
+            if p1 != None and p2 != None:
+                registered_points.append((p1, p2))
+        with open("register/semantic.1.ele", 'r') as f:
+            for line in f:
+                if first_line:
+                    # Do nothing
+                    first_line = False
+                elif '#' not in line:
+                    # This line is not a comment
+                    s = line.split()
+                    print s
+                    # s[1], s[2], s[3] correspond to indicides of triangle
+                    p1 = registered_points[int(s[1]) - 1]
+                    p2 = registered_points[int(s[2]) - 1]
+                    p3 = registered_points[int(s[3]) - 1]
+                    indicides = (p1[1], p2[1], p3[1])
+                    self.trans_1_to_2[int(s[0])] = indicides
+        print self.trans_1_to_2
         self.ready = True
 
     # Convert a position in map 1 to the map 2 frame
-    # Returns a tutle (point) or None
+    # Returns a tuple (point) or None
     def convert_to_2(self, point):
         if self.ready:
             x = point.x()
             y = point.y()
-            x_prime = (self.trans_1_to_2[0][0] * x) + (self.trans_1_to_2[0][1] * y) + self.trans_1_to_2[0][2]
-            y_prime = (self.trans_1_to_2[1][0] * x) + (self.trans_1_to_2[1][1] * y) + self.trans_1_to_2[1][2]
-            return (x_prime, y_prime)
+            semantic_triangles = cv2.imread("register/semantic.png", 1)
+            # Check the bounds
+            rows, cols, colors = semantic_triangles.shape
+            if y > rows:
+                y  = rows - 1
+            elif y < 0:
+                y = 0
+            if x > cols:
+                x = cols - 1
+            elif x < 0:
+                x = 0
+            px = semantic_triangles[y, x]
+            print px
+            if px.all(0):
+                # No known correspondnce
+                return (x, y)
+            else:
+                #print px
+                return (x, y)
         else:
             return None
 
@@ -230,9 +272,7 @@ class RobotHandler():
         if self.ready:
             x = point.x()
             y = point.y()
-            x_prime = (self.trans_2_to_1[0][0] * x) + (self.trans_2_to_1[0][1] * y) + self.trans_2_to_1[0][2]
-            y_prime = (self.trans_2_to_1[1][0] * x) + (self.trans_2_to_1[1][1] * y) + self.trans_2_to_1[1][2]
-            return (x_prime, y_prime)
+            return (x, y)
         else:
             return None
 

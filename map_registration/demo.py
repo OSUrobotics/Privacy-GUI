@@ -69,7 +69,7 @@ class MainWindow(QDialog, Ui_Window):
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
         if self.toggleRobot.isChecked():
-            self.transform_array()
+            self.robot.setTransforms(self.map1.get_points(), self.map2.get_points())
         self.robot.setEnabled(self.toggleRobot.isChecked())
 
     # Using matching points, view the transformation of the maps
@@ -159,6 +159,9 @@ class MainWindow(QDialog, Ui_Window):
         call(["mv", "slam.1.node", "register/slam.1.node"])
         call(["mv", "slam.1.ele", "register/slam.1.ele"])
 
+        self.robot.setTransforms(self.map1.get_points(), self.map2.get_points())
+        self.toggleRobot.setEnabled(True)
+
     # Creates and writes the triangules based on the triangulation
     def color_triangles(self, image):
         if image == "semantic":
@@ -205,7 +208,7 @@ class MainWindow(QDialog, Ui_Window):
                     pts = np.array([v1, v2, v3], np.int32)
                     pts = pts.reshape((-1,1,2))
                     cv2.fillPoly(tri_img,[pts],(0,color,255))
-                    color += 64
+                    color += 16
         img_name = image + ".png"
         cv2.imwrite(img_name, tri_img)
         call(["mv", img_name, "register/" + img_name])
