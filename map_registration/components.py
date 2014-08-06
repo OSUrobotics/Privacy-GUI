@@ -5,6 +5,7 @@ import cv2
 import yaml
 import numpy as np
 from itertools import izip
+from math import floor
 
 # Taken from MapMetaData.py in the remote_nav package
 # Class representing MapMetaData from ROS
@@ -229,10 +230,8 @@ class RobotHandler():
     def read_ele(self, map_name):
         if map_name == "semantic":
             filename = "register/semantic.1.ele"
-            i = 1
         elif map_name == "slam":
             filename = "register/slam.1.ele"
-            i = 0
         else:
             print "in read_ele: not a valid filename"
             return
@@ -249,11 +248,13 @@ class RobotHandler():
                     p1 = self.registered_points[int(s[1]) - 1]
                     p2 = self.registered_points[int(s[2]) - 1]
                     p3 = self.registered_points[int(s[3]) - 1]
-                    indicides = (p1[i], p2[i], p3[i])
+                    semantic_indicides = (p1[0], p2[0], p3[0])
+                    slam_indicies = (p1[1], p2[1], p3[1])
+                    tri = TrianglePoints(int(s[0]), semantic_indicides, slam_indicies)
                     if map_name == "semantic":
-                        self.trans_1_to_2[int(s[0])] = indicides
+                        self.trans_1_to_2[int(s[0])] = tri
                     elif map_name == "slam":
-                        self.trans_2_to_1[int(s[0])] = indicides
+                        self.trans_2_to_1[int(s[0])] = tri
 
     # Convert a position in map 1 to the map 2 frame
     # Returns a tuple (point) or None
@@ -273,15 +274,27 @@ class RobotHandler():
             elif x < 0:
                 x = 0
             px = semantic_triangles[y, x]
-            print px
-            if px.all(0):
-                # No known correspondnce
+            triangle = self.color_to_triangle(px)
+            if triangle == -1:
+                # No known correspondence
                 return (x, y)
             else:
-                #print px
-                return (x, y)
+                return self.trans_1_to_2[triangle].get_slam_from_semantic((x, y))
         else:
             return None
+
+    # Given a 1-indexed number, return a color (tuple)
+    def triangle_to_color(self, triangle):
+        color = (0, 255, triangle * 2)
+        return color
+
+    # Given a color (tuple), return a 1-indexed number
+    # or -1 if no correspondence
+    def color_to_triangle(self, color):
+        if color[0] == 0 and color[1] == 0 and color[2] == 0:
+            return -1
+        else:
+            return color[2] / 2
 
     # Convert a position in map 2 to the map 1 frame
     # Returns a tuple (point) or None
@@ -289,7 +302,24 @@ class RobotHandler():
         if self.ready:
             x = point.x()
             y = point.y()
-            return (x, y)
+            slam_triangles = cv2.imread("register/slam.png", 1)
+            # Check the bounds
+            rows, cols, colors = slam_triangles.shape
+            if y > rows:
+                y  = rows - 1
+            elif y < 0:
+                y = 0
+            if x > cols:
+                x = cols - 1
+            elif x < 0:
+                x = 0
+            px = slam_triangles[y, x]
+            triangle = self.color_to_triangle(px)
+            if triangle == -1:
+                # No known correspondence
+                return (x, y)
+            else:
+                return self.trans_2_to_1[triangle].get_semantic_from_slam((x, y))
         else:
             return None
 
@@ -310,3 +340,72 @@ class RobotHandler():
         pos = self.convert_to_2(point)
         self.robot_2.setPos(pos[0], pos[1])
         self.robot_2.blockSignals(False)
+
+class TrianglePoints():
+    def __init__(self, id_num, semantic_pts, slam_pts):
+        self.id_num = id_num
+        self.semantic_pts = semantic_pts
+        self.slam_pts = slam_pts
+
+    # Given a point in the (x, y) frame of the slam map, return the (x, y)
+    # coordinates in the semantic frame. If the given point is not in the 
+    # triangle, return None
+    def get_semantic_from_slam(self, pt):
+        slam_1 = self.slam_pts[0]
+        slam_2 = self.slam_pts[1]
+        slam_3 = self.slam_pts[2]
+        det_T = ((slam_2[1] - slam_3[1]) * (slam_1[0] - slam_3[0]))
+        det_T += ((slam_3[0] - slam_2[0]) * (slam_1[1] - slam_3[1]))
+        lambda_1 = ((slam_2[1] - slam_3[1]) * (pt[0] - slam_3[0]))
+        lambda_1 += ((slam_3[0] - slam_2[0]) * (pt[1] - slam_3[1]))
+        lambda_1 /= det_T
+        if lambda_1 < 0 or lambda_1 > 1:
+            print lambda_1
+            print "pt ", pt, " not in triangle ", self.id_num
+            return None
+        lambda_2 = ((slam_3[1] - slam_1[1]) * (pt[0] - slam_3[0]))
+        lambda_2 += ((slam_1[0] - slam_3[0]) * (pt[1] - slam_3[1]))
+        lambda_2 /= det_T
+        if lambda_2 < 0 or lambda_2 > 1:
+            print lambda_2
+            print "pt ", pt, " not in triangle ", self.id_num
+            return None
+        lambda_3 = 1 - lambda_1 - lambda_2
+        x = lambda_1 * self.semantic_pts[0][0]
+        x += lambda_2 * self.semantic_pts[1][0]
+        x += lambda_3 * self.semantic_pts[2][0]
+        y = lambda_1 * self.semantic_pts[0][1]
+        y += lambda_2 * self.semantic_pts[1][1]
+        y += lambda_3 * self.semantic_pts[2][1]
+        return (x, y)
+
+    # Given a point in the (x, y) frame of the semantic map, return the (x, y)
+    # coordinates in the slam frame
+    def get_slam_from_semantic(self, pt):
+        semantic_1 = self.semantic_pts[0]
+        semantic_2 = self.semantic_pts[1]
+        semantic_3 = self.semantic_pts[2]
+        det_T = ((semantic_2[1] - semantic_3[1]) * (semantic_1[0] - semantic_3[0]))
+        det_T += ((semantic_3[0] - semantic_2[0]) * (semantic_1[1] - semantic_3[1]))
+        lambda_1 = ((semantic_2[1] - semantic_3[1]) * (pt[0] - semantic_3[0]))
+        lambda_1 += ((semantic_3[0] - semantic_2[0]) * (pt[1] - semantic_3[1]))
+        lambda_1 /= det_T
+        if lambda_1 < 0 or lambda_1 > 1:
+            # print lambda_1
+            # print "pt ", pt, " not in triangle ", self.id_num
+            return None
+        lambda_2 = ((semantic_3[1] - semantic_1[1]) * (pt[0] - semantic_3[0]))
+        lambda_2 += ((semantic_1[0] - semantic_3[0]) * (pt[1] - semantic_3[1]))
+        lambda_2 /= det_T
+        if lambda_2 < 0 or lambda_2 > 1:
+            # print lambda_2
+            # print "pt ", pt, " not in triangle ", self.id_num
+            return None
+        lambda_3 = 1 - lambda_1 - lambda_2
+        x = lambda_1 * self.slam_pts[0][0]
+        x += lambda_2 * self.slam_pts[1][0]
+        x += lambda_3 * self.slam_pts[2][0]
+        y = lambda_1 * self.slam_pts[0][1]
+        y += lambda_2 * self.slam_pts[1][1]
+        y += lambda_3 * self.slam_pts[2][1]
+        return (x, y)

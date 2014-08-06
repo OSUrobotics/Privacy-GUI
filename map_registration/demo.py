@@ -193,7 +193,6 @@ class MainWindow(QDialog, Ui_Window):
                     nodes.append((x, y))
         # From the ele file, color triangles
         first_line = True
-        color = 0
         with open(ele_file, 'r') as f:
             for line in f:
                 if first_line:
@@ -207,8 +206,8 @@ class MainWindow(QDialog, Ui_Window):
                     v3 = nodes[int(s[3])]
                     pts = np.array([v1, v2, v3], np.int32)
                     pts = pts.reshape((-1,1,2))
-                    cv2.fillPoly(tri_img,[pts],(0,color,255))
-                    color += 16
+                    color = self.robot.triangle_to_color(int(s[0]))
+                    cv2.fillPoly(tri_img,[pts],color)
         img_name = image + ".png"
         cv2.imwrite(img_name, tri_img)
         call(["mv", img_name, "register/" + img_name])
