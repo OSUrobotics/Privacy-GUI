@@ -216,11 +216,28 @@ class RobotHandler():
         self.trans_1_to_2 = {}
         self.trans_2_to_1 = {}
         first_line = True
-        registered_points = []
+        self.registered_points = []
         for p1, p2 in izip(map1_points, map2_points):
             if p1 != None and p2 != None:
-                registered_points.append((p1, p2))
-        with open("register/semantic.1.ele", 'r') as f:
+                self.registered_points.append((p1, p2))
+        self.read_ele("semantic")
+        self.read_ele("slam")
+        print self.trans_1_to_2
+        print self.trans_2_to_1
+        self.ready = True
+
+    def read_ele(self, map_name):
+        if map_name == "semantic":
+            filename = "register/semantic.1.ele"
+            i = 1
+        elif map_name == "slam":
+            filename = "register/slam.1.ele"
+            i = 0
+        else:
+            print "in read_ele: not a valid filename"
+            return
+        first_line = True
+        with open(filename, 'r') as f:
             for line in f:
                 if first_line:
                     # Do nothing
@@ -228,15 +245,15 @@ class RobotHandler():
                 elif '#' not in line:
                     # This line is not a comment
                     s = line.split()
-                    print s
                     # s[1], s[2], s[3] correspond to indicides of triangle
-                    p1 = registered_points[int(s[1]) - 1]
-                    p2 = registered_points[int(s[2]) - 1]
-                    p3 = registered_points[int(s[3]) - 1]
-                    indicides = (p1[1], p2[1], p3[1])
-                    self.trans_1_to_2[int(s[0])] = indicides
-        print self.trans_1_to_2
-        self.ready = True
+                    p1 = self.registered_points[int(s[1]) - 1]
+                    p2 = self.registered_points[int(s[2]) - 1]
+                    p3 = self.registered_points[int(s[3]) - 1]
+                    indicides = (p1[i], p2[i], p3[i])
+                    if map_name == "semantic":
+                        self.trans_1_to_2[int(s[0])] = indicides
+                    elif map_name == "slam":
+                        self.trans_2_to_1[int(s[0])] = indicides
 
     # Convert a position in map 1 to the map 2 frame
     # Returns a tuple (point) or None
