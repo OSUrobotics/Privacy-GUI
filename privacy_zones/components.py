@@ -2,6 +2,7 @@ from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
 import cv2
+import yaml
 
 
 #Creates a point at the clicked location and stores the coordinates of the center of that point
@@ -76,7 +77,7 @@ class DrawMap(QGraphicsScene):
         #When the mouse is pressed, select and draw a new marker
         self.pixMapItem.mousePressEvent = self.pixelSelect
         # The position clicked
-        self.position = QPoint(-1, -1)
+        # self.position = QPoint(-1, -1)
 
         #The zone handler handles the polygon objects created in the graphics view
 
@@ -84,14 +85,18 @@ class DrawMap(QGraphicsScene):
 
     # Updates the position and draws a circle around it
     def pixelSelect( self, event ):
-        position = QPoint(event.pos().x(),  event.pos().y())
+        self.position = QPoint(event.pos().x(),  event.pos().y())
+        print "Click position: " + str(self.position)
         # print "Mouse click position: " + str(position)
         #If not all of the points have been set, continue to loop through them
         # and place a new point when you click
         #If all of the points have been set, simply change the position of the first one again
-        self.controller.setNextMarker(position)
-        if not self.controller.getMarker().is_drawn:
-            self.addItem(self.controller.getMarker())
+        marker = self.controller.setNextMarker(self.position)
+        if not marker.is_drawn:
+            print "Not drawn!"
+            print str(self.controller.getMarker().get_pos())
+            # self.addItem(self.controller.getMarker())
+            self.addItem(marker)
         if self.controller.allPoints:
             for i in range(0, len(self.controller.line)):
                 if not self.controller.lineDrawn[i]:
@@ -162,16 +167,15 @@ class ZoneHandler():
                 self.zoneList[i].active = True
             else:
                 self.zoneList[i].active = False
-            print "Zone " + str(i) + " " +  str(self.zoneList[i].active) #debug to make sure proper active zones
+            # print "Zone " + str(i) + " " +  str(self.zoneList[i].active) #debug to make sure proper active zones
             self.zoneList[i].drawPoly() #Update all objects
         self.snapToZone()
-
 
     #Draws the next marker in the list and increments the marker index
     #Only needs the position ()
     def setNextMarker(self, position):
             # Updates the position and draws a circle around it
-
+        print "Marker Index: " + str(self.markerIndex)
         # print "Mouse click position: " + str(position)
         #If not all of the points have been set, continue to loop through them
         # and place a new point when you click
@@ -182,8 +186,9 @@ class ZoneHandler():
             # print ("Update Position: " + str(self.marker[self.markerIndex].get_pos()))
         else:
             self.marker[self.markerIndex].update_pos(position.x(), position.y())
+            print "Current point's position: " + str(self.marker[self.markerIndex].get_pos())
             #Output the marker object of a given index
-
+        current = self.getMarker()
         if self.markerIndex == 3: #If we've filled all the markers, state so
             self.allPoints= True
             for i in range(1, 5):
@@ -191,6 +196,7 @@ class ZoneHandler():
             self.markerIndex = 0 #and reset back to start
         else:
             self.markerIndex += 1 #Otherwise, increment the marker index
+        return current
 
     #Returns a marker object from the list at a given index
     def getMarker(self):
@@ -207,6 +213,47 @@ class ZoneHandler():
         for i in range(0, len(self.marker)):
             temp.append(self.marker[i].get_pos())
         return temp
+    #Returns a giant string of all of the data to be written to a file
+    def exportAll(self):
+        # In the yaml. Name is a string, mode is an int, and the points is a list (may need to be converted into tuples)
+        fstream = ""
+        tab = "    " #Yaml files don't allow /t so I have to use spaces for tabs
+        listItem = "          -\n"
+        # Loop through every zone we have in the handler
+        fstream += "Conversion: \nZone List: \n"
+        for i in range(0, len(self.zoneList)):
+            fstream += tab + "- Name: '" + self.zoneList[i].name + "'\n"
+            fstream += tab + "  Mode: " + str(self.zoneList[i].mode) + "\n"
+            fstream += tab + "  Points: \n"
+            #Get all of the points for each zone.  The first and last point is repeated
+            #This is why we are doing length - 1
+            for pointIndex in range(0, len(self.zoneList[i].points)-1):
+                fstream += listItem
+                fstream += tab + tab + tab + "x: " + (str(self.zoneList[i].points[pointIndex][0])+ "\n")
+                fstream += tab + tab + tab + "y: " + (str(self.zoneList[i].points[pointIndex][1]) + "\n")
+            fstream += "\n\n"
+        return fstream
+            #It will look like:
+    """
+    Conversion: Yaml file goes here
+    Zone List:
+        - Name: 'name'
+          Mode: 0
+          Points:
+            -
+                x: 0
+                y: 1
+            - 
+                x: 2
+                y: 2
+            ... so on for the rest of the coordinates
+        ... This repeats for all of the zones in zoneList
+    """
+
+
+
+
+
 
 
 #Shifting direction to having flags within the zone object
@@ -312,3 +359,27 @@ class Zone(QGraphicsPolygonItem):
             self.mode = newMode
             self.brushSetup()
 
+# Taken from MapMetaData.py in the remote_nav package
+class MapMetaData(yaml.YAMLObject):
+    yaml_tag = u'!MapMetaData'
+
+    def __init__(self, image, resolution, origin, negate, occupied_thresh, free_thresh):
+        self.image = image
+        self.resolution = resolution
+        self.origin = origin
+        self.negate = negate
+        self.occupied_thresh = occupied_thresh
+        self.free_thresh = free_thresh
+
+def yaml_to_meta_data(file_name):
+    # Open the file -- no error cehcking here
+    fo = open(file_name)
+
+    # Convert yaml -- no error checking here either
+    file_text = fo.read()
+    meta_data = yaml.load("--- !MapMetaData \n" + file_text)
+
+    fo.close()
+
+    # return MapMetaData object
+    return meta_data

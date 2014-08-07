@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pointSelect.ui'
 #
-# Created: Fri Jul 25 12:52:25 2014
+# Created: Tue Aug  5 15:45:39 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -18,12 +18,12 @@ class Ui_Paths(object):
     def setupUi(self, Paths):
         Paths.setObjectName(_fromUtf8("Paths"))
         Paths.resize(805, 616)
-        self.horizontalLayout_3 = QtGui.QHBoxLayout(Paths)
-        self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
+        self.horizontalLayout_4 = QtGui.QHBoxLayout(Paths)
+        self.horizontalLayout_4.setObjectName(_fromUtf8("horizontalLayout_4"))
         self.map_view = customView(Paths)
+        self.map_view.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.CrossCursor))
         self.map_view.setObjectName(_fromUtf8("map_view"))
-        self.map_view.setEnabled(False)
-        self.horizontalLayout_3.addWidget(self.map_view)
+        self.horizontalLayout_4.addWidget(self.map_view)
         self.verticalLayout = QtGui.QVBoxLayout()
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.horizontalLayout = QtGui.QHBoxLayout()
@@ -36,6 +36,11 @@ class Ui_Paths(object):
         self.save_zone_btn.setObjectName(_fromUtf8("save_zone_btn"))
         self.horizontalLayout.addWidget(self.save_zone_btn)
         self.verticalLayout.addLayout(self.horizontalLayout)
+        self.line = QtGui.QFrame(Paths)
+        self.line.setFrameShape(QtGui.QFrame.HLine)
+        self.line.setFrameShadow(QtGui.QFrame.Sunken)
+        self.line.setObjectName(_fromUtf8("line"))
+        self.verticalLayout.addWidget(self.line)
         self.zone_name = QtGui.QLineEdit(Paths)
         self.zone_name.setEnabled(False)
         self.zone_name.setMaxLength(50)
@@ -63,7 +68,16 @@ class Ui_Paths(object):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
-        self.horizontalLayout_3.addLayout(self.verticalLayout)
+        self.horizontalLayout_3 = QtGui.QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
+        self.import_btn = QtGui.QPushButton(Paths)
+        self.import_btn.setObjectName(_fromUtf8("import_btn"))
+        self.horizontalLayout_3.addWidget(self.import_btn)
+        self.export_btn = QtGui.QPushButton(Paths)
+        self.export_btn.setObjectName(_fromUtf8("export_btn"))
+        self.horizontalLayout_3.addWidget(self.export_btn)
+        self.verticalLayout.addLayout(self.horizontalLayout_3)
+        self.horizontalLayout_4.addLayout(self.verticalLayout)
 
         self.retranslateUi(Paths)
         QtCore.QMetaObject.connectSlotsByName(Paths)
@@ -82,6 +96,9 @@ class Ui_Paths(object):
         self.privacy_type.setItemText(2, QtGui.QApplication.translate("Paths", "Public", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("Paths", "Select a zone to edit:", None, QtGui.QApplication.UnicodeUTF8))
         self.edit_zone.setToolTip(QtGui.QApplication.translate("Paths", "<html><head/><body><p>Bring up the data for already saved zones.</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.import_btn.setText(QtGui.QApplication.translate("Paths", "Import Map Data", None, QtGui.QApplication.UnicodeUTF8))
+        self.export_btn.setToolTip(QtGui.QApplication.translate("Paths", "Export to a YAML file", None, QtGui.QApplication.UnicodeUTF8))
+        self.export_btn.setText(QtGui.QApplication.translate("Paths", "Export as...", None, QtGui.QApplication.UnicodeUTF8))
 
 from customview import customView
 

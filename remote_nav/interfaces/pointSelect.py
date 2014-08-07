@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pointSelect.ui'
 #
-# Created: Fri Jul 25 14:37:47 2014
+# Created: Fri Jul 25 12:52:25 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -22,6 +22,7 @@ class Ui_Paths(object):
         self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
         self.map_view = customView(Paths)
         self.map_view.setObjectName(_fromUtf8("map_view"))
+        self.map_view.setEnabled(False)
         self.horizontalLayout_3.addWidget(self.map_view)
         self.verticalLayout = QtGui.QVBoxLayout()
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))

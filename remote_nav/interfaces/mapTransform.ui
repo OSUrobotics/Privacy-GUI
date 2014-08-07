@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>782</width>
+    <width>838</width>
     <height>638</height>
    </rect>
   </property>
@@ -75,6 +75,24 @@
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <item>
+              <widget class="QPushButton" name="loadPoint_btn">
+               <property name="text">
+                <string>Load Points</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="exportPoint_btn">
+               <property name="text">
+                <string>Save Points</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
             <widget class="QLabel" name="label_6">
              <property name="text">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Left click to add a point, Right click to remove a point. &lt;/p&gt;&lt;p&gt;Points are paried in the order they are created.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -141,90 +159,71 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="bulge_tool">
+         <widget class="QWidget" name="zone_tool">
           <attribute name="title">
-           <string>Bulge</string>
+           <string>Zones</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_6">
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0">
+            <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,0,0">
              <item>
-              <widget class="QPushButton" name="bulge_btn">
+              <widget class="QPushButton" name="importZone_btn">
+               <property name="toolTip">
+                <string>Import a zone file to convert points.</string>
+               </property>
                <property name="text">
-                <string>Bulge</string>
+                <string>Import Zone File</string>
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QPushButton" name="indent_btn">
-               <property name="text">
-                <string>Indent</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_2">
-             <item>
-              <widget class="QLabel" name="radius_lbl">
-               <property name="text">
-                <string>Radius</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSlider" name="bulgeRadius">
-               <property name="maximum">
-                <number>255</number>
-               </property>
-               <property name="singleStep">
-                <number>5</number>
-               </property>
-               <property name="sliderPosition">
-                <number>10</number>
-               </property>
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="tickPosition">
-                <enum>QSlider::TicksAbove</enum>
-               </property>
-               <property name="tickInterval">
-                <number>10</number>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_8">
              <item>
               <widget class="QLabel" name="label_2">
                <property name="text">
-                <string>Position</string>
+                <string>File Preview:</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="bulge_x">
+              <widget class="QTextEdit" name="zoneData">
+               <property name="cursor" stdset="0">
+                <cursorShape>ForbiddenCursor</cursorShape>
+               </property>
+               <property name="documentTitle">
+                <string>data</string>
+               </property>
                <property name="readOnly">
                 <bool>true</bool>
                </property>
-               <property name="placeholderText">
-                <string>X</string>
+               <property name="acceptRichText">
+                <bool>false</bool>
+               </property>
+               <property name="textInteractionFlags">
+                <set>Qt::NoTextInteraction</set>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="bulge_y">
-               <property name="readOnly">
-                <bool>true</bool>
+              <widget class="QPushButton" name="exportZone_btn">
+               <property name="toolTip">
+                <string>Export the converted data points</string>
                </property>
-               <property name="placeholderText">
-                <string>Y</string>
+               <property name="text">
+                <string>Export Converted Points</string>
                </property>
               </widget>
+             </item>
+             <item>
+              <spacer name="verticalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </item>
@@ -258,15 +257,7 @@
   <tabstop>export_btn</tabstop>
   <tabstop>transform_btn</tabstop>
   <tabstop>toggleRobot</tabstop>
-  <tabstop>bulge_btn</tabstop>
-  <tabstop>indent_btn</tabstop>
-  <tabstop>bulgeRadius</tabstop>
-  <tabstop>bulge_x</tabstop>
-  <tabstop>bulge_y</tabstop>
  </tabstops>
  <resources/>
  <connections/>
- <buttongroups>
-  <buttongroup name="buttonGroup"/>
- </buttongroups>
 </ui>

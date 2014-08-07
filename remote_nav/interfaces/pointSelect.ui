@@ -13,9 +13,13 @@
   <property name="windowTitle">
    <string>Define Zones</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_3">
+  <layout class="QHBoxLayout" name="horizontalLayout_4">
    <item>
-    <widget class="customView" name="map_view"/>
+    <widget class="customView" name="map_view">
+     <property name="cursor" stdset="0">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+    </widget>
    </item>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -45,6 +49,13 @@
         </widget>
        </item>
       </layout>
+     </item>
+     <item>
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QLineEdit" name="zone_name">
@@ -129,6 +140,27 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QPushButton" name="import_btn">
+         <property name="text">
+          <string>Import Map Data</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="export_btn">
+         <property name="toolTip">
+          <string>Export to a YAML file</string>
+         </property>
+         <property name="text">
+          <string>Export as...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>

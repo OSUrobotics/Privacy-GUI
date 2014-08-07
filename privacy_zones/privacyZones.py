@@ -6,6 +6,8 @@ from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import QDialog
 from pointSelect import Ui_Paths
 from components import *
+from os import path
+import yaml
 
 
 class MainWindow(QDialog, Ui_Paths):
@@ -18,7 +20,7 @@ class MainWindow(QDialog, Ui_Paths):
 		super(QDialog, self).__init__(parent)
 		self.setupUi(self)
 		self.controller = ZoneHandler() #Deals with the multiple zones and selection
-		self.scene=DrawMap(QImage("maps/lab_pretty.pgm"), self.controller, self)
+		self.scene=DrawMap(QImage("maps/floorplan.png"), self.controller, self)
 		self.map_view.setScene(self.scene)
 
 		## Signals and Slots
@@ -26,6 +28,8 @@ class MainWindow(QDialog, Ui_Paths):
 		self.new_zone_btn.clicked.connect(self.createZone)
 		self.save_zone_btn.clicked.connect(self.onSaveClick)
 		self.edit_zone.currentIndexChanged.connect(self.loadZone)
+		self.export_btn.clicked.connect(self.showSaveAs)
+		self.import_btn.clicked.connect(self.showOpen)
 
 	# What happens when you click the save button
 	def onSaveClick(self):
@@ -123,7 +127,32 @@ class MainWindow(QDialog, Ui_Paths):
 		self.privacy_type.setEnabled(False)
 		self.map_view.setEnabled(False)
 
+	def showOpen(self):
+		fname = QFileDialog.getOpenFileName(self, 'Open File', "", 'YAML Files (*.yaml)')  
+		if fname.isEmpty():
+			return
+		fin = open(fname, 'r')	    
+		with fin:        
+			# self.import_data = fin.read()
+			print yaml.safe_load(fin)
+			#Import stuff from the yaml file here
+		fin.close()	
+	def showSaveAs(self):
+		filename = QFileDialog.getSaveFileName(self, 'Save As...', '', '*.yaml')
+		if not filename.endsWith(".yaml"):
+			filename.append(".yaml")
+		fout = open(filename, 'w')
+		# Do stuff to write to the file here
+		# # Format:
+		# Image: 
+		# Zone_name: 
+		# mode: 
+		# points: [an array of all of the points goes here]
+		# ^^^ that part will loop for all of the points.
 
+		data = self.controller.exportAll()
+		fout.write(data)
+		fout.close()
 
 
 
