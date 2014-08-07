@@ -50,8 +50,8 @@ class DrawPoint(QGraphicsObject):
         self.mousePressEvent = self.ask_to_be_deleted
 
     # Called when clicked. If Right-click, delete it.
-    def ask_to_be_deleted(self, event):
-        if event.button() == 2:
+    def ask_to_be_deleted(self, event=None):
+        if event == None or event.button() == 2:
             self.delete_me.emit()
             self.setEnabled(False)
             self.setVisible(False)
@@ -256,6 +256,19 @@ class RobotHandler():
                     elif map_name == "slam":
                         self.trans_2_to_1[int(s[0])] = tri
 
+    # Given a 1-indexed number, return a color (tuple)
+    def triangle_to_color(self, triangle):
+        color = (0, 255, triangle * 2)
+        return color
+
+    # Given a color (tuple), return a 1-indexed number
+    # or -1 if no correspondence
+    def color_to_triangle(self, color):
+        if color[0] == 0 and color[1] == 0 and color[2] == 0:
+            return -1
+        else:
+            return color[2] / 2
+
     # Convert a position in map 1 to the map 2 frame
     # Returns a tuple (point) or None
     def convert_to_2(self, point):
@@ -277,24 +290,11 @@ class RobotHandler():
             triangle = self.color_to_triangle(px)
             if triangle == -1:
                 # No known correspondence
-                return (x, y)
+                return None
             else:
                 return self.trans_1_to_2[triangle].get_slam_from_semantic((x, y))
         else:
             return None
-
-    # Given a 1-indexed number, return a color (tuple)
-    def triangle_to_color(self, triangle):
-        color = (0, 255, triangle * 2)
-        return color
-
-    # Given a color (tuple), return a 1-indexed number
-    # or -1 if no correspondence
-    def color_to_triangle(self, color):
-        if color[0] == 0 and color[1] == 0 and color[2] == 0:
-            return -1
-        else:
-            return color[2] / 2
 
     # Convert a position in map 2 to the map 1 frame
     # Returns a tuple (point) or None
@@ -317,7 +317,7 @@ class RobotHandler():
             triangle = self.color_to_triangle(px)
             if triangle == -1:
                 # No known correspondence
-                return (x, y)
+                return None
             else:
                 return self.trans_2_to_1[triangle].get_semantic_from_slam((x, y))
         else:
@@ -329,7 +329,8 @@ class RobotHandler():
         self.robot_1.blockSignals(True)
         point = self.robot_2.pos()
         pos = self.convert_to_1(point)
-        self.robot_1.setPos(pos[0], pos[1])
+        if pos != None:
+            self.robot_1.setPos(pos[0], pos[1])
         self.robot_1.blockSignals(False)
 
     # Callback for when robot 1's position is changed. Set robot 2 accordingly.
@@ -338,7 +339,8 @@ class RobotHandler():
         self.robot_2.blockSignals(True)
         point = self.robot_1.pos()
         pos = self.convert_to_2(point)
-        self.robot_2.setPos(pos[0], pos[1])
+        if pos != None:
+            self.robot_2.setPos(pos[0], pos[1])
         self.robot_2.blockSignals(False)
 
 class TrianglePoints():
@@ -393,15 +395,15 @@ class TrianglePoints():
         lambda_1 += ((semantic_3[0] - semantic_2[0]) * (pt[1] - semantic_3[1]))
         lambda_1 /= self.semantic_det
         if lambda_1 < 0 or lambda_1 > 1:
-            # print lambda_1
-            # print "pt ", pt, " not in triangle ", self.id_num
+            print lambda_1
+            print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_2 = ((semantic_3[1] - semantic_1[1]) * (pt[0] - semantic_3[0]))
         lambda_2 += ((semantic_1[0] - semantic_3[0]) * (pt[1] - semantic_3[1]))
         lambda_2 /= self.semantic_det
         if lambda_2 < 0 or lambda_2 > 1:
-            # print lambda_2
-            # print "pt ", pt, " not in triangle ", self.id_num
+            print lambda_2
+            print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_3 = 1 - lambda_1 - lambda_2
         x = lambda_1 * self.slam_pts[0][0]

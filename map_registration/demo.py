@@ -4,7 +4,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
 import numpy as np
 from components import * 
-from itertools import izip
+from itertools import izip, izip_longest
 
 from PyQt4.QtGui import QDialog
 from mapTransform import Ui_Window
@@ -50,12 +50,33 @@ class MainWindow(QDialog, Ui_Window):
         self.export_btn.clicked.connect(self.export_map)
         self.update_labels()
 
+        self.clearAll_btn.setToolTip("Clears all points from  both maps")
+        self.clearAll_btn.clicked.connect(self.clear_all)
+        self.clearUnmatched_btn.setToolTip("Clears points which do not have a correpsonding point in the other map")
+        self.clearUnmatched_btn.clicked.connect(self.clear_unmatched)
+
         # The signals are emitted after a click in the map window
         self.map1.register.connect(self.update_labels)
         self.map2.register.connect(self.update_labels)
 
         # Setting up the robot toggled checkbox 
         self.toggleRobot.stateChanged.connect(self.robot_toggle)
+
+    def clear_all(self):
+        for p in self.map1.points:
+            if p != None:
+                p.ask_to_be_deleted()
+        for p in self.map2.points:
+            if p != None:
+                p.ask_to_be_deleted()
+
+    def clear_unmatched(self):
+        for p1, p2 in izip_longest(self.map1.points, self.map2.points):
+            print p1, p2
+            if p1 == None and p2 != None:
+                p2.ask_to_be_deleted()
+            if p2 == None and p1 != None:
+                p1.ask_to_be_deleted()
 
     # Updates the labels telling how many points there are
     def update_labels(self):
