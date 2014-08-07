@@ -49,3 +49,9 @@ In order for remote_nav to run, several things need to be set up (this may be fi
 roslaunch remote_nav pr2UI.launch
 roslaunch remote_nav turtleUI.launch
 ```
+###Editing UI Files
+Many of our interfaces were designed using QtDesigner. If you make changes to these UI files, you must convert them to python.
+Simply run this line:
+```
+pyuic4 projectName.ui -x -o projectName.py
+```
