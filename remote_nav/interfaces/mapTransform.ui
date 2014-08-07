@@ -78,6 +78,9 @@
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <item>
               <widget class="QPushButton" name="loadPoint_btn">
+               <property name="toolTip">
+                <string>Loads a file of saved points on a map</string>
+               </property>
                <property name="text">
                 <string>Load Points</string>
                </property>
@@ -85,6 +88,9 @@
              </item>
              <item>
               <widget class="QPushButton" name="exportPoint_btn">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Saves the position of current points in a file for later use&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>Save Points</string>
                </property>
@@ -93,12 +99,39 @@
             </layout>
            </item>
            <item>
+            <widget class="Line" name="line">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QLabel" name="label_6">
              <property name="text">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Left click to add a point, Right click to remove a point. &lt;/p&gt;&lt;p&gt;Points are paried in the order they are created.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="wordWrap">
               <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="clearUnmatched_btn">
+             <property name="toolTip">
+              <string>Removes points that are not paired on both maps</string>
+             </property>
+             <property name="text">
+              <string>Clear Unmatched Points</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="clearAll_btn">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes&lt;span style=&quot; font-size:12pt; font-weight:600;&quot;&gt; all points&lt;/span&gt; from both maps&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Clear ALL Points</string>
              </property>
             </widget>
            </item>
