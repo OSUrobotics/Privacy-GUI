@@ -57,6 +57,10 @@ class MainWindow(QDialog, Ui_Window):
         # Setting up the robot toggled checkbox 
         self.toggleRobot.stateChanged.connect(self.robot_toggle)
 
+        self.exportZone_btn.clicked.connect(self.export_zones)
+        self.importZone_btn.clicked.connect(self.import_zones)
+        #Data goes to zoneData, which is a text field
+
     # Updates the labels telling how many points there are
     def update_labels(self):
         self.label_4.setText(str(self.map1.get_num_points()))
@@ -212,6 +216,32 @@ class MainWindow(QDialog, Ui_Window):
         cv2.imshow('Preview', image)
         # child = MyWindow(image, self)
         # child.show()
+    def export_zones(self):
+        filename = QFileDialog.getSaveFileName(self, 'Save As...', '', 'YAML FILES (*.yaml)')
+        if not filename.endsWith(".yaml"):
+            filename.append(".yaml")
+        fout = open(filename, 'w')
+        # Do stuff to write to the file here
+        data = self.convertPoints()
+        fout.write(data)
+        fout.close()
+
+    def import_zones(self):
+        fname = QFileDialog.getOpenFileName(self, 'Open File', "", 'YAML Files (*.yaml)')  
+        if fname.isEmpty():
+            return
+        fin = open(fname, 'r')      
+        with fin:        
+            # self.import_data = fin.read()
+            data = yaml.safe_load(fin)
+            self.zoneData.setText(str(data))
+            #Import stuff from the yaml file here
+        fin.close() 
+
+    def convert_points(self):
+        data = "Data would go here"
+        return data
+
 
 class MyWindow(QtGui.QDialog):    # any super class is okay
     def __init__(self, image, parent=None):
