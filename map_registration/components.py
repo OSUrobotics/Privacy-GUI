@@ -20,15 +20,32 @@ class MapMetaData(yaml.YAMLObject):
         self.occupied_thresh = occupied_thresh
         self.free_thresh = free_thresh
 
+class RegisteredMapMetaData(yaml.YAMLObject):
+    yaml_tag = u'!RegisteredMapMetaData'
+
+    def __init__(self, semantic_map, slam_map, origin, resolution, slam_width, slam_height, semantic_width, semantic_height, semantic_nodes, slam_nodes, semantic_triangles, slam_triangles):
+        self.semantic_map = semantic_map
+        self.slam_map = slam_map
+        self.origin = origin
+        self.resolution = resolution
+        self.slam_width = slam_width
+        self.slam_height = slam_height
+        self.semantic_width = semantic_width
+        self.semantic_height = semantic_height
+        self.semantic_nodes = semantic_nodes
+        self.slam_nodes = slam_nodes
+        self.semantic_triangles = semantic_triangles
+        self.slam_triangles = slam_triangles
+
 # Taken from MapMetaData.py in the remote_nav package
 # Converts a yaml file to MapMetaData. returns a MapMetaData object
-def yaml_to_meta_data(file_name):
+def yaml_to_meta_data(file_name, yaml_type):
     # Open the file -- no error cehcking here
     fo = open(file_name)
 
     # Convert yaml -- no error checking here either
     file_text = fo.read()
-    meta_data = yaml.load("--- !MapMetaData \n" + file_text)
+    meta_data = yaml.load("--- !" + yaml_type + "\n" + file_text)
 
     fo.close()
 
@@ -99,31 +116,34 @@ class DrawMap(QGraphicsScene):
         position = QPoint(event.pos().x(),  event.pos().y())
         btn = event.button()
         if btn == 1:
-            no_empty_space = True
-            index = 0
-            while no_empty_space and index < len(self.points):
-                if self.points[index] == None:
-                    no_empty_space = False
-                index += 1
-            if no_empty_space:
-                hue = (index * 30) % 360
-            else:
-                hue = ((index - 1) * 30) % 360
-            marker = DrawPoint(QColor.fromHsv(hue, 255, 255, 128))
-            marker.update_pos(position.x(), position.y())
-            if not marker.is_drawn:
-                self.addItem(marker)
-            marker.delete_me.connect(self.delete_marker)
-            if no_empty_space:
-                # print "Adding point to end of list, index: ", len(self.points)
-                self.points.append(marker)
-            else:
-                # print "Adding point to blank space in list, index: ", index - 1
-                self.points[index - 1] = marker
+            self.select_pix(position)
 
-            # print self.points
-            self.register.emit()
-            self.update()
+    def select_pix(self, position):
+        no_empty_space = True
+        index = 0
+        while no_empty_space and index < len(self.points):
+            if self.points[index] == None:
+                no_empty_space = False
+            index += 1
+        if no_empty_space:
+            hue = (index * 30) % 360
+        else:
+            hue = ((index - 1) * 30) % 360
+        marker = DrawPoint(QColor.fromHsv(hue, 255, 255, 128))
+        marker.update_pos(position.x(), position.y())
+        if not marker.is_drawn:
+            self.addItem(marker)
+        marker.delete_me.connect(self.delete_marker)
+        if no_empty_space:
+            # print "Adding point to end of list, index: ", len(self.points)
+            self.points.append(marker)
+        else:
+            # print "Adding point to blank space in list, index: ", index - 1
+            self.points[index - 1] = marker
+
+        # print self.points
+        self.register.emit()
+        self.update()
 
     # Returns the number of points that are not None
     def get_num_points(self):

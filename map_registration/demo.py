@@ -19,7 +19,7 @@ class MainWindow(QDialog, Ui_Window):
  
         # Sets up the maps
         self.img_1 = semantic
-        slam_meta_data = yaml_to_meta_data(slam)
+        slam_meta_data = yaml_to_meta_data(slam, "MapMetaData")
         self.slam_origin = slam_meta_data.origin
         self.slam_res = slam_meta_data.resolution
         self.img_2 = path.dirname(slam) + "/" + slam_meta_data.image
@@ -55,6 +55,11 @@ class MainWindow(QDialog, Ui_Window):
         self.clearUnmatched_btn.setToolTip("Clears points which do not have a correpsonding point in the other map")
         self.clearUnmatched_btn.clicked.connect(self.clear_unmatched)
 
+        self.loadPoint_btn.setToolTip("Load points into the map")
+        self.loadPoint_btn.clicked.connect(self.loadPoints)
+        self.exportPoint_btn.setToolTip("Save matching points. Exporting will do this")
+        self.exportPoint_btn.clicked.connect(self.savePoints)
+
         # The signals are emitted after a click in the map window
         self.map1.register.connect(self.update_labels)
         self.map2.register.connect(self.update_labels)
@@ -66,6 +71,62 @@ class MainWindow(QDialog, Ui_Window):
         self.exportZone_btn.clicked.connect(self.export_zones)
         self.importZone_btn.clicked.connect(self.import_zones)
         #Data goes to zoneData, which is a text field
+
+    def loadPoints(self):
+        fname = QFileDialog.getOpenFileName(self, 'Open File', "", 'YAML Files (*.yaml)')  
+        if fname.isEmpty():
+            return
+        fname = str(fname)
+        meta_data = yaml_to_meta_data(fname, "RegisteredMapMetaData")
+        slam_nodes = path.dirname(fname) + "/" + meta_data.slam_nodes
+        first_line = True
+        with open(slam_nodes, 'r') as f:
+            for line in f:
+                if first_line:
+                    # do nothing
+                    first_line = False
+                elif '#' not in line:
+                    # This line is not a comment
+                    s = line.split()
+                    x = int(s[1])
+                    y = int(s[2])
+                    p = QPoint(x, y)
+                    self.map2.select_pix(p)
+        semantic_nodes = path.dirname(fname) + "/" + meta_data.semantic_nodes
+        first_line = True
+        with open(semantic_nodes, 'r') as f:
+            for line in f:
+                if first_line:
+                    # do nothing
+                    first_line = False
+                elif '#' not in line:
+                    # This line is not a commnet
+                    s = line.split()
+                    x = int(s[1])
+                    y = int(s[2])
+                    p = QPoint(x, y)
+                    self.map1.select_pix(p)
+
+    def savePoints(self):
+        counter = 0
+        slam = ""
+        semantic = "" 
+        for p1, p2 in izip(self.map1.get_points(), self.map2.get_points()):
+            if p1 != None and p2 != None:
+                counter += 1
+                semantic += str(counter) + " " + str(p1[0]) + " " + str(p1[1]) + "\n"
+                slam += str(counter) + " " + str(p2[0]) + " " + str(p2[1]) + "\n"
+        semantic = str(counter) + " 2 0 1\n" + semantic
+        slam = str(counter) + " 2 0 1\n" + slam
+        f1 = open('semantic.node', 'w')
+        f2 = open('slam.node', 'w')
+        f1.write(semantic)
+        f2.write(slam)
+        f1.close()
+        f2.close()
+
+        call(["mv", "semantic.node", "register/"])
+        call(["mv", "slam.node", "register/"])
 
     def clear_all(self):
         for p in self.map1.points:
@@ -149,38 +210,19 @@ class MainWindow(QDialog, Ui_Window):
     # Triangulates both maps and writes these to file, along with the 
     # colored triangle images
     def triangulate(self):
-        counter = 0
-        slam = ""
-        semantic = "" 
-        for p1, p2 in izip(self.map1.get_points(), self.map2.get_points()):
-            if p1 != None and p2 != None:
-                counter += 1
-                semantic += str(counter) + " " + str(p1[0]) + " " + str(p1[1]) + "\n"
-                slam += str(counter) + " " + str(p2[0]) + " " + str(p2[1]) + "\n"
-        semantic = str(counter) + " 2 0 1\n" + semantic
-        slam = str(counter) + " 2 0 1\n" + slam
-        f1 = open('semantic.node', 'w')
-        f2 = open('slam.node', 'w')
-        f1.write(semantic)
-        f2.write(slam)
-        f1.close()
-        f2.close()
+        self.savePoints()
 
         # Triangulate the nodes
-        call(["./triangle/triangle", "semantic.node"])
-        call(["./triangle/triangle", "slam.node"])
+        call(["./triangle/triangle", "./register/semantic.node"])
+        call(["./triangle/triangle", "./register/slam.node"])
 
         # Build the triangulated, colored things
         self.color_triangles("slam")
         self.color_triangles("semantic")
 
-        # Move the files to the register folder
-        call(["rm", "semantic.node"])
-        call(["mv", "semantic.1.node", "register/semantic.1.node"])
-        call(["mv", "semantic.1.ele", "register/semantic.1.ele"])
-        call(["rm", "slam.node"])
-        call(["mv", "slam.1.node", "register/slam.1.node"])
-        call(["mv", "slam.1.ele", "register/slam.1.ele"])
+        # Remove the extra .node files
+        call(["rm", "register/semantic.node"])
+        call(["rm", "register/slam.node"])
 
         self.robot.setTransforms(self.map1.get_points(), self.map2.get_points())
         self.toggleRobot.setEnabled(True)
@@ -188,12 +230,12 @@ class MainWindow(QDialog, Ui_Window):
     # Creates and writes the triangules based on the triangulation
     def color_triangles(self, image):
         if image == "semantic":
-            node_file = "semantic.1.node"
-            ele_file = "semantic.1.ele"
+            node_file = "register/semantic.1.node"
+            ele_file = "register/semantic.1.ele"
             rows, cols = cv2.imread(self.img_1, 0).shape
         elif image == "slam":
-            node_file = "slam.1.node"
-            ele_file = "slam.1.ele"
+            node_file = "register/slam.1.node"
+            ele_file = "register/slam.1.ele"
             rows, cols = cv2.imread(self.img_2, 0).shape
         else:
             return

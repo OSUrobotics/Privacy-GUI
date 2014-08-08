@@ -1,0 +1,36 @@
+Conversion: 
+Zone List: 
+    - Name: 'Bedroom'
+      Mode: 1
+      Points: 
+          -
+            x: 601
+            y: 47
+          -
+            x: 418
+            y: 49
+          -
+            x: 417
+            y: 275
+          -
+            x: 605
+            y: 277
+
+
+    - Name: 'Kitchen'
+      Mode: 2
+      Points: 
+          -
+            x: 21
+            y: 306
+          -
+            x: 189
+            y: 301
+          -
+            x: 193
+            y: 456
+          -
+            x: 15
+            y: 456
+
+
