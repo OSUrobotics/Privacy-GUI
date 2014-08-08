@@ -1,0 +1,12 @@
+semantic_map: lab_pretty.pgm
+slam_map: betterMap.pgm
+origin: [-25.0, -34.6, 0.0]
+resolution: 0.05
+slam_width: 1024
+slam_height: 1152
+semantic_width: 223
+semantic_height: 368
+semantic_nodes: semantic.1.node
+slam_nodes: slam.1.node
+semantic_triangles: semantic.1.ele
+slam_triangles: slam.1.ele
