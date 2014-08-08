@@ -92,18 +92,16 @@ class DrawMap(QGraphicsScene):
         # and place a new point when you click
         #If all of the points have been set, simply change the position of the first one again
         marker = self.controller.setNextMarker(self.position)
-        if not marker.is_drawn:
-            print "Not drawn!"
-            print str(self.controller.getMarker().get_pos())
-            # self.addItem(self.controller.getMarker())
+        if not marker.is_drawn:                 #If the marker has not been drawn yet, add it to the scene
             self.addItem(marker)
-        if self.controller.allPoints:
+        if self.controller.allPoints:           #If we have all of the points, draw all of the lines
             for i in range(0, len(self.controller.line)):
                 if not self.controller.lineDrawn[i]:
                     self.addItem(self.controller.getLine(i))
                 else:
                     self.controller.redraw(i+1)
         self.register.emit()
+
         #Make sure to update the scene with the new drawings.
         self.update()
 
@@ -130,33 +128,37 @@ class ZoneHandler():
     #Please provide a line number 1-4
     #Find the points of the corresponding markers and draws a line between them.
     def drawLine(self, lineNumber):
-        if lineNumber > len(self.marker):
+        if lineNumber > len(self.marker): #Don't run if the line number is greater than available points
             return
         x1 = self.marker[lineNumber -1].getX()
         y1 = self.marker[lineNumber -1].getY()
-        # print "First point: " + str(x1) + str(y1)
-        if lineNumber <= 3  :     
+
+        if lineNumber <= len(self.line)-1  :   #If the point at the next index is still in range, grab that  
             x2 = self.marker[lineNumber].getX()
             y2 = self.marker[lineNumber].getY()
-        else:
+        else:                                   #Otherwise, just grab the first point again
             x2 = self.marker[0].getX()
             y2 = self.marker[0].getY()
-        # print "Second Point: " + str(x2) + str(y2)
+
+        #Setting up pen colors for the line
         pen = QPen(Qt.red)
         pen.setWidth(3)
+
+        #Drawing the line and applying colors
         self.line[lineNumber-1].setLine(x1, y1, x2, y2)
         self.line[lineNumber-1].setPen(pen)
-        # self.addItem(self.line[lineNumber-1])
+
+    #Sometimes deals with off by 1 errors in arrays. drawLine is preferred
     def redraw(self, lineNumber):
         self.drawLine(lineNumber-1)
 
-    # takes all of the markers and lines and moves them to the active zone. 
+    #Takes all of the markers and lines and moves them to the active zone. 
     def snapToZone(self):
         for i in range(0, len(self.marker)): #First move the markers
             x = self.zoneList[self.activeZone].points[i][0]
             y = self.zoneList[self.activeZone].points[i][1]
             self.marker[i].update_pos(x, y)
-        for i in range(0, len(self.line)): #Then move the lines
+        for i in range(1, len(self.line)): #Then move the lines
             self.drawLine(i)
 
     # Goes through all of the zones and sets the index as the active zone, all of the other ones inactive
@@ -167,7 +169,6 @@ class ZoneHandler():
                 self.zoneList[i].active = True
             else:
                 self.zoneList[i].active = False
-            # print "Zone " + str(i) + " " +  str(self.zoneList[i].active) #debug to make sure proper active zones
             self.zoneList[i].drawPoly() #Update all objects
         self.snapToZone()
 
@@ -251,34 +252,29 @@ class ZoneHandler():
     """
 
 
-
-
-
-
-
-#Shifting direction to having flags within the zone object
-# Draw Markers
-# Draw Lines
-# Draw Polygon
-# Depending on the flag set, it would only draw certain objects. (only draw lines, only draw markers, only draw polygons, etc)
+#The zone object which is drawn on a map, and is colored based on its privacy settings
 class Zone(QGraphicsPolygonItem):
-    name = "New Zone"
-    mode = 0
-    active = True
-    points = []
-    # poly = QGraphicsPolygonItem()
+    name = "New Zone"   #Zone Name
+    mode = 0            #Privacy Type
+    active = True       #Is this zone active/editable?
+    points = []         #List of Points
+
     def __init__(self, parent=None):
         super(Zone, self).__init__(parent)
+
+        #Set up the Pen and Brush used for drawing the zones. 
+        #We will not be reimplementing the paint event in this class.
         self.pen = QPen(Qt.darkGray)
         self.pen.setWidth(2)
         self.brush = QBrush()
 
         #Privacy zone colors:
+            #Colors for active zones
         self.noFilter = QColor(100, 100, 100, 128) #A slightly transparent grey
         self.private = QColor(255, 0, 0, 128) # A slightly transparent red
         self.public = QColor(Qt.green) #This is because I'm too lazy to find the rgb of green
         self.public.setAlpha(128)
-
+            #Colors for inactive zones
         self.noFilter_inact = QColor(100, 100, 100, 50) #A more transparent grey
         self.private_inact = QColor(255, 0, 0, 50) # A more transparent red
         self.public_inact = QColor(Qt.green) #This is because I'm too lazy to find the rgb of green
@@ -310,12 +306,14 @@ class Zone(QGraphicsPolygonItem):
         
         #Now setup the correct colors depending on the privacy mode.
         self.brushSetup()
+
         #And apply those colors.
         self.setPen(self.pen)
         self.setBrush(self.brush)
 
         #Returns the QPolygonF object for testing purposes. Can be removed
         return temp
+
     # Changes the properties of the brush based on the privacy mode and activity
     def brushSetup(self):
         if self.active: #If the polygon is the current active polygon
@@ -359,27 +357,27 @@ class Zone(QGraphicsPolygonItem):
             self.mode = newMode
             self.brushSetup()
 
-# Taken from MapMetaData.py in the remote_nav package
-class MapMetaData(yaml.YAMLObject):
-    yaml_tag = u'!MapMetaData'
+# # Taken from MapMetaData.py in the remote_nav package
+# class MapMetaData(yaml.YAMLObject):
+#     yaml_tag = u'!MapMetaData'
 
-    def __init__(self, image, resolution, origin, negate, occupied_thresh, free_thresh):
-        self.image = image
-        self.resolution = resolution
-        self.origin = origin
-        self.negate = negate
-        self.occupied_thresh = occupied_thresh
-        self.free_thresh = free_thresh
+#     def __init__(self, image, resolution, origin, negate, occupied_thresh, free_thresh):
+#         self.image = image
+#         self.resolution = resolution
+#         self.origin = origin
+#         self.negate = negate
+#         self.occupied_thresh = occupied_thresh
+#         self.free_thresh = free_thresh
 
-def yaml_to_meta_data(file_name):
-    # Open the file -- no error cehcking here
-    fo = open(file_name)
+# def yaml_to_meta_data(file_name):
+#     # Open the file -- no error cehcking here
+#     fo = open(file_name)
 
-    # Convert yaml -- no error checking here either
-    file_text = fo.read()
-    meta_data = yaml.load("--- !MapMetaData \n" + file_text)
+#     # Convert yaml -- no error checking here either
+#     file_text = fo.read()
+#     meta_data = yaml.load("--- !MapMetaData \n" + file_text)
 
-    fo.close()
+#     fo.close()
 
-    # return MapMetaData object
-    return meta_data
+#     # return MapMetaData object
+#     return meta_data

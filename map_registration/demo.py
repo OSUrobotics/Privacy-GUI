@@ -256,14 +256,41 @@ class MainWindow(QDialog, Ui_Window):
         fin = open(fname, 'r')      
         with fin:        
             # self.import_data = fin.read()
-            data = yaml.safe_load(fin)
-            self.zoneData.setText(str(data))
+            myYaml = yaml.safe_load(fin)
+            text = ""
+            spacer = " \n"
+        # For getting data from the YAML file know this
+        #'Zone List' is a list of zones. For all of the zones, iterate through them 
+            # myYaml['ZoneList'][index]
+        # Name is simply the name label as a string
+        # Mode is an integer for the privacy type.
+        # Points is another list of points, with X and Y values
+        # Access points by using:
+            # myYaml['Zone List'][index]['Points'][x/y]
+            for i in range(0, len(myYaml['Zone List'])):
+                text += myYaml['Zone List'][i]['Name'] + spacer
+                text += self.privacyMode(myYaml['Zone List'][i]['Mode']) + spacer
+                # Add the individual points
+                for j in range(0, len(myYaml['Zone List'][i]['Points'])):
+                    text += str(myYaml['Zone List'][i]['Points'][j]) + spacer
+                
+                text += "-----\n"  
+            #Output to the preview window to make sure it's okay!         
+            self.zoneData.setText(str(text))
             #Import stuff from the yaml file here
         fin.close() 
 
     def convert_points(self):
         data = "Data would go here"
         return data
+
+    def privacyMode(self, mode):
+        if mode == 1:
+            return "Private"
+        elif mode == 2:
+            return "Public"
+        else: 
+            return "No Filter"
 
 
 class MyWindow(QtGui.QDialog):    # any super class is okay

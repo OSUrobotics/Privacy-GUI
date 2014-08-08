@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Created by Suzanne Dazo for Oregon State University
 
 ## Imports
 ## ^^^^^^^
@@ -134,7 +135,15 @@ class MainWindow(QDialog, Ui_Paths):
 		fin = open(fname, 'r')	    
 		with fin:        
 			# self.import_data = fin.read()
-			print yaml.safe_load(fin)
+			myYaml = yaml.safe_load(fin)
+			text = ""
+			spacer = " \n"
+			for i in range(0, len(myYaml['Zone List'])):
+				text += myYaml['Zone List'][i]['Name'] + spacer
+				text += self.privacyMode(myYaml['Zone List'][i]['Mode']) + spacer
+				for j in range(0, len(myYaml['Zone List'][i]['Points'])):
+					text += str(myYaml['Zone List'][i]['Points'][j]) + spacer
+			print text
 			#Import stuff from the yaml file here
 		fin.close()	
 	def showSaveAs(self):
@@ -153,6 +162,13 @@ class MainWindow(QDialog, Ui_Paths):
 		data = self.controller.exportAll()
 		fout.write(data)
 		fout.close()
+	def privacyMode(self, mode):
+		if mode == 1:
+			return "Private"
+		elif mode == 2:
+			return "Public"
+		else: 
+			return "No Filter"
 
 
 
