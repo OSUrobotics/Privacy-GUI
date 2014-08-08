@@ -1,0 +1,36 @@
+Conversion: 
+Zone List: 
+    - Name: 'REU desks'
+      Mode: 1
+      Points: 
+          -
+            x: 99
+            y: 251
+          -
+            x: 173
+            y: 253
+          -
+            x: 173
+            y: 281
+          -
+            x: 101
+            y: 280
+
+
+    - Name: 'PR2 Home'
+      Mode: 2
+      Points: 
+          -
+            x: 43
+            y: 90
+          -
+            x: 93
+            y: 89
+          -
+            x: 95
+            y: 164
+          -
+            x: 46
+            y: 171
+
+
