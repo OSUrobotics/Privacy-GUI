@@ -290,12 +290,13 @@ class MainWindow(QDialog, Ui_Window):
                 filename.append(".yaml")
             fout = open(filename, 'w')
             # Do stuff to write to the file here
-            data = self.convert_points()
-            fout.write(data)
+            converted_points = self.convert_points(self.myYaml)
+            yaml.dump(converted_points, fout)
             fout.close()
 
     def import_zones(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open File', "", 'YAML Files (*.yaml)')  
+        fname = QFileDialog.getOpenFileName(self, 'Open File', "", 'YAML Files (*.yaml)')
+        self.file = fname 
         if fname.isEmpty():
             return
         self.export_ready = True
@@ -325,37 +326,22 @@ class MainWindow(QDialog, Ui_Window):
             #Import stuff from the yaml file here
         fin.close() 
 
-    def convert_points(self):
-        text = "Conversion: \nZone List: \n"
-        tab = "    "
-        spacer = "\n"
-        listItem = "          -\n"
-
+    def convert_points(self, myYaml):
         dst = cv2.imread(self.img_2, 0)
         img_height, img_width = dst.shape
 
-        dst = cv2.imread(self.img_2, 0)
-        for i in range(0, len(self.myYaml['Zone List'])):
-            text += tab + "  Name: '" + self.myYaml['Zone List'][i]['Name'] + "'" + spacer
-            text += tab + "  Mode: " + str(self.myYaml['Zone List'][i]['Mode']) + spacer
-            text += tab + "  Points: \n"
-            for j in range(0, len(self.myYaml['Zone List'][i]['Points'])):
-                # Get (x, y) in semantic map
-                x = int(self.myYaml['Zone List'][i]['Points'][j]['x'])
-                y = int(self.myYaml['Zone List'][i]['Points'][j]['y'])
-                print (x, y)
-                # Convert from semantic frame to slam frame
+        for zone in myYaml['Zone List']:
+            for point in zone['Points']:
+                x = int(point['x'])
+                y = int(point['y'])
                 pt = self.robot.convert_to_2(QPoint(x, y))
                 # Convert from slam image frame to the real world
                 x = (pt[0] * self.slam_res) + self.slam_origin[0]
                 y = self.slam_origin[1] - ((pt[1] - img_height) * self.slam_res)
-                print (x, y)
 
-                text += listItem
-                text += tab + tab + tab + "x: " + str(x) + "\n"
-                text += tab + tab + tab + "y: " + str(y) + "\n"
-                text += "\n"
-        return text
+                point['x'] = x
+                point['y'] = y
+        return myYaml
 
     def privacyMode(self, mode):
         if mode == 1:
