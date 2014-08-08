@@ -19,10 +19,10 @@ class MainWindow(QDialog, Ui_Window):
  
         # Sets up the maps
         self.img_1 = semantic
-        slam_meta_data = yaml_to_meta_data(slam, "MapMetaData")
-        self.slam_origin = slam_meta_data.origin
-        self.slam_res = slam_meta_data.resolution
-        self.img_2 = path.dirname(slam) + "/" + slam_meta_data.image
+        self.slam_meta_data = yaml_to_meta_data(slam, "MapMetaData")
+        self.slam_origin = self.slam_meta_data.origin
+        self.slam_res = self.slam_meta_data.resolution
+        self.img_2 = path.dirname(slam) + "/" + self.slam_meta_data.image
         self.map1 = DrawMap(self.img_1, self)
         self.source.setScene( self.map1 )
         self.map2 = DrawMap(self.img_2, self)
@@ -36,6 +36,7 @@ class MainWindow(QDialog, Ui_Window):
         self.robot1.setVisible(False)
         self.robot2.setVisible(False)
         self.robot = RobotHandler(self.robot1, self.robot2)
+        self.export_ready = False
 
         #Changes GUI attributes
         self.toggleRobot.setEnabled(False)
@@ -281,50 +282,80 @@ class MainWindow(QDialog, Ui_Window):
         cv2.imshow('Preview', image)
         # child = MyWindow(image, self)
         # child.show()
+
     def export_zones(self):
-        filename = QFileDialog.getSaveFileName(self, 'Save As...', '', 'YAML FILES (*.yaml)')
-        if not filename.endsWith(".yaml"):
-            filename.append(".yaml")
-        fout = open(filename, 'w')
-        # Do stuff to write to the file here
-        data = self.convertPoints()
-        fout.write(data)
-        fout.close()
+        if self.export_ready:
+            filename = QFileDialog.getSaveFileName(self, 'Save As...', '', 'YAML FILES (*.yaml)')
+            if not filename.endsWith(".yaml"):
+                filename.append(".yaml")
+            fout = open(filename, 'w')
+            # Do stuff to write to the file here
+            data = self.convert_points()
+            fout.write(data)
+            fout.close()
 
     def import_zones(self):
         fname = QFileDialog.getOpenFileName(self, 'Open File', "", 'YAML Files (*.yaml)')  
         if fname.isEmpty():
             return
+        self.export_ready = True
         fin = open(fname, 'r')      
-        with fin:        
+        with fin:
             # self.import_data = fin.read()
-            myYaml = yaml.safe_load(fin)
+            self.myYaml = yaml.safe_load(fin)
             text = ""
             spacer = " \n"
         # For getting data from the YAML file know this
         #'Zone List' is a list of zones. For all of the zones, iterate through them 
-            # myYaml['ZoneList'][index]
+            # self.myYaml['ZoneList'][index]
         # Name is simply the name label as a string
         # Mode is an integer for the privacy type.
         # Points is another list of points, with X and Y values
         # Access points by using:
-            # myYaml['Zone List'][index]['Points'][x/y]
-            for i in range(0, len(myYaml['Zone List'])):
-                text += myYaml['Zone List'][i]['Name'] + spacer
-                text += self.privacyMode(myYaml['Zone List'][i]['Mode']) + spacer
+            # self.myYaml['Zone List'][index]['Points'][x/y]
+            for i in range(0, len(self.myYaml['Zone List'])):
+                text += self.myYaml['Zone List'][i]['Name'] + spacer
+                text += self.privacyMode(self.myYaml['Zone List'][i]['Mode']) + spacer
                 # Add the individual points
-                for j in range(0, len(myYaml['Zone List'][i]['Points'])):
-                    text += str(myYaml['Zone List'][i]['Points'][j]) + spacer
-                
-                text += "-----\n"  
+                for j in range(0, len(self.myYaml['Zone List'][i]['Points'])):
+                    text += str(self.myYaml['Zone List'][i]['Points'][j]) + spacer
+                text += "-----\n"
             #Output to the preview window to make sure it's okay!         
             self.zoneData.setText(str(text))
             #Import stuff from the yaml file here
         fin.close() 
 
     def convert_points(self):
-        data = "Data would go here"
-        return data
+        text = "Conversion: \nZone List: \n"
+        tab = "    "
+        spacer = "\n"
+        listItem = "          -\n"
+
+        dst = cv2.imread(self.img_2, 0)
+        img_height, img_width = dst.shape
+
+        dst = cv2.imread(self.img_2, 0)
+        for i in range(0, len(self.myYaml['Zone List'])):
+            text += tab + "  Name: '" + self.myYaml['Zone List'][i]['Name'] + "'" + spacer
+            text += tab + "  Mode: " + str(self.myYaml['Zone List'][i]['Mode']) + spacer
+            text += tab + "  Points: \n"
+            for j in range(0, len(self.myYaml['Zone List'][i]['Points'])):
+                # Get (x, y) in semantic map
+                x = int(self.myYaml['Zone List'][i]['Points'][j]['x'])
+                y = int(self.myYaml['Zone List'][i]['Points'][j]['y'])
+                print (x, y)
+                # Convert from semantic frame to slam frame
+                pt = self.robot.convert_to_2(QPoint(x, y))
+                # Convert from slam image frame to the real world
+                x = (pt[0] * self.slam_res) + self.slam_origin[0]
+                y = self.slam_origin[1] - ((pt[1] - img_height) * self.slam_res)
+                print (x, y)
+
+                text += listItem
+                text += tab + tab + tab + "x: " + str(x) + "\n"
+                text += tab + tab + tab + "y: " + str(y) + "\n"
+                text += "\n"
+        return text
 
     def privacyMode(self, mode):
         if mode == 1:

@@ -243,8 +243,8 @@ class RobotHandler():
                 self.registered_points.append((p1, p2))
         self.read_ele("semantic")
         self.read_ele("slam")
-        print self.trans_1_to_2
-        print self.trans_2_to_1
+        # print self.trans_1_to_2
+        # print self.trans_2_to_1
         self.ready = True
 
     def read_ele(self, map_name):
@@ -278,7 +278,7 @@ class RobotHandler():
 
     # Given a 1-indexed number, return a color (tuple)
     def triangle_to_color(self, triangle):
-        color = (0, 255, triangle * 2)
+        color = (0, 255, triangle * 4)
         return color
 
     # Given a color (tuple), return a 1-indexed number
@@ -287,7 +287,7 @@ class RobotHandler():
         if color[0] == 0 and color[1] == 0 and color[2] == 0:
             return -1
         else:
-            return color[2] / 2
+            return color[2] / 4
 
     # Convert a position in map 1 to the map 2 frame
     # Returns a tuple (point) or None
@@ -371,9 +371,13 @@ class TrianglePoints():
 
         # Precompute determinates
         self.slam_det = (self.slam_pts[1][1] - self.slam_pts[2][1]) * (self.slam_pts[0][0] - self.slam_pts[2][0])
-        self.slam_det += (self.slam_pts[2][0] - self.slam_pts[1][0]) * (self.slam_pts[0][1] - self.slam_pts[2][1])
+        self.slam_det += float((self.slam_pts[2][0] - self.slam_pts[1][0]) * (self.slam_pts[0][1] - self.slam_pts[2][1]))
         self.semantic_det = (self.semantic_pts[1][1] - self.semantic_pts[2][1]) * (self.semantic_pts[0][0] - self.semantic_pts[2][0])
-        self.semantic_det += (self.semantic_pts[2][0] - self.semantic_pts[1][0]) * (self.semantic_pts[0][1] - self.semantic_pts[2][1])
+        self.semantic_det += float((self.semantic_pts[2][0] - self.semantic_pts[1][0]) * (self.semantic_pts[0][1] - self.semantic_pts[2][1]))
+
+        # thresholds
+        self.neg_thresh = -0.1
+        self.pos_thresh =  1.1
 
     # Given a point in the (x, y) frame of the slam map, return the (x, y)
     # coordinates in the semantic frame. If the given point is not in the 
@@ -385,14 +389,14 @@ class TrianglePoints():
         lambda_1 = ((slam_2[1] - slam_3[1]) * (pt[0] - slam_3[0]))
         lambda_1 += ((slam_3[0] - slam_2[0]) * (pt[1] - slam_3[1]))
         lambda_1 /= self.slam_det
-        if lambda_1 < 0 or lambda_1 > 1:
+        if lambda_1 < self.neg_thresh or lambda_1 > self.pos_thresh:
             print lambda_1
             print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_2 = ((slam_3[1] - slam_1[1]) * (pt[0] - slam_3[0]))
         lambda_2 += ((slam_1[0] - slam_3[0]) * (pt[1] - slam_3[1]))
         lambda_2 /= self.slam_det
-        if lambda_2 < 0 or lambda_2 > 1:
+        if lambda_2 < self.neg_thresh or lambda_2 > self.pos_thresh:
             print lambda_2
             print "pt ", pt, " not in triangle ", self.id_num
             return None
@@ -414,14 +418,14 @@ class TrianglePoints():
         lambda_1 = ((semantic_2[1] - semantic_3[1]) * (pt[0] - semantic_3[0]))
         lambda_1 += ((semantic_3[0] - semantic_2[0]) * (pt[1] - semantic_3[1]))
         lambda_1 /= self.semantic_det
-        if lambda_1 < 0 or lambda_1 > 1:
+        if lambda_1 < self.neg_thresh or lambda_1 > self.pos_thresh:
             print lambda_1
             print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_2 = ((semantic_3[1] - semantic_1[1]) * (pt[0] - semantic_3[0]))
         lambda_2 += ((semantic_1[0] - semantic_3[0]) * (pt[1] - semantic_3[1]))
         lambda_2 /= self.semantic_det
-        if lambda_2 < 0 or lambda_2 > 1:
+        if lambda_2 < self.neg_thresh or lambda_2 > self.pos_thresh:
             print lambda_2
             print "pt ", pt, " not in triangle ", self.id_num
             return None
