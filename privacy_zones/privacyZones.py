@@ -21,7 +21,8 @@ class MainWindow(QDialog, Ui_Paths):
 		super(QDialog, self).__init__(parent)
 		self.setupUi(self)
 		self.controller = ZoneHandler() #Deals with the multiple zones and selection
-		self.scene=DrawMap(QImage("maps/floorplan.png"), self.controller, self)
+		mapPath = self.importMap()
+		self.scene=DrawMap(QImage(mapPath), self.controller, self)
 		self.map_view.setScene(self.scene)
 
 		## Signals and Slots
@@ -144,6 +145,25 @@ class MainWindow(QDialog, Ui_Paths):
 				for j in range(0, len(myYaml['Zone List'][i]['Points'])):
 					text += str(myYaml['Zone List'][i]['Points'][j]) + spacer
 			print text
+
+			# if self.controller.zoneList.isEmpty():	#If this is a new program, import all of the zones here
+			for i in range (0, len(myYaml['Zone List'])):
+				name = myYaml['Zone List'][i]['Name']
+				mode = myYaml['Zone List'][i]['Mode']
+				pointList = []
+				for j in range(0, len(myYaml['Zone List'][i]['Points'])):
+					x = myYaml['Zone List'][i]['Points'][j]['x']
+					y = myYaml['Zone List'][i]['Points'][j]['y']
+					point = [x, y]
+					pointList.append(point)
+				self.controller.importZone(name, mode, pointList)
+				recentIndex = len(self.controller.zoneList) - 1
+				self.edit_zone.addItem(self.controller.zoneList[recentIndex].name)
+				self.scene.addItem(self.controller.zoneList[recentIndex])
+				self.controller.setActiveZone(recentIndex)
+				self.scene.update()
+
+
 			#Import stuff from the yaml file here
 		fin.close()	
 	def showSaveAs(self):
@@ -162,6 +182,13 @@ class MainWindow(QDialog, Ui_Paths):
 		data = self.controller.exportAll()
 		fout.write(data)
 		fout.close()
+
+	def importMap(self):
+		fname = QFileDialog.getOpenFileName(self, 'Open Map File', "", 'Images (*.pgm *.png *.bmp *.jpg *.jpeg *.gif)')  
+		if fname.isEmpty():
+			return "maps/floorplan.png"
+		else:
+			return fname
 	def privacyMode(self, mode):
 		if mode == 1:
 			return "Private"
