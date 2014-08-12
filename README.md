@@ -35,13 +35,13 @@ Not a ROS package but a python program which is used for map registration
 * PyQt or PySide
 
 ###custom_nav package
-The custom_nav package is to be used ON THE TURTLEBOT when running remote_nav. Copy this repo to your turtlebot/robot and rosmake this package. It is simply a modified version of turtlebot_navigation to better fit our needs. Changes include, but are not limited to: resetting the default map_file, turning on rgb_processing,
-and tinkering with the .yaml configuration files. 
+The custom_nav package is to be used ON THE TURTLEBOT/PR2 when running remote_nav. Copy this repo to your turtlebot/robot and rosmake this package. It is simply a modified version of turtlebot_navigation to better fit our needs. Changes include, but are not limited to: IN amcl_demo.launch,resetting the default map_file, turning on rgb_processing,
+and tinkering with the .yaml configuration files. Additionally, pr2_amcl.launch is added for PR2 localization.
 
 ##Running remote_nav
 In order for remote_nav to run, several things need to be set up (this may be fixed with a future update)
 * turtlebot bringup
-* ROS_MASTER_URI must be set to the robot
+* ROS_MASTER_URI must be set to the robot, and ROS_HOSTNAME and ROS_IP set to your local ip.
 * Amcl must be running with a valid mapfile. This can be run on Blood by roslaunch custom_nav amcl_demo.launch, which uses betterMap.yaml by default.
 * If rviz doesn't see both the map and the video stream, remote_nav won't, either.
 * The please run the proper launchfile for the corresponding robot. 
