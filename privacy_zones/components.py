@@ -1,7 +1,6 @@
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 from PyQt4.QtCore import * 
-import cv2
 import yaml
 
 #The Graphics Scene that holds all of the objects added to it. Registers click events to send to other objects
