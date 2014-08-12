@@ -4,62 +4,6 @@ from PyQt4.QtCore import *
 import cv2
 import yaml
 
-
-#Creates a point at the clicked location and stores the coordinates of the center of that point
-class DrawPoint(QGraphicsObject):
-    #The size of the circle drawn
-    size =  10
-    def __init__(self, parent=None):
-        super(DrawPoint, self).__init__(parent)
-        self.x = -1 - (self.size / 2)
-        self.y = -1 - (self.size / 2)
-        #Prevents the item from being drawn multiple times in a scene.
-        self.is_drawn = False
-
-        # self.xChanged.connect(self.update_self)
-        # self.yChanged.connect(self.update_pos)
-
-    #Required to be defined by any QGraphicsObject class
-    def boundingRect(self):
-        return QRectF(self.x-1, self.y-1, self.size+2, self.size+2)
-
-    #Also required
-    def paint(self, painter, option, widget):
-        self.is_drawn = True
-        pen = QPen(Qt.black)
-        pen.setWidth(1)
-        brush = QBrush(QColor(128, 128, 255, 128))
-        painter.setPen(pen)
-        painter.setBrush(brush)
-        painter.drawEllipse(self.x, self.y, self.size, self.size)
-    
-    #Updates its X an Y position. Used in a signal,slot mechanism
-    def update_self(self):
-        self.blockSignals(True)
-        self.x = self.x()
-        self.y = self.y()
-        self.blockSignals(False)
-
-    #Updates its X and Y position to a given x/y (remapped to the center)
-    def update_pos(self, x, y):
-        self.x = x - (self.size / 2)
-        self.y = y - (self.size / 2)
-        # self.setX(x)
-        # self.setY(y)
-
-    #Returns the position as a tuple
-    def get_pos(self):
-        return (self.x + (self.size / 2), self.y + (self.size / 2))
-
-    #Returns only the X Position at the center line
-    def getX(self):
-        return(self.x + (self.size / 2))
-
-    # Returns only the Y position at the center line
-    def getY(self):
-        return(self.y + (self.size / 2))
-
-
 #The Graphics Scene that holds all of the objects added to it. Registers click events to send to other objects
 # Constructed with a map image that all other items are placed over.
 class DrawMap(QGraphicsScene): 
@@ -158,7 +102,7 @@ class ZoneHandler():
             x = self.zoneList[self.activeZone].points[i][0]
             y = self.zoneList[self.activeZone].points[i][1]
             self.marker[i].update_pos(x, y)
-        for i in range(1, len(self.line)): #Then move the lines
+        for i in range(1, len(self.line)+1): #Then move the lines
             self.drawLine(i)
 
     # Goes through all of the zones and sets the index as the active zone, all of the other ones inactive
@@ -214,7 +158,15 @@ class ZoneHandler():
         for i in range(0, len(self.marker)):
             temp.append(self.marker[i].get_pos())
         return temp
+
+    def importZone(self, name, mode, points):
+        temp = Zone()
+        temp.name = name
+        temp.mode = mode
+        self.zoneList.append(temp)
+        self.zoneList[len(self.zoneList)-1].import_points(points)
     #Returns a giant string of all of the data to be written to a file
+    #This is also kind of inefficient. It could be automaticaly converted to a YAML using yaml.dump probably
     def exportAll(self):
         # In the yaml. Name is a string, mode is an int, and the points is a list (may need to be converted into tuples)
         fstream = ""
@@ -250,6 +202,7 @@ class ZoneHandler():
             ... so on for the rest of the coordinates
         ... This repeats for all of the zones in zoneList
     """
+
 
 
 #The zone object which is drawn on a map, and is colored based on its privacy settings
@@ -357,27 +310,56 @@ class Zone(QGraphicsPolygonItem):
             self.mode = newMode
             self.brushSetup()
 
-# # Taken from MapMetaData.py in the remote_nav package
-# class MapMetaData(yaml.YAMLObject):
-#     yaml_tag = u'!MapMetaData'
+#Creates a point at the clicked location and stores the coordinates of the center of that point
+class DrawPoint(QGraphicsObject):
+    #The size of the circle drawn
+    size =  10
+    def __init__(self, parent=None):
+        super(DrawPoint, self).__init__(parent)
+        self.x = -1 - (self.size / 2)
+        self.y = -1 - (self.size / 2)
+        #Prevents the item from being drawn multiple times in a scene.
+        self.is_drawn = False
 
-#     def __init__(self, image, resolution, origin, negate, occupied_thresh, free_thresh):
-#         self.image = image
-#         self.resolution = resolution
-#         self.origin = origin
-#         self.negate = negate
-#         self.occupied_thresh = occupied_thresh
-#         self.free_thresh = free_thresh
+        # self.xChanged.connect(self.update_self)
+        # self.yChanged.connect(self.update_pos)
 
-# def yaml_to_meta_data(file_name):
-#     # Open the file -- no error cehcking here
-#     fo = open(file_name)
+    #Required to be defined by any QGraphicsObject class
+    def boundingRect(self):
+        return QRectF(self.x-1, self.y-1, self.size+2, self.size+2)
 
-#     # Convert yaml -- no error checking here either
-#     file_text = fo.read()
-#     meta_data = yaml.load("--- !MapMetaData \n" + file_text)
+    #Also required
+    def paint(self, painter, option, widget):
+        self.is_drawn = True
+        pen = QPen(Qt.black)
+        pen.setWidth(1)
+        brush = QBrush(QColor(128, 128, 255, 128))
+        painter.setPen(pen)
+        painter.setBrush(brush)
+        painter.drawEllipse(self.x, self.y, self.size, self.size)
+    
+    #Updates its X an Y position. Used in a signal,slot mechanism
+    def update_self(self):
+        self.blockSignals(True)
+        self.x = self.x()
+        self.y = self.y()
+        self.blockSignals(False)
 
-#     fo.close()
+    #Updates its X and Y position to a given x/y (remapped to the center)
+    def update_pos(self, x, y):
+        self.x = x - (self.size / 2)
+        self.y = y - (self.size / 2)
+        # self.setX(x)
+        # self.setY(y)
 
-#     # return MapMetaData object
-#     return meta_data
+    #Returns the position as a tuple
+    def get_pos(self):
+        return (self.x + (self.size / 2), self.y + (self.size / 2))
+
+    #Returns only the X Position at the center line
+    def getX(self):
+        return(self.x + (self.size / 2))
+
+    # Returns only the Y position at the center line
+    def getY(self):
+        return(self.y + (self.size / 2))
