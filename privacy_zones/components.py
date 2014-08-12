@@ -42,7 +42,7 @@ class DrawMap(QGraphicsScene):
                 if not self.controller.lineDrawn[i]:
                     self.addItem(self.controller.getLine(i))
                 else:
-                    self.controller.redraw(i+1)
+                    self.controller.drawLine(i)
         self.register.emit()
 
         #Make sure to update the scene with the new drawings.
@@ -62,11 +62,21 @@ class ZoneHandler():
         self.zoneList = [] #List of Zones
         self.activeZone = 0 # Index of the currently active zone
 
+
         #Initialize the marker and line arrays to be the proper size
         for i in range(0, 4):
             self.marker.append(DrawPoint())
+
+            self.marker[i].xChanged.connect(self.redraw)
+            self.marker[i].yChanged.connect(self.redraw)
+
             self.line.append(QGraphicsLineItem())
             self.lineDrawn.append(False)
+
+         #SIGNALS AND SLOTS
+        # #^^^^^^^^^^^^^^^^^
+        self.marker[0].xChanged.connect(self.redraw)
+        self.marker[0].yChanged.connect(self.redraw)
 
     #Please provide a line number 1-4
     #Find the points of the corresponding markers and draws a line between them.
@@ -91,9 +101,17 @@ class ZoneHandler():
         self.line[lineNumber-1].setLine(x1, y1, x2, y2)
         self.line[lineNumber-1].setPen(pen)
 
-    #Sometimes deals with off by 1 errors in arrays. drawLine is preferred
-    def redraw(self, lineNumber):
-        self.drawLine(lineNumber-1)
+    #A repaint event for all of the lines, for when any marker is moved.
+    def redraw(self):
+        self.blockedAll(True)
+        if self.allPoints:
+            for i in range (1, len(self.line)+1):
+                self.drawLine(i)
+        self.blockedAll(False)
+
+    def blockedAll(self, disable):
+        for i in range (0, len(self.marker)):
+            self.marker[i].blockSignals(disable)
 
     #Takes all of the markers and lines and moves them to the active zone. 
     def snapToZone(self):
@@ -321,8 +339,7 @@ class DrawPoint(QGraphicsObject):
         self.setFlag(QGraphicsItem.ItemIsMovable)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
 
-        # self.xChanged.connect(self.update_self)
-        # self.yChanged.connect(self.update_pos)
+
 
     #Required to be defined by any QGraphicsObject class
     def boundingRect(self):
@@ -338,17 +355,18 @@ class DrawPoint(QGraphicsObject):
         painter.setBrush(brush)
         painter.drawEllipse(0, 0, self.size, self.size)
     
-    #Updates its X an Y position. Used in a signal,slot mechanism
-    # This function does nothing now. 
-    def update_self(self):
-        self.blockSignals(True)
-        self.blockSignals(False)
+    # #Updates its X an Y position. Used in a signal,slot mechanism
+    # # This function does nothing now. 
+    # def update_self(self):
+    #     self.blockSignals(True)
+    #     self.blockSignals(False)
 
     #Updates its X and Y position to a given x/y (remapped to the center)
     def update_pos(self, x, y):
         x = x - (self.size / 2)
         y = y - (self.size / 2)
         self.setPos(x, y)
+        # self.xChanged.emit()
         # self.setX(x)
         # self.setY(y)
 
