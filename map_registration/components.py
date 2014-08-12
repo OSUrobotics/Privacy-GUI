@@ -60,10 +60,9 @@ class DrawPoint(QGraphicsObject):
     def __init__(self, color, parent=None):
         super(DrawPoint, self).__init__(parent)
         self.color = color
-        self.x = -1 - (self.size / 2)
-        self.y = -1 - (self.size / 2)
         self.is_drawn = False
         self.setFlag(QGraphicsItem.ItemIsMovable)
+        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
         self.mousePressEvent = self.ask_to_be_deleted
 
     # Called when clicked. If Right-click, delete it.
@@ -74,7 +73,7 @@ class DrawPoint(QGraphicsObject):
             self.setVisible(False)
 
     def boundingRect(self):
-        return QRectF(self.x - 1, self.y - 1, self.size + 2, self.size + 2)
+        return QRectF(-1, -1, self.size + 1, self.size + 1)
 
     def paint(self, painter, option, widget):
         self.is_drawn = True
@@ -83,17 +82,19 @@ class DrawPoint(QGraphicsObject):
         brush = QBrush(self.color)
         painter.setPen(pen)
         painter.setBrush(brush)
-        painter.drawRoundedRect(self.x, self.y, self.size, self.size, self.size / 3, self.size / 3)
+        corner_size = self.size / 3
+        painter.drawRoundedRect(0, 0, self.size, self.size, corner_size, corner_size)
 
     # Sets the (x, y) given to be the center of the resutling shape
     def update_pos(self, x, y):
-        self.x = x - (self.size / 2)
-        self.y = y - (self.size / 2)
+        x -= (self.size / 2)
+        y -= (self.size / 2)
+        self.setPos(x, y)
 
     # Returns center-point of marker
     # Returns a tuple (point)
     def get_pos(self):
-        return (self.x + (self.size / 2), self.y + (self.size / 2))
+        return (self.x() + (self.size / 2), self.y() + (self.size / 2))
 
 # Scene representing the map image
 class DrawMap(QGraphicsScene): 

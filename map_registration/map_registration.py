@@ -254,8 +254,8 @@ class MainWindow(QDialog, Ui_Window):
                 elif '#' not in line:
                     # This line is not a comment
                     s = line.split()
-                    x = int(s[1])
-                    y = int(s[2])
+                    x = float(s[1])
+                    y = float(s[2])
                     nodes.append((x, y))
         # From the ele file, color triangles
         first_line = True
