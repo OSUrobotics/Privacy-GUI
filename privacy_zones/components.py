@@ -316,17 +316,18 @@ class DrawPoint(QGraphicsObject):
     size =  10
     def __init__(self, parent=None):
         super(DrawPoint, self).__init__(parent)
-        self.x = -1 - (self.size / 2)
-        self.y = -1 - (self.size / 2)
         #Prevents the item from being drawn multiple times in a scene.
         self.is_drawn = False
+
+        self.setFlag(QGraphicsItem.ItemIsMovable)
+        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
 
         # self.xChanged.connect(self.update_self)
         # self.yChanged.connect(self.update_pos)
 
     #Required to be defined by any QGraphicsObject class
     def boundingRect(self):
-        return QRectF(self.x-1, self.y-1, self.size+2, self.size+2)
+        return QRectF(-1, -1, self.size+2, self.size+2)
 
     #Also required
     def paint(self, painter, option, widget):
@@ -336,30 +337,30 @@ class DrawPoint(QGraphicsObject):
         brush = QBrush(QColor(128, 128, 255, 128))
         painter.setPen(pen)
         painter.setBrush(brush)
-        painter.drawEllipse(self.x, self.y, self.size, self.size)
+        painter.drawEllipse(0, 0, self.size, self.size)
     
     #Updates its X an Y position. Used in a signal,slot mechanism
+    # This function does nothing now. 
     def update_self(self):
         self.blockSignals(True)
-        self.x = self.x()
-        self.y = self.y()
         self.blockSignals(False)
 
     #Updates its X and Y position to a given x/y (remapped to the center)
     def update_pos(self, x, y):
-        self.x = x - (self.size / 2)
-        self.y = y - (self.size / 2)
+        x = x - (self.size / 2)
+        y = y - (self.size / 2)
+        self.setPos(x, y)
         # self.setX(x)
         # self.setY(y)
 
     #Returns the position as a tuple
     def get_pos(self):
-        return (self.x + (self.size / 2), self.y + (self.size / 2))
+        return (self.x() + (self.size / 2), self.y() + (self.size / 2))
 
     #Returns only the X Position at the center line
     def getX(self):
-        return(self.x + (self.size / 2))
+        return(self.x() + (self.size / 2))
 
     # Returns only the Y position at the center line
     def getY(self):
-        return(self.y + (self.size / 2))
+        return(self.y() + (self.size / 2))
