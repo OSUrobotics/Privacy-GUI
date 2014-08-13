@@ -1,0 +1,8 @@
+<launch>
+	<arg name="semantic_map" default=""/>
+	<arg name="slam_map" default=""/>
+
+	<node name="map_registration" pkg="physical_privacy" type="map_registration.py" args="$(arg semantic_map) $(arg slam_map)">
+	</node>
+
+</launch>
