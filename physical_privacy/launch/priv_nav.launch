@@ -1,8 +1,15 @@
 <launch>
 	<arg name="zones" default="$(find physical_privacy)/zones/alex_test.yaml"/>
 	<arg name="navigation" default="true"/>
+
 	<node name="draw_lines" pkg="physical_privacy" type="draw_lines.py">
 		<param name="zones" value="$(arg zones)"/>
 	</node>
+
+	<node name="priv_nav" pkg="physical_privacy" type="priv_nav.py">
+		<param name="zones" value="$(arg zones)"/>
+	</node>
+
+
 
 </launch>

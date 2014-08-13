@@ -1,5 +1,5 @@
 <launch>
-<rosparam file="something" command="load" ns="move_base/global_costmap"/>
+<rosparam file="$(find physical_privacy)/param/turtlebot/costmap_plugins.yaml" command="load" ns="move_base/global_costmap"/>
 
 <include file="$(find turtlebot_navigation)/launch/amcl_demo.launch">
 	<arg name="map_file" default="your/path/to/map.yaml"/>
