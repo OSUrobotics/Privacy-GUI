@@ -7,6 +7,9 @@ project(physical_privacy)
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   sensor_msgs
+  std_msgs
+  roscpp
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -50,11 +53,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  restrictZones.srv
+  # Service2.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -64,10 +67,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   geometry_msgs#   sensor_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+  #   sensor_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -97,9 +101,10 @@ include_directories(
 )
 
 ## Declare a cpp library
-# add_library(physical_privacy
-#   src/${PROJECT_NAME}/physical_privacy.cpp
-# )
+add_library(zone_layer
+  # src/Privacy-GUI/${PROJECT_NAME}/src/zone_layer.cpp
+  src/zone_layer.cpp
+)
 
 ## Declare a cpp executable
 # add_executable(physical_privacy_node src/physical_privacy_node.cpp)
@@ -109,9 +114,9 @@ include_directories(
 # add_dependencies(physical_privacy_node physical_privacy_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(physical_privacy_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(zone_layer
+  ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##
@@ -142,11 +147,11 @@ include_directories(
 # )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(FILES
+  costmap_plugins.xml
+  # myfile2
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 #############
 ## Testing ##

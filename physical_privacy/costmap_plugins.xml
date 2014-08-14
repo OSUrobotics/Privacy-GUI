@@ -1,0 +1,5 @@
+<library path="lib/libzone_layer">
+  <class type="zone_layer_namespace::ZoneLayer" base_class_type="costmap_2d::Layer">
+    <description>Creates an area of lethal obstacle where private zones have been identified</description>
+  </class>
+</library>
