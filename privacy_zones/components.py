@@ -19,6 +19,7 @@ class DrawMap(QGraphicsScene):
 
         #When the mouse is pressed, select and draw a new marker
         self.pixMapItem.mousePressEvent = self.pixelSelect
+
         # The position clicked
         # self.position = QPoint(-1, -1)
 
