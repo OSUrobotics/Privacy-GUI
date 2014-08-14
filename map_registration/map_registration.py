@@ -146,12 +146,11 @@ class MainWindow(QDialog, Ui_Window):
 
     def clear_unmatched(self):
         for p1, p2 in izip_longest(self.map1.points, self.map2.points):
-            print p1, p2
+            # print p1, p2
             if p1 == None and p2 != None:
                 p2.ask_to_be_deleted()
             if p2 == None and p1 != None:
                 p1.ask_to_be_deleted()
-
 
     # Updates the labels telling how many points there are
     def update_labels(self):
@@ -163,6 +162,10 @@ class MainWindow(QDialog, Ui_Window):
             self.export_btn.setEnabled(True)
             self.apply_transform_btn.setEnabled(True)
             self.transform_btn.setEnabled(True)
+        else:
+            self.export_btn.setEnabled(False)
+            self.apply_transform_btn.setEnabled(False)
+            self.transform_btn.setEnabled(False)
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
@@ -172,8 +175,18 @@ class MainWindow(QDialog, Ui_Window):
 
     # Toggle the viewing of the zones on the maps
     def zone_toggle(self):
-        pass
-
+        if self.show_zones_ckbox.isChecked():
+            self.zones = []
+            for zone in self.myYaml['Zone List']:
+                new_zone = Zone(zone)
+                self.zones.append(new_zone)
+                self.map1.addItem(new_zone)
+            if self.robot.ready:
+                print "Drawing Zones on Slam map"
+        else:
+            for zone in self.zones:
+                self.map1.removeItem(zone)
+ 
     # Construct an ordered list of nodes from the given node file
     def nodes(self, node_file):
         nodes = [None]

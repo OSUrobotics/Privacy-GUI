@@ -438,3 +438,48 @@ class TrianglePoints():
         y += lambda_2 * self.slam_pts[1][1]
         y += lambda_3 * self.slam_pts[2][1]
         return (x, y)
+
+class Zone(QGraphicsPolygonItem):
+    name = "New Zone"
+    mode = 0
+
+    def __init__(self, zone_dict, parent=None):
+        super(Zone, self).__init__(parent) 
+
+        mode = int(zone_dict['Mode'])
+
+        pts = []
+        for point in zone_dict['Points']:
+            x = int(point['x'])
+            y = int(point['y'])
+            pts.append((x, y))
+
+        self.setup(mode, pts)
+
+    def setup(self, mode, points):
+        self.pen = QPen(Qt.darkGray)
+        self.pen.setWidth(2)
+        self.brush = QBrush()
+
+        if mode == 0:
+            self.brush = QBrush(QColor(100, 100, 100, 50))
+            self.pen = QPen(Qt.darkGray)
+        elif mode == 1:
+            self.brush = QBrush(QColor(255, 0, 0, 50))
+            self.pen = QPen(Qt.darkRed)
+        elif mode == 2:
+            self.brush = QBrush(QColor(0, 255, 0, 50))
+            self.pen = QPen(Qt.darkGreen)
+        else:
+            print "Invalid Mode"
+            return
+
+        self.setPen(self.pen)
+        self.setBrush(self.brush)
+
+        poly = QPolygonF()
+        for point in points:
+            pt = QPointF(point[0], point[1])
+            poly << pt
+
+        self.setPolygon(poly)
