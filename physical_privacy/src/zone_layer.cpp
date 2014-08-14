@@ -1,6 +1,7 @@
 #include "zone_layer.h"
 #include <pluginlib/class_list_macros.h>
 #include <iostream>
+#include "opencv2/highgui/highgui.hpp"
 
 
 PLUGINLIB_EXPORT_CLASS(zone_layer_namespace::ZoneLayer, costmap_2d::Layer)
@@ -35,6 +36,7 @@ void ZoneLayer::onInitialize()
 
 void ZoneLayer::load() 
 {
+	 cost_img_ = cv::imread("/nfs/attic/smartw/users/lafortuj/Pictures/Nerd_Herd_by_massamino.jpg", CV_LOAD_IMAGE_UNCHANGED);
 	// nav_msgs::GetMap srv_;
 
 	// client_.waitForExistence();

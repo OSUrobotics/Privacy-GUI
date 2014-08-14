@@ -3,7 +3,6 @@
 
 <include file="$(find turtlebot_navigation)/launch/amcl_demo.launch">
 	<arg name="map_file" default="your/path/to/map.yaml"/>
-	<arg name="collect" value="true"/>
 </include>
 
 </launch>

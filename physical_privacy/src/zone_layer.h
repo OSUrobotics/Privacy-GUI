@@ -6,6 +6,7 @@
 #include <costmap_2d/GenericPluginConfig.h>
 #include <dynamic_reconfigure/server.h>
 #include "nav_msgs/OccupancyGrid.h"
+#include "opencv2/core/core.hpp"
 
 namespace zone_layer_namespace
 {
@@ -43,6 +44,8 @@ namespace zone_layer_namespace
 		void load();
 
 		dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig> *dsrv_;
+
+		cv::Mat cost_img_;
 
 	};
 }
