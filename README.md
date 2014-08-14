@@ -10,6 +10,7 @@ Authors:
 * Penn (Filters and Image Products)
 
 ##Why Groovy?
+* Hydro + PR2 is still a little off
 * The current version of the rviz library used in python does not support hydro
 * Mixing groovy and hydro causes crashes and segfaults
 * If you are running any of these packages, **have a separate groovy workspace**
