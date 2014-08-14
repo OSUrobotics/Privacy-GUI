@@ -5,7 +5,7 @@ from PyQt4.QtCore import *
 import numpy as np
 from components import * 
 from itertools import izip, izip_longest
-
+import cv2
 from PyQt4.QtGui import QDialog
 from mapTransform import Ui_Window
 from os import path
@@ -89,8 +89,8 @@ class MainWindow(QDialog, Ui_Window):
                 elif '#' not in line:
                     # This line is not a comment
                     s = line.split()
-                    x = int(s[1])
-                    y = int(s[2])
+                    x = float(s[1])
+                    y = float(s[2])
                     p = QPoint(x, y)
                     self.map2.select_pix(p)
         semantic_nodes = path.dirname(fname) + "/" + meta_data.semantic_nodes
@@ -157,6 +157,23 @@ class MainWindow(QDialog, Ui_Window):
             self.robot.setTransforms(self.map1.get_points(), self.map2.get_points())
         self.robot.setEnabled(self.toggleRobot.isChecked())
 
+    # Construct an ordered list of nodes from the given node file
+    def nodes(self, node_file):
+        nodes = [None]
+        first_line = True
+        with open(node_file, 'r') as f:
+            for line in f:
+                if first_line:
+                    # do nothing
+                    first_line = False
+                elif '#' not in line:
+                    # This line is not a comment
+                    s = line.split()
+                    x = float(s[1])
+                    y = float(s[2])
+                    nodes.append((x, y))
+        return nodes
+
     # Using matching points, view the transformation of the maps
     def transform_map(self):
         self.triangulate()
@@ -165,19 +182,38 @@ class MainWindow(QDialog, Ui_Window):
         #   Draw just that region morphed
         #   Append to whole image 
 
-        # Check that three pairs have been make
-        # if ((-1, -1) not in self.src) and ((-1, -1) not in self.dst):
-        #     print "Transforming Maps"
-        #     self.transform_array()
-        #     # Apply the transform 
-        #     if self.transform != None:
-        #         src = cv2.imread(self.img_1, 0)
-        #         rows, cols = src.shape
-        #         output = cv2.warpAffine(src, self.transform, (cols, rows))
-        #         self.outputWindow(output)
-        #     # cv2.imshow('Output', output)
-        # else:
-        #     print "Not enough pairs to transform"
+        slam_map = cv2.imread(self.img_2, 0)
+        rows, cols = cv2.imread(self.img_1, 0).shape
+        output = np.zeros((rows, cols), np.uint8)
+        slam_nodes = self.nodes("register/slam.1.node")
+        semantic_nodes = self.nodes("register/semantic.1.node")
+        # From the ele file, color triangles
+        first_line = True
+        with open("register/slam.1.ele", 'r') as f:
+            for line in f:
+                if first_line:
+                    # Do nothing
+                    first_line = False 
+                elif '#' not in line:
+                    # This line is not a comment
+                    s = line.split()
+                    node_index_1 = int(s[1])
+                    node_index_2 = int(s[2])
+                    node_index_3 = int(s[3])
+                    slam_pts = [slam_nodes[node_index_1], slam_nodes[node_index_2], slam_nodes[node_index_3]]
+                    semantic_pts = [semantic_nodes[node_index_1], semantic_nodes[node_index_2], semantic_nodes[node_index_3]]
+                    transform = cv2.getAffineTransform(np.array(slam_pts, dtype='float32'), np.array(semantic_pts, dtype='float32'))
+                    if transform != None:
+                        all_transformed = cv2.warpAffine(slam_map, transform, (cols, rows))
+                        area = np.array(semantic_pts, dtype='int32')
+                        area = area.reshape((-1, 1, 2))
+                        mask = np.zeros((rows, cols), np.uint8)
+                        cv2.fillPoly(mask, [area], 255)
+                        tmp = cv2.bitwise_and(all_transformed, mask)
+                        output = cv2.add(tmp, output)
+            cv2.imshow('Output', output)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
     # Saves the values in a yaml file in the current directory
     def export_map(self):
@@ -242,21 +278,8 @@ class MainWindow(QDialog, Ui_Window):
             return
 
         tri_img = np.zeros((rows, cols,3), np.uint8)
-        first_line = True
         # Seed nodes with None since triangles are 1-indexed
-        nodes = [None]
-        # From node file, construct ordered list of nodes
-        with open(node_file, 'r') as f:
-            for line in f:
-                if first_line:
-                    # do nothing
-                    first_line = False
-                elif '#' not in line:
-                    # This line is not a comment
-                    s = line.split()
-                    x = float(s[1])
-                    y = float(s[2])
-                    nodes.append((x, y))
+        nodes = self.nodes(node_file)
         # From the ele file, color triangles
         first_line = True
         with open(ele_file, 'r') as f:
