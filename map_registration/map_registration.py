@@ -110,8 +110,8 @@ class MainWindow(QDialog, Ui_Window):
                 elif '#' not in line:
                     # This line is not a commnet
                     s = line.split()
-                    x = int(s[1])
-                    y = int(s[2])
+                    x = float(s[1])
+                    y = float(s[2])
                     p = QPoint(x, y)
                     self.map1.select_pix(p)
 
@@ -184,7 +184,6 @@ class MainWindow(QDialog, Ui_Window):
                 self.map1_zones.append(new_zone)
                 self.map1.addItem(new_zone)
             if self.robot.ready:
-                print "Drawing Zones on Slam map"
                 for zone in self.myYaml['Zone List']:
                     new_zone = Zone()
                     pts = []
