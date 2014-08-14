@@ -176,16 +176,34 @@ class MainWindow(QDialog, Ui_Window):
     # Toggle the viewing of the zones on the maps
     def zone_toggle(self):
         if self.show_zones_ckbox.isChecked():
-            self.zones = []
+            self.map1_zones = []
+            self.map2_zones = []
             for zone in self.myYaml['Zone List']:
-                new_zone = Zone(zone)
-                self.zones.append(new_zone)
+                new_zone = Zone()
+                new_zone.setup_from_dict(zone)
+                self.map1_zones.append(new_zone)
                 self.map1.addItem(new_zone)
             if self.robot.ready:
                 print "Drawing Zones on Slam map"
+                for zone in self.myYaml['Zone List']:
+                    new_zone = Zone()
+                    pts = []
+                    for point in zone['Points']:
+                        x = int(point['x'])
+                        y = int(point['y'])
+                        conv_pt = self.robot.convert_to_2(QPoint(x, y))
+                        if conv_pt == None:
+                            print "Transformation does not encapsulate this Zone!"
+                            return
+                        pts.append(conv_pt)
+                    new_zone.setup(int(zone['Mode']), pts)
+                    self.map2_zones.append(new_zone)
+                    self.map2.addItem(new_zone)
         else:
-            for zone in self.zones:
+            for zone in self.map1_zones:
                 self.map1.removeItem(zone)
+            for zone in self.map2_zones:
+                self.map2.removeItem(zone)
  
     # Construct an ordered list of nodes from the given node file
     def nodes(self, node_file):

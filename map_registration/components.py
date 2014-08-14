@@ -443,9 +443,10 @@ class Zone(QGraphicsPolygonItem):
     name = "New Zone"
     mode = 0
 
-    def __init__(self, zone_dict, parent=None):
+    def __init__(self, parent=None):
         super(Zone, self).__init__(parent) 
 
+    def setup_from_dict(self, zone_dict):
         mode = int(zone_dict['Mode'])
 
         pts = []
