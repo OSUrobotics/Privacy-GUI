@@ -146,12 +146,11 @@ class MainWindow(QDialog, Ui_Window):
 
     def clear_unmatched(self):
         for p1, p2 in izip_longest(self.map1.points, self.map2.points):
-            print p1, p2
+            # print p1, p2
             if p1 == None and p2 != None:
                 p2.ask_to_be_deleted()
             if p2 == None and p1 != None:
                 p1.ask_to_be_deleted()
-
 
     # Updates the labels telling how many points there are
     def update_labels(self):
@@ -163,6 +162,10 @@ class MainWindow(QDialog, Ui_Window):
             self.export_btn.setEnabled(True)
             self.apply_transform_btn.setEnabled(True)
             self.transform_btn.setEnabled(True)
+        else:
+            self.export_btn.setEnabled(False)
+            self.apply_transform_btn.setEnabled(False)
+            self.transform_btn.setEnabled(False)
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
@@ -172,8 +175,36 @@ class MainWindow(QDialog, Ui_Window):
 
     # Toggle the viewing of the zones on the maps
     def zone_toggle(self):
-        pass
-
+        if self.show_zones_ckbox.isChecked():
+            self.map1_zones = []
+            self.map2_zones = []
+            for zone in self.myYaml['Zone List']:
+                new_zone = Zone()
+                new_zone.setup_from_dict(zone)
+                self.map1_zones.append(new_zone)
+                self.map1.addItem(new_zone)
+            if self.robot.ready:
+                print "Drawing Zones on Slam map"
+                for zone in self.myYaml['Zone List']:
+                    new_zone = Zone()
+                    pts = []
+                    for point in zone['Points']:
+                        x = int(point['x'])
+                        y = int(point['y'])
+                        conv_pt = self.robot.convert_to_2(QPoint(x, y))
+                        if conv_pt == None:
+                            print "Transformation does not encapsulate this Zone!"
+                            return
+                        pts.append(conv_pt)
+                    new_zone.setup(int(zone['Mode']), pts)
+                    self.map2_zones.append(new_zone)
+                    self.map2.addItem(new_zone)
+        else:
+            for zone in self.map1_zones:
+                self.map1.removeItem(zone)
+            for zone in self.map2_zones:
+                self.map2.removeItem(zone)
+ 
     # Construct an ordered list of nodes from the given node file
     def nodes(self, node_file):
         nodes = [None]

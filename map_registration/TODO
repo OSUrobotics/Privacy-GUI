@@ -1,6 +1,5 @@
 When importing zones, draw on both maps
 	Include button to toggle 
-Add button that just applies the transform without doing anything else
 Status bar at the bottom?
 Export registration properly: promt for location and name
-
+provide gui-less commandline way of transforming zones?
