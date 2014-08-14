@@ -10,7 +10,12 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   roscpp
   message_generation
+  cv_bridge
 )
+
+find_package(
+  OpenCV
+  )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -83,7 +88,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+ # INCLUDE_DIRS include
  LIBRARIES zone_layer
 #  CATKIN_DEPENDS geometry_msgs sensor_msgs
 #  DEPENDS system_lib
@@ -117,6 +122,8 @@ add_library(zone_layer
 target_link_libraries(zone_layer
   ${catkin_LIBRARIES}
 )
+
+message(catkin_LIBRARIES is equal to ${catkin_LIBRARIES})
 
 #############
 ## Install ##
