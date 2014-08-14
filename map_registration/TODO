@@ -4,9 +4,4 @@ Improve Zones
 	preview on transformed map as well
 Status bar at the bottom?
 	Then write lots of status messages
-Export registration properly
-	prompt for location and name
 provide gui-less commandline way of transforming zones?
-Rename "Affine" tab to "Transformation"
-	And make it selected by default
-	Rething tabs?

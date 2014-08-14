@@ -287,6 +287,12 @@ class MainWindow(QDialog, Ui_Window):
         call(["cp", self.img_2, "register/"])
         call(["cp", self.img_1, "register/"])
 
+        filename = QFileDialog.getSaveFileName(self, 'Save As....', '', 'Map Registration Files (*.mreg)')
+        if not filename.endsWith(".mreg"):
+            filename.append(".mreg")
+        call(['mkdir', filename])
+        call(['cp', '-r', 'register/', filename])
+
     # Triangulates both maps and writes these to file, along with the 
     # colored triangle images
     def triangulate(self):
