@@ -391,15 +391,15 @@ class TrianglePoints():
         lambda_1 += ((slam_3[0] - slam_2[0]) * (pt[1] - slam_3[1]))
         lambda_1 /= self.slam_det
         if lambda_1 < self.neg_thresh or lambda_1 > self.pos_thresh:
-            print lambda_1
-            print "pt ", pt, " not in triangle ", self.id_num
+            # print lambda_1
+            # print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_2 = ((slam_3[1] - slam_1[1]) * (pt[0] - slam_3[0]))
         lambda_2 += ((slam_1[0] - slam_3[0]) * (pt[1] - slam_3[1]))
         lambda_2 /= self.slam_det
         if lambda_2 < self.neg_thresh or lambda_2 > self.pos_thresh:
-            print lambda_2
-            print "pt ", pt, " not in triangle ", self.id_num
+            # print lambda_2
+            # print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_3 = 1 - lambda_1 - lambda_2
         x = lambda_1 * self.semantic_pts[0][0]
@@ -420,15 +420,15 @@ class TrianglePoints():
         lambda_1 += ((semantic_3[0] - semantic_2[0]) * (pt[1] - semantic_3[1]))
         lambda_1 /= self.semantic_det
         if lambda_1 < self.neg_thresh or lambda_1 > self.pos_thresh:
-            print lambda_1
-            print "pt ", pt, " not in triangle ", self.id_num
+            # print lambda_1
+            # print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_2 = ((semantic_3[1] - semantic_1[1]) * (pt[0] - semantic_3[0]))
         lambda_2 += ((semantic_1[0] - semantic_3[0]) * (pt[1] - semantic_3[1]))
         lambda_2 /= self.semantic_det
         if lambda_2 < self.neg_thresh or lambda_2 > self.pos_thresh:
-            print lambda_2
-            print "pt ", pt, " not in triangle ", self.id_num
+            # print lambda_2
+            # print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_3 = 1 - lambda_1 - lambda_2
         x = lambda_1 * self.slam_pts[0][0]

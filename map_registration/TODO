@@ -1,6 +1,6 @@
-Triangulate src, dst
-Generate color'd image
-update YAML representation
-use the triangle'd transform for robot model
-preview triangle'd transform
-Make point update properly when dragged
+When importing zones, draw on both maps
+	Include button to toggle 
+Add button that just applies the transform without doing anything else
+Status bar at the bottom?
+Export registration properly: promt for location and name
+

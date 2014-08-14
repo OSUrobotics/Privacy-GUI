@@ -33,7 +33,7 @@
       </property>
      </widget>
      <widget class="QWidget" name="layoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0">
        <item>
         <widget class="QPushButton" name="export_btn">
          <property name="text">
@@ -45,6 +45,13 @@
         <widget class="QPushButton" name="transform_btn">
          <property name="text">
           <string>Preview Transformation</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="apply_transform_btn">
+         <property name="text">
+          <string>Apply Transformation</string>
          </property>
         </widget>
        </item>
@@ -67,7 +74,7 @@
        <item>
         <widget class="QTabWidget" name="tools">
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="affine_tool">
           <attribute name="title">
@@ -262,6 +269,13 @@
            </item>
           </layout>
          </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="show_zones_ckbox">
+         <property name="text">
+          <string>Show Zones</string>
+         </property>
         </widget>
        </item>
        <item>

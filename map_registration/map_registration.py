@@ -38,8 +38,12 @@ class MainWindow(QDialog, Ui_Window):
         self.robot = RobotHandler(self.robot1, self.robot2)
         self.export_ready = False
 
-        #Changes GUI attributes
+        # disable buttons until they are ready
         self.toggleRobot.setEnabled(False)
+        self.show_zones_ckbox.setEnabled(False)
+        self.export_btn.setEnabled(False)
+        self.apply_transform_btn.setEnabled(False)
+        self.transform_btn.setEnabled(False)
 
         self.map1.addItem(self.robot1)
         self.map2.addItem(self.robot2)
@@ -50,6 +54,9 @@ class MainWindow(QDialog, Ui_Window):
         self.export_btn.setToolTip("Save the transformed map")
         self.export_btn.clicked.connect(self.export_map)
         self.update_labels()
+
+        self.apply_transform_btn.setToolTip("Applies Transform only")
+        self.apply_transform_btn.clicked.connect(self.triangulate)
 
         self.clearAll_btn.setToolTip("Clears all points from  both maps")
         self.clearAll_btn.clicked.connect(self.clear_all)
@@ -67,7 +74,7 @@ class MainWindow(QDialog, Ui_Window):
 
         # Setting up the robot toggled checkbox 
         self.toggleRobot.stateChanged.connect(self.robot_toggle)
-
+        self.show_zones_ckbox.stateChanged.connect(self.zone_toggle)
 
         self.exportZone_btn.clicked.connect(self.export_zones)
         self.importZone_btn.clicked.connect(self.import_zones)
@@ -148,14 +155,24 @@ class MainWindow(QDialog, Ui_Window):
 
     # Updates the labels telling how many points there are
     def update_labels(self):
-        self.label_4.setText(str(self.map1.get_num_points()))
-        self.label_5.setText(str(self.map2.get_num_points()))
+        map_1_pts = self.map1.get_num_points()
+        map_2_pts = self.map2.get_num_points()
+        self.label_4.setText(str(map_1_pts))
+        self.label_5.setText(str(map_2_pts))
+        if map_1_pts > 2 and map_2_pts > 2:
+            self.export_btn.setEnabled(True)
+            self.apply_transform_btn.setEnabled(True)
+            self.transform_btn.setEnabled(True)
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
         if self.toggleRobot.isChecked():
             self.robot.setTransforms(self.map1.get_points(), self.map2.get_points())
         self.robot.setEnabled(self.toggleRobot.isChecked())
+
+    # Toggle the viewing of the zones on the maps
+    def zone_toggle(self):
+        pass
 
     # Construct an ordered list of nodes from the given node file
     def nodes(self, node_file):
@@ -177,10 +194,6 @@ class MainWindow(QDialog, Ui_Window):
     # Using matching points, view the transformation of the maps
     def transform_map(self):
         self.triangulate()
-        # for each triangle:
-        #   calculate affine transform using endpoints
-        #   Draw just that region morphed
-        #   Append to whole image 
 
         slam_map = cv2.imread(self.img_2, 0)
         rows, cols = cv2.imread(self.img_1, 0).shape
@@ -348,6 +361,7 @@ class MainWindow(QDialog, Ui_Window):
             self.zoneData.setText(str(text))
             #Import stuff from the yaml file here
         fin.close() 
+        self.show_zones_ckbox.setEnabled(True)
 
     def convert_points(self, myYaml):
         dst = cv2.imread(self.img_2, 0)
