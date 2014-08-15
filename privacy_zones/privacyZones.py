@@ -22,7 +22,7 @@ class MainWindow(QDialog, Ui_Paths):
 		self.setupUi(self)
 		self.controller = ZoneHandler() #Deals with the multiple zones and selection
 		mapPath = self.importMap()
-		self.scene=DrawMap(QImage(mapPath), self.controller, self)
+		self.scene = DrawMap(QImage(mapPath), self.controller, self)
 		self.map_view.setScene(self.scene)
 
 		## Signals and Slots
@@ -32,6 +32,17 @@ class MainWindow(QDialog, Ui_Paths):
 		self.edit_zone.currentIndexChanged.connect(self.loadZone)
 		self.export_btn.clicked.connect(self.showSaveAs)
 		self.import_btn.clicked.connect(self.showOpen)
+		self.delete_zone_btn.clicked.connect(self.delete_zone)
+
+		self.delete_zone_btn.setEnabled(False)
+
+	# Called when delete zone button is pressed. Deletes the currently active zone
+	def delete_zone(self):
+		self.scene.removeItem(self.currentZone)
+		self.controller.zoneList.remove(self.currentZone)
+		self.edit_zone.removeItem(self.edit_zone.currentIndex())
+		self.scene.update()
+		self.zone_name.clear()
 
 	# What happens when you click the save button
 	def onSaveClick(self):
@@ -80,10 +91,15 @@ class MainWindow(QDialog, Ui_Paths):
 		self.zone_name.clear()
 		self.savedFlag = True
 		self.disableUI()
+		self.delete_zone_btn.setEnabled(True)
 
 	# Sets the current zone to the specified object in the zone list
 	# populates the 
 	def loadZone(self, index):
+		if len(self.controller.zoneList) == 0:
+			self.delete_zone_btn.setEnabled(False)
+			self.disableUI()
+			return
 		self.currentZone = self.controller.zoneList[index]
 		self.zone_name.setText(self.currentZone.name)
 		self.privacy_type.setCurrentIndex(self.currentZone.mode)
