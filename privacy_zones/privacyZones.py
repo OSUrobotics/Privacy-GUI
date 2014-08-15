@@ -85,12 +85,14 @@ class MainWindow(QDialog, Ui_Paths):
 		#Happens if the edit flag is false (not currently editing)
 		if not editing:
 			self.addtoList()
+			self.editFlag = True
+			index = len(self.controller.zoneList) - 1
 		else:
 			i = self.edit_zone.currentIndex()
 			self.updateList(i)
-		self.zone_name.clear()
+		#self.zone_name.clear()
 		self.savedFlag = True
-		self.disableUI()
+		#self.disableUI()
 		self.delete_zone_btn.setEnabled(True)
 
 	# Sets the current zone to the specified object in the zone list
