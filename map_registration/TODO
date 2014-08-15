@@ -1,5 +1,7 @@
-When importing zones, draw on both maps
-	Include button to toggle 
+Improve Zones
+	Preview thing should be of what it is going to export (so you can scan for Nones)
+	Use edges not corners
+	preview on transformed map as well
 Status bar at the bottom?
-Export registration properly: promt for location and name
+	Then write lots of status messages
 provide gui-less commandline way of transforming zones?

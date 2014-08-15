@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mapTransform.ui'
 #
-# Created: Thu Aug 14 10:19:03 2014
+# Created: Thu Aug 14 14:33:09 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -100,6 +100,11 @@ class Ui_Window(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout_3)
         self.tools.addTab(self.affine_tool, _fromUtf8(""))
         self.zone_tool = QtGui.QWidget()
+        font = QtGui.QFont()
+        font.setBold(False)
+        font.setWeight(50)
+        self.zone_tool.setFont(font)
+        self.zone_tool.setAutoFillBackground(False)
         self.zone_tool.setObjectName(_fromUtf8("zone_tool"))
         self.verticalLayout_6 = QtGui.QVBoxLayout(self.zone_tool)
         self.verticalLayout_6.setObjectName(_fromUtf8("verticalLayout_6"))
@@ -135,7 +140,7 @@ class Ui_Window(object):
         self.verticalLayout_4.addWidget(self.splitter)
 
         self.retranslateUi(Window)
-        self.tools.setCurrentIndex(1)
+        self.tools.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Window)
         Window.setTabOrder(self.source, self.destination)
         Window.setTabOrder(self.destination, self.export_btn)
@@ -160,7 +165,7 @@ class Ui_Window(object):
         self.label_4.setText(QtGui.QApplication.translate("Window", "0", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("Window", "Number of Points in Map 2: ", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("Window", "1", None, QtGui.QApplication.UnicodeUTF8))
-        self.tools.setTabText(self.tools.indexOf(self.affine_tool), QtGui.QApplication.translate("Window", "Affine", None, QtGui.QApplication.UnicodeUTF8))
+        self.tools.setTabText(self.tools.indexOf(self.affine_tool), QtGui.QApplication.translate("Window", "Transformation", None, QtGui.QApplication.UnicodeUTF8))
         self.importZone_btn.setToolTip(QtGui.QApplication.translate("Window", "Import a zone file to convert points.", None, QtGui.QApplication.UnicodeUTF8))
         self.importZone_btn.setText(QtGui.QApplication.translate("Window", "Import Zone File", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("Window", "File Preview:", None, QtGui.QApplication.UnicodeUTF8))

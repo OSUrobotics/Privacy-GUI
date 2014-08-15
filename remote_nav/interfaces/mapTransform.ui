@@ -74,11 +74,11 @@
        <item>
         <widget class="QTabWidget" name="tools">
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="affine_tool">
           <attribute name="title">
-           <string>Affine</string>
+           <string>Transformation</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
@@ -200,6 +200,15 @@
           </layout>
          </widget>
          <widget class="QWidget" name="zone_tool">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
           <attribute name="title">
            <string>Zones</string>
           </attribute>

@@ -110,8 +110,8 @@ class MainWindow(QDialog, Ui_Window):
                 elif '#' not in line:
                     # This line is not a commnet
                     s = line.split()
-                    x = int(s[1])
-                    y = int(s[2])
+                    x = float(s[1])
+                    y = float(s[2])
                     p = QPoint(x, y)
                     self.map1.select_pix(p)
 
@@ -184,7 +184,6 @@ class MainWindow(QDialog, Ui_Window):
                 self.map1_zones.append(new_zone)
                 self.map1.addItem(new_zone)
             if self.robot.ready:
-                print "Drawing Zones on Slam map"
                 for zone in self.myYaml['Zone List']:
                     new_zone = Zone()
                     pts = []
@@ -287,6 +286,12 @@ class MainWindow(QDialog, Ui_Window):
         call(["mv", "registration.yaml", "register/"])
         call(["cp", self.img_2, "register/"])
         call(["cp", self.img_1, "register/"])
+
+        filename = QFileDialog.getSaveFileName(self, 'Save As....', '', 'Map Registration Files (*.mreg)')
+        if not filename.endsWith(".mreg"):
+            filename.append(".mreg")
+        call(['mkdir', filename])
+        call(['cp', '-r', 'register/', filename])
 
     # Triangulates both maps and writes these to file, along with the 
     # colored triangle images
