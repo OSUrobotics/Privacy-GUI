@@ -2,6 +2,7 @@
 import rospy
 import yaml
 import pprint
+import rospkg
 from geometry_msgs.msg import Polygon, Point32
 from physical_privacy.srv import restrictZones
 
@@ -32,7 +33,7 @@ if __name__ == '__main__':
 				new_point.y = point['y']
 				polygon.points.append(new_point)
 			polygon_list.append(polygon)
-		restrict_zones_client(polygon_list)
+		print restrict_zones_client(polygon_list)
 
 
 

@@ -2,6 +2,8 @@
 #include <pluginlib/class_list_macros.h>
 #include <iostream>
 #include "opencv2/highgui/highgui.hpp"
+#include "std_msgs/Bool.h"
+#include "opencv2/opencv.hpp"
 
 
 PLUGINLIB_EXPORT_CLASS(zone_layer_namespace::ZoneLayer, costmap_2d::Layer)
@@ -14,14 +16,16 @@ namespace zone_layer_namespace
 
 ZoneLayer::ZoneLayer() {}
 
+
 void ZoneLayer::onInitialize()
 {
 	ros::NodeHandle nh("~/" + name_), g_nh;
 
 	ROS_INFO("Activating Zone Layer.");
 
+	zones_received_ = false;
 	current_ = true;
-	default_value_ = NO_INFORMATION;
+	default_value_ = 0;
 	matchSize();
 
 	dsrv_ = new dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig>(nh);
@@ -29,37 +33,79 @@ void ZoneLayer::onInitialize()
 			&ZoneLayer::reconfigureCB, this, _1, _2);
 	dsrv_->setCallback(cb);
 
+	cost_img_ = cv::Mat(getSizeInCellsX(), getSizeInCellsY(), CV_8U);
+	cost_img_ = cv::Scalar(0);
 
+	// ROS_INFO("NO_INFORMATION = %d, LETHAL_OBSTACLE = %d", NO_INFORMATION, LETHAL_OBSTACLE);
 
-	load();
+	service_ = g_nh.advertiseService("restrict_zones", &zone_layer_namespace::ZoneLayer::zones, this);
+	// ros::spinOnce();
+
+	// zones();
 }
 
-void ZoneLayer::load() 
+bool ZoneLayer::zones(physical_privacy::restrictZones::Request  &req, 
+					physical_privacy::restrictZones::Response &res) 
 {
-	 cost_img_ = cv::imread("/nfs/attic/smartw/users/lafortuj/Pictures/Nerd_Herd_by_massamino.jpg", CV_LOAD_IMAGE_UNCHANGED);
-	// nav_msgs::GetMap srv_;
+	zones_received_ = true;
 
-	// client_.waitForExistence();
-	// if (client_.call(srv_)) {
-	// 	std::cout << srv_.response.map.info;
-	// }
-	// else {
+	const cv::Point **pts;
+	int n_polygons = req.polygons.size();
+	pts = new const cv::Point* [n_polygons];
+	int *polygon_sizes = new int [n_polygons];
 
-	// 	ROS_ERROR("SERVICE CALL FAILED");
-	// 	exit(1);
-	// }
+	// std::cout << "Polygons:" << std::endl;
+	for (int i = 0; i < n_polygons; i++) 
+	{
+		// std::cout << "\tPolygon " << i << std::endl;
+		polygon_sizes[i] = req.polygons[i].points.size();
+		cv::Point *tmp = new cv::Point[polygon_sizes[i]];
+		for (int j = 0; j < polygon_sizes[i]; j++) {
+			double wx, wy;
+			wx = req.polygons[i].points[j].x;
+			wy = req.polygons[i].points[j].y;
+			unsigned int mx, my;
+			res.success.data = worldToMap(wx, wy, mx, my);
+			if (!res.success.data) return true;
+			// std::cout << "\t\tPoint " << mx << ", "<< my << std::endl;
+			tmp[j] = cv::Point(mx, my);
+		}
+		pts[i] = tmp;
+	}  
 
-	// for (int i = 0; i < getSizeInCellsX() * getSizeInCellsY(); i++)
-	// {
-	// 	costmap_[i] = (srv_.response.map.data[i]);
-	// }
+	cv::fillPoly(cost_img_, pts, polygon_sizes, n_polygons, cv::Scalar(NO_INFORMATION));
+
+	img_to_map_();
+
+	// cv::Mat tmp_img;
+	// cv::resize(cost_img_, tmp_img, cv::Size(400, 400));
+
+	// cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );// Create a window for display.
+ //    cv::imshow( "Display window", tmp_img );                   // Show our image inside it.
+
+ //    cv::waitKey(0); 
+	
+	
+	return true;
+}
+
+void ZoneLayer::img_to_map_() {
+	for (int i = 0; i < getSizeInCellsX(); i++) {
+		for (int j = 0; j < getSizeInCellsY(); j++) {
+			int cost = cost_img_.at<int>(i, j);
+			setCost(i, j, cost);
+		}
+	}
 }
 
 void ZoneLayer::matchSize()
 {
 	Costmap2D* master = layered_costmap_->getCostmap();
-	resizeMap(master->getSizeInCellsX(), master->getSizeInCellsY(), master->getResolution(),
-				master->getOriginX(), master->getOriginY());
+	resizeMap(master->getSizeInCellsX(), 
+				master->getSizeInCellsY(), 
+				master->getResolution(),
+				master->getOriginX(), 
+				master->getOriginY());
 }
 
 
@@ -69,39 +115,49 @@ void ZoneLayer::reconfigureCB(costmap_2d::GenericPluginConfig &config, uint32_t 
 
 }
 
-void ZoneLayer::updateBounds(double origin_x, double origin_y, double origin_yaw, double* min_x,
-									double* min_y, double* max_x, double* max_y)
+void ZoneLayer::updateBounds(double origin_x, 
+								double origin_y, 
+								double origin_yaw, 
+								double* min_x,
+								double* min_y, 
+								double* max_x, 
+								double* max_y)
 {
-	// if (enabled_ == was_enabled_) {
-	// 	return;
-	// }
-	// else {
-	double wx, wy;
+	ros::spinOnce();
+	if (!enabled_ || !zones_received_ ) {
+		return;
+	}
+	else {
+		double wx, wy;
 
-	mapToWorld(0, 0, wx, wy);
-	*min_x = wx;
-	*min_y = wy;
+		mapToWorld(0, 0, wx, wy);
+		*min_x = wx;
+		*min_y = wy;
 
-	mapToWorld(getSizeInCellsX(), getSizeInCellsY(), wx, wy);
-	*max_x = wx;
-	*max_y = wy;
+		mapToWorld(getSizeInCellsX(), getSizeInCellsY(), wx, wy);
+		*max_x = wx;
+		*max_y = wy;
 
-	// }
+		zones_received_ = false;
+
+	}
 }
 
-void ZoneLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i,
-																					int max_j)
+void ZoneLayer::updateCosts(costmap_2d::Costmap2D& master_grid, 
+								int min_i, 
+								int min_j, 
+								int max_i,
+								int max_j)
 {
 	if (enabled_) {
 		for (int j = min_j; j < max_j; j++)
 		{
 			for (int i = min_i; i < max_i; i++)
 			{
-				int index = getIndex(i, j);
-				int cost = master_grid.getCost(i, j); 
-				if (cost >= 50)
-					continue;
-				master_grid.setCost(i, j, costmap_[index]);
+				int cost = getCost(i, j);
+				if (cost == NO_INFORMATION) {
+					master_grid.setCost(i, j, cost);
+				}
 			}
 		}
 	}

@@ -1,11 +1,14 @@
 #ifndef ZONE_LAYER_H_
 #define ZONE_LAYER_H_
+// ROS Libraries
 #include <ros/ros.h>
 #include <costmap_2d/costmap_layer.h>
 #include <costmap_2d/layered_costmap.h>
 #include <costmap_2d/GenericPluginConfig.h>
 #include <dynamic_reconfigure/server.h>
-#include "nav_msgs/OccupancyGrid.h"
+// msgs and srvs
+#include "physical_privacy/restrictZones.h"
+// external libraries
 #include "opencv2/core/core.hpp"
 
 namespace zone_layer_namespace
@@ -41,11 +44,18 @@ namespace zone_layer_namespace
 	private:
 		void reconfigureCB(costmap_2d::GenericPluginConfig &config, uint32_t level);
 
-		void load();
+		bool zones(physical_privacy::restrictZones::Request  &req, 
+					physical_privacy::restrictZones::Response &res); 
+
+		void img_to_map_();
 
 		dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig> *dsrv_;
 
 		cv::Mat cost_img_;
+
+		ros::ServiceServer service_;
+
+		bool zones_received_;
 
 	};
 }
