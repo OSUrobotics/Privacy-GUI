@@ -123,7 +123,6 @@ target_link_libraries(zone_layer
   ${catkin_LIBRARIES}
 )
 
-message(catkin_LIBRARIES is equal to ${catkin_LIBRARIES})
 
 #############
 ## Install ##
