@@ -1,6 +1,7 @@
-Triangulate src, dst
-Generate color'd image
-update YAML representation
-use the triangle'd transform for robot model
-preview triangle'd transform
-Make point update properly when dragged
+Improve Zones
+	Preview thing should be of what it is going to export (so you can scan for Nones)
+	Use edges not corners
+	preview on transformed map as well
+Status bar at the bottom?
+	Then write lots of status messages
+provide gui-less commandline way of transforming zones?

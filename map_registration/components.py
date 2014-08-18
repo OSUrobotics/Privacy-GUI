@@ -391,15 +391,15 @@ class TrianglePoints():
         lambda_1 += ((slam_3[0] - slam_2[0]) * (pt[1] - slam_3[1]))
         lambda_1 /= self.slam_det
         if lambda_1 < self.neg_thresh or lambda_1 > self.pos_thresh:
-            print lambda_1
-            print "pt ", pt, " not in triangle ", self.id_num
+            # print lambda_1
+            # print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_2 = ((slam_3[1] - slam_1[1]) * (pt[0] - slam_3[0]))
         lambda_2 += ((slam_1[0] - slam_3[0]) * (pt[1] - slam_3[1]))
         lambda_2 /= self.slam_det
         if lambda_2 < self.neg_thresh or lambda_2 > self.pos_thresh:
-            print lambda_2
-            print "pt ", pt, " not in triangle ", self.id_num
+            # print lambda_2
+            # print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_3 = 1 - lambda_1 - lambda_2
         x = lambda_1 * self.semantic_pts[0][0]
@@ -420,15 +420,15 @@ class TrianglePoints():
         lambda_1 += ((semantic_3[0] - semantic_2[0]) * (pt[1] - semantic_3[1]))
         lambda_1 /= self.semantic_det
         if lambda_1 < self.neg_thresh or lambda_1 > self.pos_thresh:
-            print lambda_1
-            print "pt ", pt, " not in triangle ", self.id_num
+            # print lambda_1
+            # print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_2 = ((semantic_3[1] - semantic_1[1]) * (pt[0] - semantic_3[0]))
         lambda_2 += ((semantic_1[0] - semantic_3[0]) * (pt[1] - semantic_3[1]))
         lambda_2 /= self.semantic_det
         if lambda_2 < self.neg_thresh or lambda_2 > self.pos_thresh:
-            print lambda_2
-            print "pt ", pt, " not in triangle ", self.id_num
+            # print lambda_2
+            # print "pt ", pt, " not in triangle ", self.id_num
             return None
         lambda_3 = 1 - lambda_1 - lambda_2
         x = lambda_1 * self.slam_pts[0][0]
@@ -438,3 +438,49 @@ class TrianglePoints():
         y += lambda_2 * self.slam_pts[1][1]
         y += lambda_3 * self.slam_pts[2][1]
         return (x, y)
+
+class Zone(QGraphicsPolygonItem):
+    name = "New Zone"
+    mode = 0
+
+    def __init__(self, parent=None):
+        super(Zone, self).__init__(parent) 
+
+    def setup_from_dict(self, zone_dict):
+        mode = int(zone_dict['Mode'])
+
+        pts = []
+        for point in zone_dict['Points']:
+            x = int(point['x'])
+            y = int(point['y'])
+            pts.append((x, y))
+
+        self.setup(mode, pts)
+
+    def setup(self, mode, points):
+        self.pen = QPen(Qt.darkGray)
+        self.pen.setWidth(2)
+        self.brush = QBrush()
+
+        if mode == 0:
+            self.brush = QBrush(QColor(100, 100, 100, 50))
+            self.pen = QPen(Qt.darkGray)
+        elif mode == 1:
+            self.brush = QBrush(QColor(255, 0, 0, 50))
+            self.pen = QPen(Qt.darkRed)
+        elif mode == 2:
+            self.brush = QBrush(QColor(0, 255, 0, 50))
+            self.pen = QPen(Qt.darkGreen)
+        else:
+            print "Invalid Mode"
+            return
+
+        self.setPen(self.pen)
+        self.setBrush(self.brush)
+
+        poly = QPolygonF()
+        for point in points:
+            pt = QPointF(point[0], point[1])
+            poly << pt
+
+        self.setPolygon(poly)

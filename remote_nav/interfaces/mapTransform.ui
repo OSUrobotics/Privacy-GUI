@@ -33,7 +33,7 @@
       </property>
      </widget>
      <widget class="QWidget" name="layoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0">
        <item>
         <widget class="QPushButton" name="export_btn">
          <property name="text">
@@ -45,6 +45,13 @@
         <widget class="QPushButton" name="transform_btn">
          <property name="text">
           <string>Preview Transformation</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="apply_transform_btn">
+         <property name="text">
+          <string>Apply Transformation</string>
          </property>
         </widget>
        </item>
@@ -71,7 +78,7 @@
          </property>
          <widget class="QWidget" name="affine_tool">
           <attribute name="title">
-           <string>Affine</string>
+           <string>Transformation</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
@@ -193,6 +200,15 @@
           </layout>
          </widget>
          <widget class="QWidget" name="zone_tool">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
           <attribute name="title">
            <string>Zones</string>
           </attribute>
@@ -262,6 +278,13 @@
            </item>
           </layout>
          </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="show_zones_ckbox">
+         <property name="text">
+          <string>Show Zones</string>
+         </property>
         </widget>
        </item>
        <item>

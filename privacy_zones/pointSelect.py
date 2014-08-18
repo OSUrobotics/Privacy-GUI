@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pointSelect.ui'
 #
-# Created: Tue Aug  5 15:45:39 2014
+# Created: Thu Aug 14 16:25:36 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -66,6 +66,9 @@ class Ui_Paths(object):
         self.edit_zone.setObjectName(_fromUtf8("edit_zone"))
         self.horizontalLayout_2.addWidget(self.edit_zone)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
+        self.delete_zone_btn = QtGui.QPushButton(Paths)
+        self.delete_zone_btn.setObjectName(_fromUtf8("delete_zone_btn"))
+        self.verticalLayout.addWidget(self.delete_zone_btn)
         spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.horizontalLayout_3 = QtGui.QHBoxLayout()
@@ -96,6 +99,7 @@ class Ui_Paths(object):
         self.privacy_type.setItemText(2, QtGui.QApplication.translate("Paths", "Public", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("Paths", "Select a zone to edit:", None, QtGui.QApplication.UnicodeUTF8))
         self.edit_zone.setToolTip(QtGui.QApplication.translate("Paths", "<html><head/><body><p>Bring up the data for already saved zones.</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.delete_zone_btn.setText(QtGui.QApplication.translate("Paths", "Delete Zone", None, QtGui.QApplication.UnicodeUTF8))
         self.import_btn.setText(QtGui.QApplication.translate("Paths", "Import Map Data", None, QtGui.QApplication.UnicodeUTF8))
         self.export_btn.setToolTip(QtGui.QApplication.translate("Paths", "Export to a YAML file", None, QtGui.QApplication.UnicodeUTF8))
         self.export_btn.setText(QtGui.QApplication.translate("Paths", "Export as...", None, QtGui.QApplication.UnicodeUTF8))

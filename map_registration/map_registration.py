@@ -38,8 +38,12 @@ class MainWindow(QDialog, Ui_Window):
         self.robot = RobotHandler(self.robot1, self.robot2)
         self.export_ready = False
 
-        #Changes GUI attributes
+        # disable buttons until they are ready
         self.toggleRobot.setEnabled(False)
+        self.show_zones_ckbox.setEnabled(False)
+        self.export_btn.setEnabled(False)
+        self.apply_transform_btn.setEnabled(False)
+        self.transform_btn.setEnabled(False)
 
         self.map1.addItem(self.robot1)
         self.map2.addItem(self.robot2)
@@ -50,6 +54,9 @@ class MainWindow(QDialog, Ui_Window):
         self.export_btn.setToolTip("Save the transformed map")
         self.export_btn.clicked.connect(self.export_map)
         self.update_labels()
+
+        self.apply_transform_btn.setToolTip("Applies Transform only")
+        self.apply_transform_btn.clicked.connect(self.triangulate)
 
         self.clearAll_btn.setToolTip("Clears all points from  both maps")
         self.clearAll_btn.clicked.connect(self.clear_all)
@@ -67,7 +74,7 @@ class MainWindow(QDialog, Ui_Window):
 
         # Setting up the robot toggled checkbox 
         self.toggleRobot.stateChanged.connect(self.robot_toggle)
-
+        self.show_zones_ckbox.stateChanged.connect(self.zone_toggle)
 
         self.exportZone_btn.clicked.connect(self.export_zones)
         self.importZone_btn.clicked.connect(self.import_zones)
@@ -103,8 +110,8 @@ class MainWindow(QDialog, Ui_Window):
                 elif '#' not in line:
                     # This line is not a commnet
                     s = line.split()
-                    x = int(s[1])
-                    y = int(s[2])
+                    x = float(s[1])
+                    y = float(s[2])
                     p = QPoint(x, y)
                     self.map1.select_pix(p)
 
@@ -139,17 +146,26 @@ class MainWindow(QDialog, Ui_Window):
 
     def clear_unmatched(self):
         for p1, p2 in izip_longest(self.map1.points, self.map2.points):
-            print p1, p2
+            # print p1, p2
             if p1 == None and p2 != None:
                 p2.ask_to_be_deleted()
             if p2 == None and p1 != None:
                 p1.ask_to_be_deleted()
 
-
     # Updates the labels telling how many points there are
     def update_labels(self):
-        self.label_4.setText(str(self.map1.get_num_points()))
-        self.label_5.setText(str(self.map2.get_num_points()))
+        map_1_pts = self.map1.get_num_points()
+        map_2_pts = self.map2.get_num_points()
+        self.label_4.setText(str(map_1_pts))
+        self.label_5.setText(str(map_2_pts))
+        if map_1_pts > 2 and map_2_pts > 2:
+            self.export_btn.setEnabled(True)
+            self.apply_transform_btn.setEnabled(True)
+            self.transform_btn.setEnabled(True)
+        else:
+            self.export_btn.setEnabled(False)
+            self.apply_transform_btn.setEnabled(False)
+            self.transform_btn.setEnabled(False)
 
     # Add (or remove) a robot from the scene
     def robot_toggle(self):
@@ -157,6 +173,37 @@ class MainWindow(QDialog, Ui_Window):
             self.robot.setTransforms(self.map1.get_points(), self.map2.get_points())
         self.robot.setEnabled(self.toggleRobot.isChecked())
 
+    # Toggle the viewing of the zones on the maps
+    def zone_toggle(self):
+        if self.show_zones_ckbox.isChecked():
+            self.map1_zones = []
+            self.map2_zones = []
+            for zone in self.myYaml['Zone List']:
+                new_zone = Zone()
+                new_zone.setup_from_dict(zone)
+                self.map1_zones.append(new_zone)
+                self.map1.addItem(new_zone)
+            if self.robot.ready:
+                for zone in self.myYaml['Zone List']:
+                    new_zone = Zone()
+                    pts = []
+                    for point in zone['Points']:
+                        x = int(point['x'])
+                        y = int(point['y'])
+                        conv_pt = self.robot.convert_to_2(QPoint(x, y))
+                        if conv_pt == None:
+                            print "Transformation does not encapsulate this Zone!"
+                            return
+                        pts.append(conv_pt)
+                    new_zone.setup(int(zone['Mode']), pts)
+                    self.map2_zones.append(new_zone)
+                    self.map2.addItem(new_zone)
+        else:
+            for zone in self.map1_zones:
+                self.map1.removeItem(zone)
+            for zone in self.map2_zones:
+                self.map2.removeItem(zone)
+ 
     # Construct an ordered list of nodes from the given node file
     def nodes(self, node_file):
         nodes = [None]
@@ -177,10 +224,6 @@ class MainWindow(QDialog, Ui_Window):
     # Using matching points, view the transformation of the maps
     def transform_map(self):
         self.triangulate()
-        # for each triangle:
-        #   calculate affine transform using endpoints
-        #   Draw just that region morphed
-        #   Append to whole image 
 
         slam_map = cv2.imread(self.img_2, 0)
         rows, cols = cv2.imread(self.img_1, 0).shape
@@ -243,6 +286,12 @@ class MainWindow(QDialog, Ui_Window):
         call(["mv", "registration.yaml", "register/"])
         call(["cp", self.img_2, "register/"])
         call(["cp", self.img_1, "register/"])
+
+        filename = QFileDialog.getSaveFileName(self, 'Save As....', '', 'Map Registration Files (*.mreg)')
+        if not filename.endsWith(".mreg"):
+            filename.append(".mreg")
+        call(['mkdir', filename])
+        call(['cp', '-r', 'register/', filename])
 
     # Triangulates both maps and writes these to file, along with the 
     # colored triangle images
@@ -348,6 +397,7 @@ class MainWindow(QDialog, Ui_Window):
             self.zoneData.setText(str(text))
             #Import stuff from the yaml file here
         fin.close() 
+        self.show_zones_ckbox.setEnabled(True)
 
     def convert_points(self, myYaml):
         dst = cv2.imread(self.img_2, 0)

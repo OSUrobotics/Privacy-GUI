@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mapTransform.ui'
 #
-# Created: Thu Aug  7 11:56:57 2014
+# Created: Thu Aug 14 14:33:09 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -41,6 +41,9 @@ class Ui_Window(object):
         self.transform_btn = QtGui.QPushButton(self.layoutWidget)
         self.transform_btn.setObjectName(_fromUtf8("transform_btn"))
         self.verticalLayout.addWidget(self.transform_btn)
+        self.apply_transform_btn = QtGui.QPushButton(self.layoutWidget)
+        self.apply_transform_btn.setObjectName(_fromUtf8("apply_transform_btn"))
+        self.verticalLayout.addWidget(self.apply_transform_btn)
         spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
         self.verticalLayout.addItem(spacerItem)
         self.tools = QtGui.QTabWidget(self.layoutWidget)
@@ -97,6 +100,11 @@ class Ui_Window(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout_3)
         self.tools.addTab(self.affine_tool, _fromUtf8(""))
         self.zone_tool = QtGui.QWidget()
+        font = QtGui.QFont()
+        font.setBold(False)
+        font.setWeight(50)
+        self.zone_tool.setFont(font)
+        self.zone_tool.setAutoFillBackground(False)
         self.zone_tool.setObjectName(_fromUtf8("zone_tool"))
         self.verticalLayout_6 = QtGui.QVBoxLayout(self.zone_tool)
         self.verticalLayout_6.setObjectName(_fromUtf8("verticalLayout_6"))
@@ -123,6 +131,9 @@ class Ui_Window(object):
         self.verticalLayout_6.addLayout(self.verticalLayout_3)
         self.tools.addTab(self.zone_tool, _fromUtf8(""))
         self.verticalLayout.addWidget(self.tools)
+        self.show_zones_ckbox = QtGui.QCheckBox(self.layoutWidget)
+        self.show_zones_ckbox.setObjectName(_fromUtf8("show_zones_ckbox"))
+        self.verticalLayout.addWidget(self.show_zones_ckbox)
         self.toggleRobot = QtGui.QCheckBox(self.layoutWidget)
         self.toggleRobot.setObjectName(_fromUtf8("toggleRobot"))
         self.verticalLayout.addWidget(self.toggleRobot)
@@ -140,6 +151,7 @@ class Ui_Window(object):
         Window.setWindowTitle(QtGui.QApplication.translate("Window", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
         self.export_btn.setText(QtGui.QApplication.translate("Window", "Export", None, QtGui.QApplication.UnicodeUTF8))
         self.transform_btn.setText(QtGui.QApplication.translate("Window", "Preview Transformation", None, QtGui.QApplication.UnicodeUTF8))
+        self.apply_transform_btn.setText(QtGui.QApplication.translate("Window", "Apply Transformation", None, QtGui.QApplication.UnicodeUTF8))
         self.loadPoint_btn.setToolTip(QtGui.QApplication.translate("Window", "Loads a file of saved points on a map", None, QtGui.QApplication.UnicodeUTF8))
         self.loadPoint_btn.setText(QtGui.QApplication.translate("Window", "Load Points", None, QtGui.QApplication.UnicodeUTF8))
         self.exportPoint_btn.setToolTip(QtGui.QApplication.translate("Window", "<html><head/><body><p>Saves the position of current points in a file for later use</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
@@ -153,7 +165,7 @@ class Ui_Window(object):
         self.label_4.setText(QtGui.QApplication.translate("Window", "0", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("Window", "Number of Points in Map 2: ", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("Window", "1", None, QtGui.QApplication.UnicodeUTF8))
-        self.tools.setTabText(self.tools.indexOf(self.affine_tool), QtGui.QApplication.translate("Window", "Affine", None, QtGui.QApplication.UnicodeUTF8))
+        self.tools.setTabText(self.tools.indexOf(self.affine_tool), QtGui.QApplication.translate("Window", "Transformation", None, QtGui.QApplication.UnicodeUTF8))
         self.importZone_btn.setToolTip(QtGui.QApplication.translate("Window", "Import a zone file to convert points.", None, QtGui.QApplication.UnicodeUTF8))
         self.importZone_btn.setText(QtGui.QApplication.translate("Window", "Import Zone File", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("Window", "File Preview:", None, QtGui.QApplication.UnicodeUTF8))
@@ -161,6 +173,7 @@ class Ui_Window(object):
         self.exportZone_btn.setToolTip(QtGui.QApplication.translate("Window", "Export the converted data points", None, QtGui.QApplication.UnicodeUTF8))
         self.exportZone_btn.setText(QtGui.QApplication.translate("Window", "Export Converted Points", None, QtGui.QApplication.UnicodeUTF8))
         self.tools.setTabText(self.tools.indexOf(self.zone_tool), QtGui.QApplication.translate("Window", "Zones", None, QtGui.QApplication.UnicodeUTF8))
+        self.show_zones_ckbox.setText(QtGui.QApplication.translate("Window", "Show Zones", None, QtGui.QApplication.UnicodeUTF8))
         self.toggleRobot.setText(QtGui.QApplication.translate("Window", "Show Robot", None, QtGui.QApplication.UnicodeUTF8))
 
 from customview import customView
