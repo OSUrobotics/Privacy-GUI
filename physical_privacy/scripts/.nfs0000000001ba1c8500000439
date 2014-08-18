@@ -21,7 +21,7 @@ if __name__ == '__main__':
 	package_path = rospack.get_path('physical_privacy')
 
 	#Our zones are stored in a .yaml file.
-	zones_file = rospy.get_param('priv_nav/zones', package_path + "/zones/alex_test.yaml")
+	zones_file = rospy.get_param('priv_nav/zones', package_path + "/zones/jasper_test_real_world.yaml")
 	with open(zones_file) as f:
 		zones = yaml.safe_load(f)
 		polygon_list = []

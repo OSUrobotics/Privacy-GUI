@@ -34,7 +34,6 @@ void ZoneLayer::onInitialize()
 	dsrv_->setCallback(cb);
 
 	cost_img_ = cv::Mat(getSizeInCellsX(), getSizeInCellsY(), CV_8U);
-	cost_img_ = cv::Scalar(0);
 
 	// ROS_INFO("NO_INFORMATION = %d, LETHAL_OBSTACLE = %d", NO_INFORMATION, LETHAL_OBSTACLE);
 
@@ -49,16 +48,20 @@ bool ZoneLayer::zones(physical_privacy::restrictZones::Request  &req,
 {
 	zones_received_ = true;
 
+	cost_img_ = cv::Scalar(0);
+	// img_to_map_();
+
 	const cv::Point **pts;
 	int n_polygons = req.polygons.size();
 	pts = new const cv::Point* [n_polygons];
 	int *polygon_sizes = new int [n_polygons];
 
-	// std::cout << "Polygons:" << std::endl;
+	std::cout << "Polygons:" << std::endl;
 	for (int i = 0; i < n_polygons; i++) 
 	{
-		// std::cout << "\tPolygon " << i << std::endl;
+		std::cout << "\tPolygon " << i << std::endl;
 		polygon_sizes[i] = req.polygons[i].points.size();
+		// polygon_sizes[0] = 3;
 		cv::Point *tmp = new cv::Point[polygon_sizes[i]];
 		for (int j = 0; j < polygon_sizes[i]; j++) {
 			double wx, wy;
@@ -66,16 +69,38 @@ bool ZoneLayer::zones(physical_privacy::restrictZones::Request  &req,
 			wy = req.polygons[i].points[j].y;
 			unsigned int mx, my;
 			res.success.data = worldToMap(wx, wy, mx, my);
-			if (!res.success.data) return true;
-			// std::cout << "\t\tPoint " << mx << ", "<< my << std::endl;
+			if (!res.success.data) {
+				img_to_map_();
+				return true;
+			}
+			std::cout << "\t\tPoint " << mx << ", "<< my << std::endl;
 			tmp[j] = cv::Point(mx, my);
 		}
 		pts[i] = tmp;
-	}  
+	} 
 
-	cv::fillPoly(cost_img_, pts, polygon_sizes, n_polygons, cv::Scalar(NO_INFORMATION));
+	std::cout << "Once again, Polygons:" << std::endl;
+	for (int a = 0; a < n_polygons; a++) {
+		std::cout << "\tPolygon " << a << std::endl;
+		for (int b = 0; b < polygon_sizes[a] ; b++)
+		{
+			std::cout << "\t\tPoint " << pts[a][b] << std::endl;
+		}
+	} 
+
+
+
+	cv::fillPoly(cost_img_, pts, polygon_sizes, n_polygons, cv::Scalar(LETHAL_OBSTACLE));
+
+	// cv::rectangle(cost_img_, cv::Point(0,0), cv::Point(640, 480), cv::Scalar(NO_INFORMATION), -1);
 
 	img_to_map_();
+
+	// for (int k = 0; k < 640; k++) {
+	// 	for (int l= 0; l < 480; l++) {
+	// 		setCost(k, l, LETHAL_OBSTACLE);
+	// 	}
+	// }
 
 	// cv::Mat tmp_img;
 	// cv::resize(cost_img_, tmp_img, cv::Size(400, 400));
@@ -92,7 +117,7 @@ bool ZoneLayer::zones(physical_privacy::restrictZones::Request  &req,
 void ZoneLayer::img_to_map_() {
 	for (int i = 0; i < getSizeInCellsX(); i++) {
 		for (int j = 0; j < getSizeInCellsY(); j++) {
-			int cost = cost_img_.at<int>(i, j);
+			unsigned char cost = cost_img_.at<unsigned char>(j, i);
 			setCost(i, j, cost);
 		}
 	}
@@ -155,7 +180,8 @@ void ZoneLayer::updateCosts(costmap_2d::Costmap2D& master_grid,
 			for (int i = min_i; i < max_i; i++)
 			{
 				int cost = getCost(i, j);
-				if (cost == NO_INFORMATION) {
+				if (cost) {
+					// std::cout << i << ", " << j << std::endl;
 					master_grid.setCost(i, j, cost);
 				}
 			}
