@@ -2,12 +2,13 @@
 import rospy
 import yaml
 import pprint
+import rospkg
 from geometry_msgs.msg import Polygon, Point32
 from physical_privacy.srv import restrictZones
 
 def restrict_zones_client(polygon_list):
 	rospy.wait_for_service('restrict_zones')
-	
+
 	restrict_zones = rospy.ServiceProxy('restrict_zones', restrictZones)
 	
 	response = restrict_zones(polygon_list)

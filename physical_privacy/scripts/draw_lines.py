@@ -26,6 +26,8 @@ color_map = {
     2: public
 }
 
+global_frame = "/map"
+
 
 if __name__ == '__main__':
     rospy.init_node('draw_lines')
@@ -51,7 +53,7 @@ if __name__ == '__main__':
         line = Marker()
         line.header.stamp = rospy.Time.now()
         #TODO: Must find solidarity in frame_id
-        line.header.frame_id = "/camera_rgb_optical_frame"
+        line.header.frame_id = global_frame
         line.ns = "physical_privacy"
         line.id = i
 
@@ -81,7 +83,7 @@ if __name__ == '__main__':
         #make a text label this line.
         text = Marker()
         text.text = zone['Name']
-        text.header.frame_id = "/camera_rgb_optical_frame"
+        text.header.frame_id = global_frame
         text.ns = "labels"
         text.id = i
         text.type = text.TEXT_VIEW_FACING
