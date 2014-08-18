@@ -6,7 +6,7 @@
 		<param name="zones" value="$(arg zones)"/>
 	</node>
 
-	<node name="priv_nav" pkg="physical_privacy" type="restrict_zones_client.py">
+	<node if="$(arg navigation)" name="restrict_zones_client" pkg="physical_privacy" type="restrict_zones_client.py">
 		<param name="zones" value="$(arg zones)"/>
 	</node>
 
