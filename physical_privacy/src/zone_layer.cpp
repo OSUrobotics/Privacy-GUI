@@ -46,8 +46,6 @@ void ZoneLayer::onInitialize()
 bool ZoneLayer::zones(physical_privacy::restrictZones::Request  &req, 
 					physical_privacy::restrictZones::Response &res) 
 {
-	zones_received_ = true;
-
 	cost_img_ = cv::Scalar(0);
 	// img_to_map_();
 
@@ -71,6 +69,7 @@ bool ZoneLayer::zones(physical_privacy::restrictZones::Request  &req,
 			res.success.data = worldToMap(wx, wy, mx, my);
 			if (!res.success.data) {
 				img_to_map_();
+				zones_received_ = true;
 				return true;
 			}
 			std::cout << "\t\tPoint " << mx << ", "<< my << std::endl;
@@ -88,29 +87,11 @@ bool ZoneLayer::zones(physical_privacy::restrictZones::Request  &req,
 		}
 	} 
 
-
-
 	cv::fillPoly(cost_img_, pts, polygon_sizes, n_polygons, cv::Scalar(LETHAL_OBSTACLE));
 
-	// cv::rectangle(cost_img_, cv::Point(0,0), cv::Point(640, 480), cv::Scalar(NO_INFORMATION), -1);
-
 	img_to_map_();
-
-	// for (int k = 0; k < 640; k++) {
-	// 	for (int l= 0; l < 480; l++) {
-	// 		setCost(k, l, LETHAL_OBSTACLE);
-	// 	}
-	// }
-
-	// cv::Mat tmp_img;
-	// cv::resize(cost_img_, tmp_img, cv::Size(400, 400));
-
-	// cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );// Create a window for display.
- //    cv::imshow( "Display window", tmp_img );                   // Show our image inside it.
-
- //    cv::waitKey(0); 
 	
-	
+	zones_received_ = true;
 	return true;
 }
 
@@ -149,10 +130,8 @@ void ZoneLayer::updateBounds(double origin_x,
 								double* max_y)
 {
 	ros::spinOnce();
-	if (!enabled_ || !zones_received_ ) {
-		return;
-	}
-	else {
+	
+	if ( enabled_ && zones_received_) {
 		double wx, wy;
 
 		mapToWorld(0, 0, wx, wy);
@@ -163,9 +142,11 @@ void ZoneLayer::updateBounds(double origin_x,
 		*max_x = wx;
 		*max_y = wy;
 
+
 		zones_received_ = false;
 
 	}
+	// std::cout << "Updatin' bounds to: (" << *min_x << ", " << *min_y << ") (" << *max_x << ", " << *max_y << ")" << std::endl;
 }
 
 void ZoneLayer::updateCosts(costmap_2d::Costmap2D& master_grid, 
