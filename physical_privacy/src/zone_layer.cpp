@@ -5,7 +5,7 @@
 #include "std_msgs/Bool.h"
 #include "opencv2/opencv.hpp"
 
-
+// Register ZoneLayer class as a plugin
 PLUGINLIB_EXPORT_CLASS(zone_layer_namespace::ZoneLayer, costmap_2d::Layer)
 
 using costmap_2d::LETHAL_OBSTACLE;
@@ -16,83 +16,92 @@ namespace zone_layer_namespace
 
 ZoneLayer::ZoneLayer() {}
 
-
+// Called upon loading costmap layers (at stat of move_base)
 void ZoneLayer::onInitialize()
 {
 	ros::NodeHandle nh("~/" + name_), g_nh;
-
 	ROS_INFO("Activating Zone Layer.");
 
+	// init class vars
 	zones_received_ = false;
 	current_ = true;
 	default_value_ = 0;
 	matchSize();
+	cost_img_ = cv::Mat(getSizeInCellsX(), getSizeInCellsY(), CV_8U);
 
+	// I don't get it either, but I'm pretty sure it's probably important
 	dsrv_ = new dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig>(nh);
 	dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig>::CallbackType cb = boost::bind(
 			&ZoneLayer::reconfigureCB, this, _1, _2);
 	dsrv_->setCallback(cb);
 
-	cost_img_ = cv::Mat(getSizeInCellsX(), getSizeInCellsY(), CV_8U);
-
-	// ROS_INFO("NO_INFORMATION = %d, LETHAL_OBSTACLE = %d", NO_INFORMATION, LETHAL_OBSTACLE);
-
+	// Advertise /restrict_zones service 
 	service_ = g_nh.advertiseService("restrict_zones", &zone_layer_namespace::ZoneLayer::zones, this);
-	// ros::spinOnce();
 
-	// zones();
 }
 
+// callback for /restrict_zones
 bool ZoneLayer::zones(physical_privacy::restrictZones::Request  &req, 
 					physical_privacy::restrictZones::Response &res) 
 {
+	// erase old zones
 	cost_img_ = cv::Scalar(0);
-	// img_to_map_();
 
+	// declare args to cv::fillPoly
 	const cv::Point **pts;
 	int n_polygons = req.polygons.size();
 	pts = new const cv::Point* [n_polygons];
 	int *polygon_sizes = new int [n_polygons];
 
-	std::cout << "Polygons:" << std::endl;
+	// turn the service request into an array of arrays of cv::Points 
 	for (int i = 0; i < n_polygons; i++) 
 	{
-		std::cout << "\tPolygon " << i << std::endl;
+		// cv needs the sizes of the each polygon
 		polygon_sizes[i] = req.polygons[i].points.size();
-		// polygon_sizes[0] = 3;
+
+		// the points in the polygon i
 		cv::Point *tmp = new cv::Point[polygon_sizes[i]];
 		for (int j = 0; j < polygon_sizes[i]; j++) {
+			// find real world coordinates in image coordinates
 			double wx, wy;
 			wx = req.polygons[i].points[j].x;
 			wy = req.polygons[i].points[j].y;
 			unsigned int mx, my;
 			res.success.data = worldToMap(wx, wy, mx, my);
+			tmp[j] = cv::Point(mx, my);
+
+			// Stop if you find a point out of bounds
 			if (!res.success.data) {
 				img_to_map_();
 				zones_received_ = true;
 				return true;
 			}
-			std::cout << "\t\tPoint " << mx << ", "<< my << std::endl;
-			tmp[j] = cv::Point(mx, my);
 		}
+
+		// point the polygon list to the newest one
+		// Had to do it this way because cv is WEIRD
 		pts[i] = tmp;
 	} 
 
+	// Finally, the function call!
 	cv::fillPoly(cost_img_, pts, polygon_sizes, n_polygons, cv::Scalar(LETHAL_OBSTACLE));
 
-	// std::cout << "Once again, Polygons:" << std::endl;
+	// clean up
 	for (int a = 0; a < n_polygons; a++) {
 		delete [] pts[a];
 	} 
 	delete [] pts;
 	delete [] polygon_sizes;
 
+	// Copy cost image into costmap layer
 	img_to_map_();
 	
+	// Yep, we received a zone
 	zones_received_ = true;
 	return true;
 }
 
+// Copy cost image directly into costamp layer
 void ZoneLayer::img_to_map_() {
 	for (int i = 0; i < getSizeInCellsX(); i++) {
 		for (int j = 0; j < getSizeInCellsY(); j++) {
@@ -102,6 +111,7 @@ void ZoneLayer::img_to_map_() {
 	}
 }
 
+// make this costmap layer match the size of the master
 void ZoneLayer::matchSize()
 {
 	Costmap2D* master = layered_costmap_->getCostmap();
@@ -112,13 +122,14 @@ void ZoneLayer::matchSize()
 				master->getOriginY());
 }
 
-
+// Magic black box don't ask me
 void ZoneLayer::reconfigureCB(costmap_2d::GenericPluginConfig &config, uint32_t level)
 {
 	enabled_ = config.enabled;
 
 }
 
+// Only update things when the callback has FINISHED
 void ZoneLayer::updateBounds(double origin_x, 
 								double origin_y, 
 								double origin_yaw, 
@@ -127,8 +138,10 @@ void ZoneLayer::updateBounds(double origin_x,
 								double* max_x, 
 								double* max_y)
 {
+	// Did I get any callbacks while I was gone?
 	ros::spinOnce();
 	
+	// Update everything iff we got a callback
 	if ( enabled_ && zones_received_) {
 		double wx, wy;
 
@@ -140,13 +153,13 @@ void ZoneLayer::updateBounds(double origin_x,
 		*max_x = wx;
 		*max_y = wy;
 
-
+		// Okay I'm finished with that callback
 		zones_received_ = false;
 
 	}
-	// std::cout << "Updatin' bounds to: (" << *min_x << ", " << *min_y << ") (" << *max_x << ", " << *max_y << ")" << std::endl;
 }
 
+// Actually update costs in the master grid
 void ZoneLayer::updateCosts(costmap_2d::Costmap2D& master_grid, 
 								int min_i, 
 								int min_j, 
@@ -158,9 +171,9 @@ void ZoneLayer::updateCosts(costmap_2d::Costmap2D& master_grid,
 		{
 			for (int i = min_i; i < max_i; i++)
 			{
+				// if our layer has a cost, set the master layer to it.
 				int cost = getCost(i, j);
 				if (cost) {
-					// std::cout << i << ", " << j << std::endl;
 					master_grid.setCost(i, j, cost);
 				}
 			}
