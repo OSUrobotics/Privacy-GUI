@@ -78,16 +78,14 @@ bool ZoneLayer::zones(physical_privacy::restrictZones::Request  &req,
 		pts[i] = tmp;
 	} 
 
-	std::cout << "Once again, Polygons:" << std::endl;
-	for (int a = 0; a < n_polygons; a++) {
-		std::cout << "\tPolygon " << a << std::endl;
-		for (int b = 0; b < polygon_sizes[a] ; b++)
-		{
-			std::cout << "\t\tPoint " << pts[a][b] << std::endl;
-		}
-	} 
-
 	cv::fillPoly(cost_img_, pts, polygon_sizes, n_polygons, cv::Scalar(LETHAL_OBSTACLE));
+
+	// std::cout << "Once again, Polygons:" << std::endl;
+	for (int a = 0; a < n_polygons; a++) {
+		delete [] pts[a];
+	} 
+	delete [] pts;
+	delete [] polygon_sizes;
 
 	img_to_map_();
 	
