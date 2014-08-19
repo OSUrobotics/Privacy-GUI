@@ -26,13 +26,15 @@ if __name__ == '__main__':
 		zones = yaml.safe_load(f)
 		polygon_list = []
 		for zone in zones['Zone List']:
-			polygon = Polygon()
-			for point in zone['Points']:
-				new_point = Point32()
-				new_point.x = point['x'] 
-				new_point.y = point['y']
-				polygon.points.append(new_point)
-			polygon_list.append(polygon)
+			#Dis zone private?
+			if zone['Mode'] == 1:
+				polygon = Polygon()
+				for point in zone['Points']:
+					new_point = Point32()
+					new_point.x = point['x'] 
+					new_point.y = point['y']
+					polygon.points.append(new_point)
+				polygon_list.append(polygon)
 		print restrict_zones_client(polygon_list)
 
 
