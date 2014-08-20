@@ -11,6 +11,6 @@ Authors:
 
 ##map\_registration, privacy\_zones, and physical\_privacy demo!
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=BVzRclC5zY
-" target="_blank"><img src="http://img.youtube.com/vi/BVzRclC5zY/0.jpg" 
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=BVzRclC5zYw
+" target="_blank"><img src="http://img.youtube.com/vi/BVzRclC5zYw/0.jpg" 
 alt="physical privacy demo" width="240" height="180" border="10" /></a>
