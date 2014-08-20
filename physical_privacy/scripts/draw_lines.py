@@ -8,7 +8,10 @@ from geometry_msgs.msg import Point
 from std_msgs.msg import ColorRGBA
 
 neutral = ColorRGBA()
-neutral.a = 0.0
+neutral.a = 0.6
+neutral.r = 1.0
+neutral.g = 1.0
+neutral.b = 1.0
 
 private = ColorRGBA()
 private.a = 1.0
