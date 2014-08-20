@@ -9,50 +9,8 @@ Authors:
 * Alex (Localization and navigation)
 * Penn (Filters and Image Products)
 
-##Why Groovy?
-* Hydro + PR2 is still a little off
-* The current version of the rviz library used in python does not support hydro
-* Mixing groovy and hydro causes crashes and segfaults
-* If you are running any of these packages, **have a separate groovy workspace**
+##map\_registration, privacy\_zones, and physical\_privacy demo!
 
-##Package list and info
-
-###remote_nav 
-The real package and current implementation of our navigation UI
-
-**Dependencies**
-* ROS Groovy
-* rviz-visualization library (librviz)
-* amcl
-* tf
-* PyQt4+ or PySide
-
-###map_registration 
-Not a ROS package but a python program which is used for map registration
-
-**Dependencies**
-* opencv2 (included with ROS)
-* Python
-* PyQt or PySide
-
-###custom_nav package
-The custom_nav package is to be used ON THE TURTLEBOT/PR2 when running remote_nav. Copy this repo to your turtlebot/robot and rosmake this package. It is simply a modified version of turtlebot_navigation to better fit our needs. Changes include, but are not limited to: IN amcl_demo.launch,resetting the default map_file, turning on rgb_processing,
-and tinkering with the .yaml configuration files. Additionally, pr2_amcl.launch is added for PR2 localization.
-
-##Running remote_nav
-In order for remote_nav to run, several things need to be set up (this may be fixed with a future update)
-* turtlebot bringup
-* ROS_MASTER_URI must be set to the robot, and ROS_HOSTNAME and ROS_IP set to your local ip.
-* Amcl must be running with a valid mapfile. This can be run on Blood by roslaunch custom_nav amcl_demo.launch, which uses betterMap.yaml by default.
-* If rviz doesn't see both the map and the video stream, remote_nav won't, either.
-* The please run the proper launchfile for the corresponding robot. 
-```
-roslaunch remote_nav pr2UI.launch
-roslaunch remote_nav turtleUI.launch
-```
-###Editing UI Files
-Many of our interfaces were designed using QtDesigner. If you make changes to these UI files, you must convert them to python.
-Simply run this line:
-```
-pyuic4 projectName.ui -x -o projectName.py
-```
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=BVzRclC5zY
+" target="_blank"><img src="http://img.youtube.com/vi/BVzRclC5zY/0.jpg" 
+alt="physical privacy demo" width="240" height="180" border="10" /></a>
