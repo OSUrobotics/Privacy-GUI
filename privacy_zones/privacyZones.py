@@ -5,9 +5,10 @@
 ## ^^^^^^^
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import QDialog
-from pointSelect import Ui_Paths
-from components import *
+from privacy_zones.pointSelect import Ui_Paths
+from privacy_zones.components import *
 from os import path
+import os
 import yaml
 
 
@@ -17,11 +18,16 @@ class MainWindow(QDialog, Ui_Paths):
 	savedFlag = True	#Has the currentZone been saved?
 	editFlag = False	#Are we editing an already existing zone?
 
-	def __init__(self, parent=None):
+	def __init__(self, parent=None, argv=[]):
 		super(QDialog, self).__init__(parent)
 		self.setupUi(self)
 		self.controller = ZoneHandler() #Deals with the multiple zones and selection
 		mapPath = self.importMap()
+		# mapPath = '/home/lazewatd/wheelchair_ws/src/Privacy-GUI/privacy_zones/maps/betterMap.pgm'
+		# mapInfoPath = '/home/lazewatd/wu_maps/jolley4.yaml'
+		# with open(mapInfoPath, 'r') as map_yaml:
+		# 	mapInfo = yaml.load(map_yaml)
+		# mapPath = os.path.join(os.path.split(mapInfoPath)[0], mapInfo['image'])
 		self.scene = DrawMap(QImage(mapPath), self.controller, self)
 		self.map_view.setScene(self.scene)
 
@@ -29,7 +35,7 @@ class MainWindow(QDialog, Ui_Paths):
 		## ^^^^^^^
 		self.new_zone_btn.clicked.connect(self.createZone)
 		self.save_zone_btn.clicked.connect(self.onSaveClick)
-		self.edit_zone.currentIndexChanged.connect(self.loadZone)
+		self.edit_zone.currentRowChanged.connect(self.loadZone)
 		self.export_btn.clicked.connect(self.showSaveAs)
 		self.import_btn.clicked.connect(self.showOpen)
 		self.delete_zone_btn.clicked.connect(self.delete_zone)
@@ -40,13 +46,17 @@ class MainWindow(QDialog, Ui_Paths):
 	def delete_zone(self):
 		self.scene.removeItem(self.currentZone)
 		self.controller.zoneList.remove(self.currentZone)
-		self.edit_zone.removeItem(self.edit_zone.currentIndex())
+		self.edit_zone.takeItem(self.edit_zone.currentRow())
 		self.scene.update()
 		self.zone_name.clear()
+		self.editFlag = False
+		self.savedFlag = True
 
 	# What happens when you click the save button
 	def onSaveClick(self):
 		self.saveZone(self.editFlag)
+		self.createZone()
+		self.edit_zone.clearSelection()
 
 	# Creates a new zone as long as the current zone has been saved
 	# Creates an alert if the zone has not been saved.
@@ -88,7 +98,7 @@ class MainWindow(QDialog, Ui_Paths):
 			self.editFlag = True
 			index = len(self.controller.zoneList) - 1
 		else:
-			i = self.edit_zone.currentIndex()
+			i = self.edit_zone.currentIndex().row()
 			self.updateList(i)
 		#self.zone_name.clear()
 		self.savedFlag = True
@@ -117,7 +127,8 @@ class MainWindow(QDialog, Ui_Paths):
 	def updateList(self, index):
 		self.currentZone.import_points(self.controller.getPoints())
 		self.controller.zoneList[index] = self.currentZone
-		self.edit_zone.setItemText(index, self.controller.zoneList[index].name)
+		# self.edit_zone.setItemText(index, self.controller.zoneList[index].name)
+		self.edit_zone.currentItem().setText(self.controller.zoneList[index].name)
 		# self.scene.addItem(self.controller.zoneList[i])
 		self.controller.setActiveZone(index)
 		self.scene.update()
@@ -220,7 +231,7 @@ class MainWindow(QDialog, Ui_Paths):
 if __name__ == "__main__":
     import sys
     app = QtGui.QApplication(sys.argv)
-    window = MainWindow()
+    window = MainWindow(argv=sys.argv)
     window.resize(1000, 500)
     window.show()
     sys.exit(app.exec_())
