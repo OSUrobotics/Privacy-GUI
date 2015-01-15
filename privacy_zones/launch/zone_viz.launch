@@ -1,0 +1,7 @@
+<launch>
+	<arg name="map_yaml"/>
+	<arg name="zone_yaml"/>
+
+	<node name="map_server" type="map_server" pkg="map_server" args="$(arg map_yaml)"/>
+	<node name="zone_viz" type="zoneViz.py" pkg="privacy_zones" args="$(arg zone_yaml) $(arg map_yaml)"/>
+</launch>
