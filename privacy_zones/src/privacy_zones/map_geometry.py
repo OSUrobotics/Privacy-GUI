@@ -2,11 +2,11 @@ import numpy as np
 import cv2
 import os
 import yaml
-from shapely.geometry import Point, LinearRing, GeometryCollection
+from shapely.geometry import Point, Polygon, GeometryCollection
 from easy_markers.generator import MarkerGenerator
 from visualization_msgs.msg import Marker, MarkerArray
 
-class Zone(LinearRing):
+class Zone(Polygon):
     def __init__(self, zone_dict, geom):
         super(Zone, self).__init__([geom.px_to_world_coords((p['x'], p['y'])) for p in zone_dict['Points']])
         self.mode = zone_dict['Mode']
@@ -21,7 +21,7 @@ class Zone(LinearRing):
 
     def to_marker(self, color=(1,0,0,1)):
         self.gen.color = color
-        marker = self.gen.marker(points=[(c[0], c[1], 0) for c in self.coords])
+        marker = self.gen.marker(points=[(c[0], c[1], 0) for c in self.exterior.coords])
         marker.text = self.name
         return marker
 
