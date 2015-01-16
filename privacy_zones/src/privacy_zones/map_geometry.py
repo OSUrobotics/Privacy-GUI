@@ -5,6 +5,8 @@ import yaml
 from shapely.geometry import Point, Polygon, GeometryCollection
 from easy_markers.generator import MarkerGenerator
 from visualization_msgs.msg import Marker, MarkerArray
+from privacy_zones.msg import Zone as ZoneMsg
+from geometry_msgs.msg import Point32
 
 class Zone(Polygon):
     def __init__(self, zone_dict, geom):
@@ -18,12 +20,16 @@ class Zone(Polygon):
         self.gen.scale = [0.3]*3
         self.gen.frame_id = 'map'
 
-
     def to_marker(self, color=(1,0,0,1)):
         self.gen.color = color
         marker = self.gen.marker(points=[(c[0], c[1], 0) for c in self.exterior.coords])
         marker.text = self.name
         return marker
+
+    def to_msg(self):
+        zone_msg = ZoneMsg(name=self.name)
+        zone_msg.zone.points = [Point32(c[0], c[1], 0) for c in self.exterior.coords]
+        return zone_msg
 
 class Zones(dict):
     def __init__(self, zone_list, geom):
