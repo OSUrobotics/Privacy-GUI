@@ -39,7 +39,7 @@ class Zones(dict):
         return [z for z in self.values() if z.contains(point)]
 
     def to_marker_array(self, colors=dict()):
-        ma = MarkerArray(markers=[z.to_marker() for z in self.values()])
+        ma = MarkerArray(markers=[z.to_marker(colors[n]) if n in colors else z.to_marker() for n, z in self.iteritems()])
         for i, m in enumerate(ma.markers): m.id = i
         return ma
 
@@ -48,18 +48,21 @@ class MapGeometry:
         self.yaml_path = yaml_path
         with open(yaml_path, 'r') as map_info_file:
             self.map_info = yaml.load(map_info_file)
-        self.get_map_size()
+        self._get_map_size()
 
-    def get_map_size(self,):
+    def _get_map_size(self):
         map_path = os.path.join(os.path.split(self.yaml_path)[0], self.map_info['image'])
         height, width, _ = cv2.imread(map_path).shape
-        self.size = (0, height)
+        self._size = (width, height)
+
+    def get_map_dims(self):
+        return np.abs(self.px_to_world_coords(self._size) - self.px_to_world_coords((0,0)))
 
     def px_to_world_coords(self, px):
-        return (self.size - np.array(px)) * (-1,1) * self.map_info['resolution'] + self.map_info['origin'][:2]
+        return ((0, self._size[1]) - np.array(px)) * (-1,1) * self.map_info['resolution'] + self.map_info['origin'][:2]
 
     def world_coords_to_px(self, coords):
-        return (np.array(coords) - self.map_info['origin'][:2]) / self.map_info['resolution']
+        return ((np.array(coords) - self.map_info['origin'][:2]) / self.map_info['resolution']) - (0, self._size[1])
 
 if __name__ == '__main__':
     import yaml
@@ -69,16 +72,17 @@ if __name__ == '__main__':
 
     geom = MapGeometry(mapInfoPath)
 
-    # px = (0,0)
-    # world = geom.px_to_world_coords(px)
-    # print '%s -> %s' % (str(px), str(world))
-    # print '%s <- %s' % (str(geom.world_coords_to_px(world)), str(px))
+    px = (0,0)
+    world = geom.px_to_world_coords(px)
+    print '%s -> %s' % (str(px), str(world))
+    print '%s <- %s' % (str(geom.world_coords_to_px(world)), str(px))
+    print 'map size in meters:', geom.get_map_dims()
 
     # px = (500,500)
     # world = geom.px_to_world_coords(px)
     # print '%s -> %s' % (str(px), str(world))
     # print '%s <- %s' % (str(geom.world_coords_to_px(world)), str(px))
 
-    zones = yaml.load(open('/home/lazewatd/Dropbox/dev/wheelchair_ws/src/Privacy-GUI/privacy_zones/jolley4_zones.yaml', 'r'))
-    z = Zones(zones['Zone List'], geom)
+    # zones = yaml.load(open('/home/lazewatd/Dropbox/dev/wheelchair_ws/src/Privacy-GUI/privacy_zones/jolley4_zones.yaml', 'r'))
+    # z = Zones(zones['Zone List'], geom)
     # zz = Zone(z, geom)
