@@ -1,0 +1,9 @@
+<launch>
+	<node name="map_odom_tf" type="static_transform_publisher" pkg="tf" args="-1.450 5.800 0 3.14 0 0 map odom 100"/>
+	<node name="stage" pkg="stage_ros" type="stageros" args="$(find privacy_zones)/jolley4.world"/>
+
+	<include file="$(find privacy_zones)/launch/zone_server.launch">
+		<arg name="map_yaml" value="/home/lazewatd/wu_maps/jolley4.yaml"/>
+		<arg name="zone_yaml" value="$(find privacy_zones)/jolley4_zones.yaml"/>
+	</include>
+</launch>

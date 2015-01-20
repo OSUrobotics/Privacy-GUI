@@ -1,0 +1,11 @@
+<launch>
+	<arg name="map_yaml"/>
+	<arg name="zone_yaml"/>
+	<param name="/use_sim_time" value="true"/>
+	<include file="$(find privacy_zones)/launch/zone_viz.launch">
+		<arg name="map_yaml" value="$(arg map_yaml)"/>
+		<arg name="zone_yaml" value="$(arg zone_yaml)"/>
+	</include>
+
+	<node name="zone_server" type="zoneServer.py" pkg="privacy_zones" args="$(arg zone_yaml) $(arg map_yaml)"/>
+</launch>
