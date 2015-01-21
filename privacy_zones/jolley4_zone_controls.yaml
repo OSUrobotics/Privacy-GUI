@@ -1,0 +1,26 @@
+J422:
+- {control: Light, controlId: 1, device: Lights, deviceId: 1, location: Jolley 422}
+- {control: Light, controlId: 100, device: Lights, deviceId: 1, location: Jolley 422}
+J420Common:
+- {control: Light, controlId: 10, device: Lights, deviceId: 10, location: Jolley 420
+    Common}
+J421:
+- {control: Light, controlId: 11, device: Lights, deviceId: 11, location: Jolley 421}
+J422A:
+- {control: Light, controlId: 2, device: Lights, deviceId: 2, location: Jolley 422A}
+J422B:
+- {control: Light, controlId: 3, device: Lights, deviceId: 3, location: Jolley 422B}
+J422C:
+- {control: Light, controlId: 4, device: Lights, deviceId: 4, location: Jolley 422C}
+J420Common:
+- {control: Light, controlId: 5, device: Lights, deviceId: 5, location: Jolley 420
+    Common}
+J420:
+- {control: Light, controlId: 6, device: Lights, deviceId: 6, location: Jolley 420}
+J420A:
+- {control: Light, controlId: 7, device: Lights, deviceId: 7, location: Jolley 420A}
+J420A:
+- {control: Light, controlId: 8, device: Lights, deviceId: 8, location: Jolley 420B}
+J420A:
+- {control: Light, controlId: 9, device: Lights, deviceId: 9, location: Jolley 420C}
+
