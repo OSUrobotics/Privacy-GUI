@@ -5,5 +5,6 @@
 	<include file="$(find privacy_zones)/launch/zone_server.launch">
 		<arg name="map_yaml" value="/home/lazewatd/wu_maps/jolley4.yaml"/>
 		<arg name="zone_yaml" value="$(find privacy_zones)/jolley4_zones.yaml"/>
+		<arg name="zone_controls_yaml" value="$(find privacy_zones)/jolley4_zone_controls.yaml"/>
 	</include>
 </launch>

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 from privacy_zones.map_geometry import MapGeometry, Zones
-from privacy_zones.msg import Transition
+from privacy_zones.msg import Transition, ZoneControl
+from privacy_zones.srv import DevicesInZone, DevicesInZoneResponse 
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
 from shapely.geometry import Point
@@ -11,9 +12,12 @@ import rospy
 import tf
 
 class ZoneServer(object):
-    def __init__(self, zone_file_path, map_info_path):
+    def __init__(self, zone_file_path, map_info_path, zone_controls_path):
         with open(zone_file_path, 'r') as zone_file:
             zones = yaml.load(zone_file)['Zone List']
+
+        with open(zone_controls_path, 'r') as zone_controls_file:
+            self.zone_controls = yaml.load(zone_controls_file)
 
         self.geom = MapGeometry(map_info_path)
         self.zones = Zones(zones, self.geom)
@@ -24,8 +28,20 @@ class ZoneServer(object):
         rospy.Subscriber('pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('odom', Odometry, self.odom_cb)
         self.transition_pub = rospy.Publisher('transition', Transition)
-
+        rospy.Service('get_devices_in_zone', DevicesInZone, self.handle_list_devices)
         self.tfl = tf.TransformListener()
+
+    def handle_list_devices(self, req):
+        zcs = []
+        for control in self.zone_controls.get(req.zone, []):
+            zcs.append(ZoneControl(
+                zone=req.zone, 
+                controlId=control['controlId'],
+                deviceId=control['deviceId'],
+                name=control['control'],
+                numVal=0)
+            )
+        return DevicesInZoneResponse(zcs)
 
     def pose_cb(self, msg):
         msg_trans = self.tfl.transformPose('map', msg)
@@ -55,5 +71,5 @@ class ZoneServer(object):
 
 if __name__ == '__main__':
     rospy.init_node('zone_server')
-    server = ZoneServer(sys.argv[1], sys.argv[2])
+    server = ZoneServer(sys.argv[1], sys.argv[2], sys.argv[3])
     rospy.spin()

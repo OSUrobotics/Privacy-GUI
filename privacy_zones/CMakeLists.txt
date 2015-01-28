@@ -13,12 +13,20 @@ add_message_files(
   FILES
   Zone.msg
   Transition.msg
+  ZoneControl.msg
+)
+
+add_service_files(
+  FILES
+  DevicesInZone.srv
 )
 
 generate_messages(
   DEPENDENCIES
   std_msgs
   geometry_msgs
+  peac_bridge
 )
+
 
 catkin_package()
