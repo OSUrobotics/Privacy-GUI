@@ -19,7 +19,7 @@ def transition_cb(msg):
             update_control_proxy(control['controlId'], 0)
 
 rospy.init_node('light_follower')
-rospy.wait_for_service('peac/update_control')
-update_control_proxy = rospy.ServiceProxy('peac/update_control', UpdateControl)
+rospy.wait_for_service('update_control')
+update_control_proxy = rospy.ServiceProxy('update_control', UpdateControl)
 rospy.Subscriber('transition', Transition, transition_cb)
 rospy.spin()
