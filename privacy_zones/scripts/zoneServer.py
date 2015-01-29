@@ -4,6 +4,7 @@ from privacy_zones.map_geometry import MapGeometry, Zones
 from privacy_zones.msg import Transition, ZoneControl
 from privacy_zones.srv import DevicesInZone, DevicesInZoneResponse 
 from geometry_msgs.msg import PoseStamped
+from peac_bridge.srv import GetDeviceInfo, GetDeviceInfoRequest
 from nav_msgs.msg import Odometry
 from shapely.geometry import Point
 import sys
@@ -27,19 +28,25 @@ class ZoneServer(object):
 
         rospy.Subscriber('pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('odom', Odometry, self.odom_cb)
+        self.get_device_info = rospy.ServiceProxy('peac/get_device_info', GetDeviceInfo)
         self.transition_pub = rospy.Publisher('transition', Transition)
         rospy.Service('get_devices_in_zone', DevicesInZone, self.handle_list_devices)
         self.tfl = tf.TransformListener()
 
     def handle_list_devices(self, req):
+        control_cache = {}
         zcs = []
         for control in self.zone_controls.get(req.zone, []):
+            if control['controlId'] not in control_cache:
+                for cc in self.get_device_info(control['deviceId']).controls:
+                    control_cache[cc.controlId] = cc
+
             zcs.append(ZoneControl(
                 zone=req.zone, 
                 controlId=control['controlId'],
                 deviceId=control['deviceId'],
                 name=control['control'],
-                numVal=0)
+                numVal=control_cache[control['controlId']].numVal)
             )
         return DevicesInZoneResponse(zcs)
 
