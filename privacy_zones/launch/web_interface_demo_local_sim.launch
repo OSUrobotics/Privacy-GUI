@@ -3,12 +3,12 @@
 	<arg name="map_zones" default="$(find privacy_zones)/jolley4_zones.yaml"/>
 	<arg name="map_zone_controls" default="$(find privacy_zones)/jolley4_zone_controls.yaml"/>
 
-	<node name="map_odom_tf" type="static_transform_publisher" pkg="tf" args="-1.450 5.800 0 3.14 0 0 map odom 100"/>
-	<node name="stage" pkg="stage_ros" type="stageros" args="$(find privacy_zones)/jolley4.world"/>
-
-	<include file="$(find privacy_zones)/launch/zone_server.launch">
+	<param name="use_sim_time" value="true"/>
+	<include file="$(find privacy_zones)/launch/zone_sim.launch">
 		<arg name="map_yaml" value="$(arg map_yaml)"/>
 		<arg name="map_zones" value="$(arg map_zones)"/>
 		<arg name="map_zone_controls" value="$(arg map_zone_controls)"/>
 	</include>
+	<include file="$(find peac_bridge)/launch/local_demo.launch"/>
+	<include file="$(find contextual_interfaces)/launch/web_interface.launch"/>
 </launch>

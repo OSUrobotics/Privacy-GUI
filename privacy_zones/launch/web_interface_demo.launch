@@ -3,10 +3,11 @@
 	<arg name="map_zones"/> <!-- e.g. $(find privacy_zones)/jolley4_zones.yaml -->
 	<arg name="map_zone_controls"/> <!-- e.g. $(find privacy_zones)/jolley4_zone_controls.yaml -->
 
-	<include file="$(find privacy_zones)/launch/zone_viz.launch">
+	<include file="$(find privacy_zones)/launch/zone_server.launch">
 		<arg name="map_yaml" value="$(arg map_yaml)"/>
-		<arg name="zone_yaml" value="$(arg map_zones)"/>
+		<arg name="map_zones" value="$(arg map_zones)"/>
+		<arg name="map_zone_controls" value="$(arg map_zone_controls)"/>
 	</include>
-
-	<node name="zone_server" type="zoneServer.py" pkg="privacy_zones" args="$(arg map_zones) $(arg map_yaml) $(arg map_zone_controls)" respawn="true"/>
+	<include file="$(find peac_bridge)/launch/peac_bridge.launch"/>
+	<include file="$(find contextual_interfaces)/launch/web_interface.launch"/>
 </launch>
