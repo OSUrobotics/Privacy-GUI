@@ -7,7 +7,9 @@
 		<arg name="map_yaml" value="$(arg map_yaml)"/>
 		<arg name="map_zones" value="$(arg map_zones)"/>
 		<arg name="map_zone_controls" value="$(arg map_zone_controls)"/>
+		<arg name="use_amcl_pose" value="true"/>
 	</include>
 	<include file="$(find peac_bridge)/launch/peac_bridge.launch"/>
-	<node name="light_follower" pkg="privacy_zones" type="lightFollower.py"/>
+	<node name="light_follower" pkg="privacy_zones" type="lightFollower.py" args="$(arg map_zone_controls)">
+	<include file="$(find wheelchair_bringup)/launch/basic_localization.launch"/>
 </launch>

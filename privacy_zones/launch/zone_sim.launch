@@ -10,5 +10,6 @@
 		<arg name="map_yaml" value="$(arg map_yaml)"/>
 		<arg name="map_zones" value="$(arg map_zones)"/>
 		<arg name="map_zone_controls" value="$(arg map_zone_controls)"/>
+		<arg name="use_amcl_pose" value="false"/>
 	</include>
 </launch>

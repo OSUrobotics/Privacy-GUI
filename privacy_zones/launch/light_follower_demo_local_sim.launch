@@ -10,5 +10,5 @@
 		<arg name="map_zone_controls" value="$(arg map_zone_controls)"/>
 	</include>
 	<include file="$(find peac_bridge)/launch/local_demo.launch"/>
-	<node name="light_follower" pkg="privacy_zones" type="lightFollower.py"/>
+	<node name="light_follower" pkg="privacy_zones" type="lightFollower.py" args="$(arg map_zone_controls)"/>
 </launch>
