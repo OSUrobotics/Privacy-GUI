@@ -3,7 +3,7 @@
 from privacy_zones.map_geometry import MapGeometry, Zones
 from privacy_zones.msg import Transition, ZoneControl
 from privacy_zones.srv import DevicesInZone, DevicesInZoneResponse 
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from peac_bridge.srv import GetDeviceInfo, GetDeviceInfoRequest
 from nav_msgs.msg import Odometry
 from shapely.geometry import Point
@@ -28,6 +28,7 @@ class ZoneServer(object):
 
         rospy.Subscriber('pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('odom', Odometry, self.odom_cb)
+        rospy.Subscriber('amcl_pose', PoseWithCovarianceStamped, self.pose_with_cov_cb)
         self.get_device_info = rospy.ServiceProxy('peac/get_device_info', GetDeviceInfo)
         self.transition_pub = rospy.Publisher('transition', Transition)
         rospy.Service('get_devices_in_zone', DevicesInZone, self.handle_list_devices)
@@ -59,6 +60,12 @@ class ZoneServer(object):
             self.current_zones = within_zones
             self.check_transition()
 
+    def pose_with_cov_cb(self, msg):
+        pose = PoseStamped()
+        pose.header = msg.header
+        pose.pose = msg.pose.pose        
+        self.pose_cb(pose)
+
     def odom_cb(self, msg):
         pose = PoseStamped()
         pose.header = msg.header
@@ -66,7 +73,8 @@ class ZoneServer(object):
         self.pose_cb(pose)
 
     def check_transition(self):
-        if self.previous_zones and self.current_zones:
+        # if self.previous_zones and self.current_zones:
+        if  self.current_zones: # this will trigger a transition on startup for the current zone
             entered_zones = set(self.current_zones) - set(self.previous_zones)
             exited_zones = set(self.previous_zones) - set(self.current_zones)
             for zone in entered_zones:
