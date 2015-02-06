@@ -2,11 +2,14 @@
 	<arg name="map_yaml"/> <!-- e.g. /home/lazewatd/wu_maps/jolley4.yaml -->
 	<arg name="map_zones"/> <!-- e.g. $(find privacy_zones)/jolley4_zones.yaml -->
 	<arg name="map_zone_controls"/> <!-- e.g. $(find privacy_zones)/jolley4_zone_controls.yaml -->
+	<arg name="use_amcl_pose" default="false"/>
 
 	<include file="$(find privacy_zones)/launch/zone_viz.launch">
 		<arg name="map_yaml" value="$(arg map_yaml)"/>
 		<arg name="zone_yaml" value="$(arg map_zones)"/>
 	</include>
 
-	<node name="zone_server" type="zoneServer.py" pkg="privacy_zones" args="$(arg map_zones) $(arg map_yaml) $(arg map_zone_controls)" respawn="true"/>
+	<node name="zone_server" type="zoneServer.py" pkg="privacy_zones" args="$(arg map_zones) $(arg map_yaml) $(arg map_zone_controls)" respawn="true">
+		<remap from="odom" to="nothing" if="$(arg use_amcl_pose)"/>
+	</node>
 </launch>
