@@ -13,7 +13,7 @@ def transition_cb(msg):
         control = zone_controls[msg.zone.name][0]
         if msg.action == Transition.ENTER:
             rospy.loginfo('turning %s on' % control['controlId'])
-            update_control_proxy(control['controlId'], 1)
+            update_control_proxy(control['controlId'], 100)
         elif msg.action == Transition.EXIT:
             rospy.loginfo('turning %s off' % control['controlId'])
             update_control_proxy(control['controlId'], 0)
