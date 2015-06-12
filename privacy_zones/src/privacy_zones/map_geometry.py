@@ -44,11 +44,22 @@ class Zones(dict):
         return ma
 
 class MapGeometry:
-    def __init__(self, yaml_path):
-        self.yaml_path = yaml_path
-        with open(yaml_path, 'r') as map_info_file:
-            self.map_info = yaml.load(map_info_file)
-        self._get_map_size()
+    def __init__(self, yaml_path=None, map_metadata=None):
+        if yaml_path is not None:
+            self.yaml_path = yaml_path
+            with open(yaml_path, 'r') as map_info_file:
+                self.map_info = yaml.load(map_info_file)
+            self._get_map_size()
+        if map_metadata is not None:
+            self.map_info = dict(
+                origin=[
+                    map_metadata.origin.position.x,
+                    map_metadata.origin.position.y,
+                    map_metadata.origin.position.z
+                ],
+                resolution=map_metadata.resolution,
+            )
+            self._size = (map_metadata.width, map_metadata.height)
 
     def _get_map_size(self):
         map_path = os.path.join(os.path.split(self.yaml_path)[0], self.map_info['image'])
@@ -62,7 +73,9 @@ class MapGeometry:
         return ((0, self._size[1]) - np.array(px)) * (-1,1) * self.map_info['resolution'] + self.map_info['origin'][:2]
 
     def world_coords_to_px(self, coords):
-        return ((np.array(coords) - self.map_info['origin'][:2]) / self.map_info['resolution']) - (0, self._size[1])
+        c = ((np.array(coords) - self.map_info['origin'][:2]) / self.map_info['resolution'])
+        c[:,1] = self._size[1] - c[:,1]
+        return c
 
 if __name__ == '__main__':
     import yaml
