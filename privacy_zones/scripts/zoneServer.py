@@ -2,9 +2,9 @@
 
 from privacy_zones.map_geometry import MapGeometry, Zones
 from privacy_zones.msg import Transition, ZoneControl
-from privacy_zones.srv import DevicesInZone, DevicesInZoneResponse 
+from privacy_zones.srv import DevicesInZone, DevicesInZoneRequest, DevicesInZoneResponse
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
-from peac_bridge.srv import GetDeviceInfo, GetDeviceInfoRequest
+from peac_bridge.srv import GetDeviceInfo, GetDeviceInfoRequest, ListLocations, ListDevices
 from nav_msgs.msg import Odometry
 from shapely.geometry import Point
 import sys
@@ -30,6 +30,8 @@ class ZoneServer(object):
         rospy.Subscriber('odom', Odometry, self.odom_cb)
         rospy.Subscriber('amcl_pose', PoseWithCovarianceStamped, self.pose_with_cov_cb)
         self.get_device_info = rospy.ServiceProxy('peac/get_device_info', GetDeviceInfo)
+        self.list_locations = rospy.ServiceProxy('peac/list_locations', ListLocations)
+        self.list_devices = rospy.ServiceProxy('peac/list_devices', ListDevices)
         self.transition_pub = rospy.Publisher('transition', Transition)
         rospy.Service('get_devices_in_zone', DevicesInZone, self.handle_list_devices)
         self.tfl = tf.TransformListener()
@@ -43,7 +45,7 @@ class ZoneServer(object):
                     control_cache[cc.controlId] = cc
 
             zcs.append(ZoneControl(
-                zone=req.zone, 
+                zone=req.zone,
                 controlId=control['controlId'],
                 deviceId=control['deviceId'],
                 name=control['control'],
@@ -63,7 +65,7 @@ class ZoneServer(object):
     def pose_with_cov_cb(self, msg):
         pose = PoseStamped()
         pose.header = msg.header
-        pose.pose = msg.pose.pose        
+        pose.pose = msg.pose.pose
         self.pose_cb(pose)
 
     def odom_cb(self, msg):
@@ -72,16 +74,38 @@ class ZoneServer(object):
         pose.pose = msg.pose.pose
         self.pose_cb(pose)
 
+    def get_peac_locations(self, zone):
+        devices = self.handle_list_devices(DevicesInZoneRequest(zone.name))
+        device_ids = set([c.deviceId for c in devices.controls])
+        locations = self.list_locations()
+        matched_locations = []
+        for location in locations.locations:
+            loc_devices = self.list_devices(location.locationId)
+            loc_device_ids = set([c.deviceId for c in loc_devices.devices])
+
+            # if any of our devices are also in this location, add it
+            if device_ids.intersection(loc_device_ids):
+                matched_locations.append(location)
+        return matched_locations
+
     def check_transition(self):
         # if self.previous_zones and self.current_zones:
         if  self.current_zones: # this will trigger a transition on startup for the current zone
             entered_zones = set(self.current_zones) - set(self.previous_zones)
             exited_zones = set(self.previous_zones) - set(self.current_zones)
             for zone in entered_zones:
-                transition_msg = Transition(action=Transition.ENTER, zone=zone.to_msg())
+                transition_msg = Transition(
+                    action=Transition.ENTER,
+                    zone=zone.to_msg(),
+                    peac_locations=self.get_peac_locations(zone)
+                )
                 self.transition_pub.publish(transition_msg)
             for zone in exited_zones:
-                transition_msg = Transition(action=Transition.EXIT, zone=zone.to_msg())
+                transition_msg = Transition(
+                    action=Transition.EXIT,
+                    zone=zone.to_msg(),
+                    peac_locations=self.get_peac_locations(zone)
+                )
                 self.transition_pub.publish(transition_msg)
 
 if __name__ == '__main__':
