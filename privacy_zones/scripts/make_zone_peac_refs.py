@@ -8,6 +8,7 @@ for loc in services.peac.list_locations().locations:
         for cont in services.peac.get_device_info(dev.deviceId).controls:
             zone_controls['ZONE%s' % dev.deviceId].append({
             'location'  : loc.name,
+            'locationId': loc.locationId,
             'device'    : dev.name,
             'deviceId'  : dev.deviceId,
             'controlId' : cont.controlId,
