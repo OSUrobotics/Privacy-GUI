@@ -3,9 +3,11 @@
 from privacy_zones.map_geometry import MapGeometry, Zones
 from privacy_zones.msg import Transition, ZoneControl
 from privacy_zones.srv import DevicesInZone, DevicesInZoneRequest, DevicesInZoneResponse
-from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
+from privacy_zones.srv import LocalizeInZone, LocalizeInZoneRequest, LocalizeInZoneResponse
+from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, PolygonStamped
 from peac_bridge.srv import GetDeviceInfo, GetDeviceInfoRequest, ListLocations, ListDevices
 from nav_msgs.msg import Odometry
+from nav_msgs.srv import GlobalLocalizationPolygon, GlobalLocalizationPolygonRequest
 from shapely.geometry import Point
 import sys
 import yaml
@@ -32,8 +34,11 @@ class ZoneServer(object):
         self.get_device_info = rospy.ServiceProxy('peac/get_device_info', GetDeviceInfo)
         self.list_locations = rospy.ServiceProxy('peac/list_locations', ListLocations)
         self.list_devices = rospy.ServiceProxy('peac/list_devices', ListDevices)
+        self.polygon_localization = rospy.ServiceProxy('polygon_localization', GlobalLocalizationPolygon)
         self.transition_pub = rospy.Publisher('transition', Transition)
         rospy.Service('get_devices_in_zone', DevicesInZone, self.handle_list_devices)
+        rospy.Service('get_zone_locations', GetZoneLocations, self.get_zone_locations)
+        rospy.Service('localize_in_zone', LocalizeInZone, self.localize_in_zone)
         self.tfl = tf.TransformListener()
 
     def handle_list_devices(self, req):
@@ -54,6 +59,7 @@ class ZoneServer(object):
         return DevicesInZoneResponse(zcs)
 
     def pose_cb(self, msg):
+        msg.header.stamp = rospy.Time(0)
         msg_trans = self.tfl.transformPose('map', msg)
         pt = Point(msg_trans.pose.position.x, msg_trans.pose.position.y)
         within_zones = self.zones.in_which(pt)
@@ -88,9 +94,19 @@ class ZoneServer(object):
                 matched_locations.append(location)
         return matched_locations
 
+    def localize_in_zone(self, zone_req):
+        zone = self.zones[zone_req.zone]
+        zone_poly = zone.to_msg().zone
+        poly_stamped = PolygonStamped()
+        req = GlobalLocalizationPolygonRequest(poly=poly_stamped)
+        poly_stamped.polygon = zone_poly
+        poly_stamped.header.frame_id = zone.gen.frame_id
+        self.polygon_localization(req)
+        return LocalizeInZoneResponse()
+
     def check_transition(self):
         # if self.previous_zones and self.current_zones:
-        if  self.current_zones: # this will trigger a transition on startup for the current zone
+        if self.current_zones: # this will trigger a transition on startup for the current zone
             entered_zones = set(self.current_zones) - set(self.previous_zones)
             exited_zones = set(self.previous_zones) - set(self.current_zones)
             for zone in entered_zones:
