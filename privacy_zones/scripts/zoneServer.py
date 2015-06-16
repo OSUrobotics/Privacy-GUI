@@ -4,6 +4,8 @@ from privacy_zones.map_geometry import MapGeometry, Zones
 from privacy_zones.msg import Transition, ZoneControl
 from privacy_zones.srv import DevicesInZone, DevicesInZoneRequest, DevicesInZoneResponse
 from privacy_zones.srv import LocalizeInZone, LocalizeInZoneRequest, LocalizeInZoneResponse
+from privacy_zones.srv import GetZoneLocations, GetZoneLocationsRequest, GetZoneLocationsResponse
+from std_srvs.srv import Empty as EmptySrv, EmptyResponse
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, PolygonStamped
 from peac_bridge.srv import GetDeviceInfo, GetDeviceInfoRequest, ListLocations, ListDevices
 from nav_msgs.msg import Odometry
@@ -13,6 +15,8 @@ import sys
 import yaml
 import rospy
 import tf
+
+from threading import RLock
 
 class ZoneServer(object):
     def __init__(self, zone_file_path, map_info_path, zone_controls_path):
@@ -27,6 +31,10 @@ class ZoneServer(object):
         self.current_zones = []
         self.previous_zones = []
         self.last_transition_time = rospy.Time(0)
+        
+        self.tfl = tf.TransformListener()
+
+        self.list_devices_lock = RLock()
 
         rospy.Subscriber('pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('odom', Odometry, self.odom_cb)
@@ -35,28 +43,29 @@ class ZoneServer(object):
         self.list_locations = rospy.ServiceProxy('peac/list_locations', ListLocations)
         self.list_devices = rospy.ServiceProxy('peac/list_devices', ListDevices)
         self.polygon_localization = rospy.ServiceProxy('polygon_localization', GlobalLocalizationPolygon)
-        self.transition_pub = rospy.Publisher('transition', Transition)
+        self.global_localization = rospy.ServiceProxy('global_localization', EmptySrv)
+        self.transition_pub = rospy.Publisher('transition', Transition, latch=True)
         rospy.Service('get_devices_in_zone', DevicesInZone, self.handle_list_devices)
         rospy.Service('get_zone_locations', GetZoneLocations, self.get_zone_locations)
         rospy.Service('localize_in_zone', LocalizeInZone, self.localize_in_zone)
-        self.tfl = tf.TransformListener()
 
     def handle_list_devices(self, req):
-        control_cache = {}
-        zcs = []
-        for control in self.zone_controls.get(req.zone, []):
-            if control['controlId'] not in control_cache:
-                for cc in self.get_device_info(control['deviceId']).controls:
-                    control_cache[cc.controlId] = cc
+        with self.list_devices_lock:
+            control_cache = {}
+            zcs = []
+            for control in self.zone_controls.get(req.zone, []):
+                if control['controlId'] not in control_cache:
+                    for cc in self.get_device_info(control['deviceId']).controls:
+                        control_cache[cc.controlId] = cc
 
-            zcs.append(ZoneControl(
-                zone=req.zone,
-                controlId=control['controlId'],
-                deviceId=control['deviceId'],
-                name=control['control'],
-                numVal=control_cache[control['controlId']].numVal)
-            )
-        return DevicesInZoneResponse(zcs)
+                zcs.append(ZoneControl(
+                    zone=req.zone,
+                    controlId=control['controlId'],
+                    deviceId=control['deviceId'],
+                    name=control['control'],
+                    numVal=control_cache[control['controlId']].numVal)
+                )
+            return DevicesInZoneResponse(zcs)
 
     def pose_cb(self, msg):
         msg.header.stamp = rospy.Time(0)
@@ -81,7 +90,10 @@ class ZoneServer(object):
         self.pose_cb(pose)
 
     def get_peac_locations(self, zone):
-        devices = self.handle_list_devices(DevicesInZoneRequest(zone.name))
+        name = zone
+        if type(zone) != str:
+            name = zone.name
+        devices = self.handle_list_devices(DevicesInZoneRequest(name))
         device_ids = set([c.deviceId for c in devices.controls])
         locations = self.list_locations()
         matched_locations = []
@@ -94,14 +106,30 @@ class ZoneServer(object):
                 matched_locations.append(location)
         return matched_locations
 
+    def get_zone_locations(self, req):
+        resp = GetZoneLocationsResponse()
+        for zone, zone_info in self.zones.iteritems():
+            locs = self.get_peac_locations(zone)
+            for loc in locs:
+                resp.zones.append(zone_info.to_msg())
+                resp.locations.append(loc)
+        return resp
+
+
     def localize_in_zone(self, zone_req):
-        zone = self.zones[zone_req.zone]
-        zone_poly = zone.to_msg().zone
-        poly_stamped = PolygonStamped()
-        req = GlobalLocalizationPolygonRequest(poly=poly_stamped)
-        poly_stamped.polygon = zone_poly
-        poly_stamped.header.frame_id = zone.gen.frame_id
-        self.polygon_localization(req)
+        print zone_req.zone
+        if zone_req.zone == 'NONE':
+            # If user isn't in a predefined zone, what should we do?
+            # For now, try global localization
+            self.global_localization()
+        else:
+            zone = self.zones[zone_req.zone]
+            zone_poly = zone.to_msg().zone
+            poly_stamped = PolygonStamped()
+            req = GlobalLocalizationPolygonRequest(poly=poly_stamped)
+            poly_stamped.polygon = zone_poly
+            poly_stamped.header.frame_id = zone.gen.frame_id
+            self.polygon_localization(req)
         return LocalizeInZoneResponse()
 
     def check_transition(self):
@@ -109,16 +137,16 @@ class ZoneServer(object):
         if self.current_zones: # this will trigger a transition on startup for the current zone
             entered_zones = set(self.current_zones) - set(self.previous_zones)
             exited_zones = set(self.previous_zones) - set(self.current_zones)
-            for zone in entered_zones:
+            for zone in exited_zones:
                 transition_msg = Transition(
-                    action=Transition.ENTER,
+                    action=Transition.EXIT,
                     zone=zone.to_msg(),
                     peac_locations=self.get_peac_locations(zone)
                 )
                 self.transition_pub.publish(transition_msg)
-            for zone in exited_zones:
+            for zone in entered_zones:
                 transition_msg = Transition(
-                    action=Transition.EXIT,
+                    action=Transition.ENTER,
                     zone=zone.to_msg(),
                     peac_locations=self.get_peac_locations(zone)
                 )
