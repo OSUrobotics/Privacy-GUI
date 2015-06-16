@@ -19,6 +19,7 @@ add_message_files(
 add_service_files(
   FILES
   DevicesInZone.srv
+  LocalizeInZone.srv
 )
 
 generate_messages(
