@@ -8,6 +8,7 @@ from privacy_zones.srv import GetZoneLocations, GetZoneLocationsRequest, GetZone
 from std_srvs.srv import Empty as EmptySrv, EmptyResponse
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, PolygonStamped
 from peac_bridge.srv import GetDeviceInfo, GetDeviceInfoRequest, ListLocations, ListDevices
+from peac_bridge.msg import Device
 from nav_msgs.msg import Odometry
 from nav_msgs.srv import GlobalLocalizationPolygon, GlobalLocalizationPolygonRequest
 from shapely.geometry import Point
@@ -26,12 +27,26 @@ class ZoneServer(object):
         with open(zone_controls_path, 'r') as zone_controls_file:
             self.zone_controls = yaml.load(zone_controls_file)
 
+        parts = zone_file_path.split('.yaml')
+        parts[0] += '_collected_controls'
+        collected_controls_path = '.yaml'.join(parts)
+
+        with open(collected_controls_path, 'r') as collected_controls:
+            self.collected_controls = yaml.load(collected_controls)
+
+        self.collected_devices = {}
+        for zone, controls in self.collected_controls.iteritems():
+            self.collected_devices[zone] = set([control['device']['deviceId'] for control in controls])
+
         self.geom = MapGeometry(map_info_path)
         self.zones = Zones(zones, self.geom)
         self.current_zones = []
         self.previous_zones = []
         self.last_transition_time = rospy.Time(0)
-        
+        self.control_cache = {}
+        self.device_cache = {}
+        self.location_cache = {}
+
         self.tfl = tf.TransformListener()
 
         self.list_devices_lock = RLock()
@@ -41,7 +56,7 @@ class ZoneServer(object):
         rospy.Subscriber('amcl_pose', PoseWithCovarianceStamped, self.pose_with_cov_cb)
         self.get_device_info = rospy.ServiceProxy('peac/get_device_info', GetDeviceInfo)
         self.list_locations = rospy.ServiceProxy('peac/list_locations', ListLocations)
-        self.list_devices = rospy.ServiceProxy('peac/list_devices', ListDevices)
+        self.list_devices_srv = rospy.ServiceProxy('peac/list_devices', ListDevices)
         self.polygon_localization = rospy.ServiceProxy('polygon_localization', GlobalLocalizationPolygon)
         self.global_localization = rospy.ServiceProxy('global_localization', EmptySrv)
         self.transition_pub = rospy.Publisher('transition', Transition, latch=True)
@@ -49,23 +64,41 @@ class ZoneServer(object):
         rospy.Service('get_zone_locations', GetZoneLocations, self.get_zone_locations)
         rospy.Service('localize_in_zone', LocalizeInZone, self.localize_in_zone)
 
+    def collected_devices_in_zone(self, zone):
+        return self.collected_devices[zone]
+
     def handle_list_devices(self, req):
         with self.list_devices_lock:
-            control_cache = {}
-            zcs = []
-            for control in self.zone_controls.get(req.zone, []):
-                if control['controlId'] not in control_cache:
-                    for cc in self.get_device_info(control['deviceId']).controls:
-                        control_cache[cc.controlId] = cc
+            if req.which == DevicesInZoneRequest.ALL_DEVICES:
+                zcs = []
+                for control in self.zone_controls.get(req.zone, []):
+                    if control['controlId'] not in self.control_cache:
+                        for cc in self.get_device_info(control['deviceId']).controls:
+                            self.control_cache[cc.controlId] = cc
 
-                zcs.append(ZoneControl(
-                    zone=req.zone,
-                    controlId=control['controlId'],
-                    deviceId=control['deviceId'],
-                    name=control['control'],
-                    numVal=control_cache[control['controlId']].numVal)
-                )
-            return DevicesInZoneResponse(zcs)
+                    zcs.append(ZoneControl(
+                        zone=req.zone,
+                        controlId=control['controlId'],
+                        # deviceId=control['deviceId'],
+                        device=Device(control['deviceId'], control['device']),
+                        name=control['control'],
+                        numVal=self.control_cache[control['controlId']].numVal)
+                    )
+                return DevicesInZoneResponse(zcs)
+            elif req.which == DevicesInZoneRequest.LEARNED_DEVICES:
+                zcs = []
+                for device in self.collected_devices_in_zone(req.zone):
+                    for control in self.get_device_info(device).controls:
+                        self.control_cache[control.controlId] = control
+                        zcs.append(ZoneControl(
+                            zone=req.zone,
+                            controlId=control.controlId,
+                            device=self.lookup_device(device),
+                            name=control.name,
+                            numVal=control.numVal)
+                        )
+                return DevicesInZoneResponse(zcs)
+
 
     def pose_cb(self, msg):
         msg.header.stamp = rospy.Time(0)
@@ -89,12 +122,27 @@ class ZoneServer(object):
         pose.pose = msg.pose.pose
         self.pose_cb(pose)
 
+    def lookup_device(self, device_id):
+        if device_id in self.device_cache:
+            return self.device_cache[device_id]
+        else:
+            raise AttributeError('%s not found in device cache' %device_id)
+            # TODO load up missing devices
+
+    def list_devices(self, location_id):
+        if location_id not in self.location_cache:
+            self.location_cache[location_id] = self.list_devices_srv(location_id)
+            for device in self.location_cache[location_id].devices:
+                self.device_cache[device.deviceId] = device
+
+        return self.location_cache[location_id]
+
     def get_peac_locations(self, zone):
         name = zone
         if type(zone) != str:
             name = zone.name
         devices = self.handle_list_devices(DevicesInZoneRequest(name, DevicesInZoneRequest.ALL_DEVICES))
-        device_ids = set([c.deviceId for c in devices.controls])
+        device_ids = set([c.device.deviceId for c in devices.controls])
         locations = self.list_locations()
         matched_locations = []
         for location in locations.locations:
@@ -117,7 +165,6 @@ class ZoneServer(object):
 
 
     def localize_in_zone(self, zone_req):
-        print zone_req.zone
         if zone_req.zone == 'NONE':
             # If user isn't in a predefined zone, what should we do?
             # For now, try global localization
