@@ -1,3 +1,7 @@
+uint8 ALL_DEVICES = 0
+uint8 LEARNED_DEVICES = 1
+
 string zone
+uint8 which
 ---
 privacy_zones/ZoneControl[] controls

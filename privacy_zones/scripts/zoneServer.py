@@ -93,7 +93,7 @@ class ZoneServer(object):
         name = zone
         if type(zone) != str:
             name = zone.name
-        devices = self.handle_list_devices(DevicesInZoneRequest(name))
+        devices = self.handle_list_devices(DevicesInZoneRequest(name, DevicesInZoneRequest.ALL_DEVICES))
         device_ids = set([c.deviceId for c in devices.controls])
         locations = self.list_locations()
         matched_locations = []
