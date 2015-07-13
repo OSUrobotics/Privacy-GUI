@@ -2,13 +2,17 @@
 	<arg name="map_yaml" default="/home/lazewatd/wu_maps/jolley4.yaml"/>
 	<arg name="map_zones" default="$(find privacy_zones)/jolley4_zones.yaml"/>
 	<arg name="map_zone_controls" default="$(find privacy_zones)/jolley4_zone_controls.yaml"/>
+	<arg name="fake_localization" default="true"/>
 
 	<param name="use_sim_time" value="true"/>
 	<include file="$(find privacy_zones)/launch/zone_sim.launch">
 		<arg name="map_yaml" value="$(arg map_yaml)"/>
 		<arg name="map_zones" value="$(arg map_zones)"/>
 		<arg name="map_zone_controls" value="$(arg map_zone_controls)"/>
+		<arg name="fake_localization" default="$(arg fake_localization)"/>
 	</include>
 	<include file="$(find peac_bridge)/launch/local_demo.launch"/>
 	<node name="light_follower" pkg="privacy_zones" type="lightFollower.py" args="$(arg map_zone_controls)"/>
+
+	<node name="rviz" pkg="rviz" type="rviz"/>
 </launch>

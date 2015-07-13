@@ -9,7 +9,7 @@
 		<arg name="zone_yaml" value="$(arg map_zones)"/>
 	</include>
 
-	<node name="zone_server" type="zoneServer.py" pkg="privacy_zones" args="$(arg map_zones) $(arg map_yaml) $(arg map_zone_controls)" respawn="true">
+	<node name="zone_server" type="zoneServer.py" pkg="privacy_zones" args="$(arg map_zones) $(arg map_yaml) $(arg map_zone_controls)">
 		<remap from="odom" to="nothing" if="$(arg use_amcl_pose)"/>
 	</node>
 </launch>

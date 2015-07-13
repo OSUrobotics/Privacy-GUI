@@ -1,14 +1,26 @@
 <launch>
-	<arg name="map_yaml" default="/home/lazewatd/wu_maps/jolley4.yaml"/>
+<!-- 	<arg name="map_yaml" default="/home/lazewatd/wu_maps/jolley4.yaml"/>
 	<arg name="map_zones" default="$(find privacy_zones)/jolley4_zones.yaml"/>
-	<arg name="map_zone_controls" default="$(find privacy_zones)/jolley4_zone_controls.yaml"/>
+	<arg name="map_zone_controls" default="$(find privacy_zones)/jolley4_zone_controls.yaml"/> -->
+	<arg name="map_yaml" default="/home/lazewatd/Dropbox/research/ssalsr-maps/map-to-use.yaml"/>
+	<arg name="map_zones" default="/home/lazewatd/Dropbox/research/ssalsr-maps/ssalsr_zones.yaml"/>
+	<arg name="map_zone_controls" default="/home/lazewatd/Dropbox/research/ssalsr-maps/map0/zone_controls.yaml"/>
+	<arg name="fake_localization" default="true"/>
 
 	<param name="use_sim_time" value="true"/>
 	<include file="$(find privacy_zones)/launch/zone_sim.launch">
+		<arg name="world" value="/home/lazewatd/Dropbox/research/ssalsr-maps/ssalsr-stage.world"/>
 		<arg name="map_yaml" value="$(arg map_yaml)"/>
 		<arg name="map_zones" value="$(arg map_zones)"/>
 		<arg name="map_zone_controls" value="$(arg map_zone_controls)"/>
+		<arg name="fake_localization" value="$(arg fake_localization)"/>		
 	</include>
-	<include file="$(find peac_bridge)/launch/local_demo.launch"/>
+	<include file="$(find peac_bridge)/launch/local_demo.launch">
+		<arg name="single_threaded" value="true"/>
+	</include>
 	<include file="$(find contextual_interfaces)/launch/web_interface.launch"/>
+	<node name="rviz" pkg="rviz" type="rviz"/>
+
+	<node pkg="peac_bridge" type="actuation_logging_server.py" name="actuation_logging_server"/>
+	
 </launch>

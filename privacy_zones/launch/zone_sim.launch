@@ -2,9 +2,19 @@
 	<arg name="map_yaml" default="/home/lazewatd/wu_maps/jolley4.yaml"/>
 	<arg name="map_zones" default="$(find privacy_zones)/jolley4_zones.yaml"/>
 	<arg name="map_zone_controls" default="$(find privacy_zones)/jolley4_zone_controls.yaml"/>
+	<arg name="world" default="$(find privacy_zones)/jolley4.world"/>
+	<arg name="fake_localization" default="true"/>
 
-	<node name="map_odom_tf" type="static_transform_publisher" pkg="tf" args="-1.450 5.800 0 3.14 0 0 map odom 100"/>
-	<node name="stage" pkg="stage_ros" type="stageros" args="$(find privacy_zones)/jolley4.world"/>
+	<node name="fake_localization" type="fake_localization" pkg="fake_localization" if="$(arg fake_localization)">
+		<param name="delta_x" value="-2.8"/>
+		<param name="delta_y" value="-12.75"/>
+	</node>
+
+	<node name="amcl" type="amcl" pkg="amcl" unless="$(arg fake_localization)"> 
+		<remap from="scan" to="base_scan"/>
+	</node>
+
+	<node name="stage" pkg="stage_ros" type="stageros" args="$(arg world)" respawn="true"/>
 
 	<include file="$(find privacy_zones)/launch/zone_server.launch">
 		<arg name="map_yaml" value="$(arg map_yaml)"/>
