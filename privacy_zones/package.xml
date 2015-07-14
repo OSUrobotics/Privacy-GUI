@@ -2,7 +2,7 @@
 <package>
   <name>privacy_zones</name>
   <version>0.0.0</version>
-  <description>Pacakage for talking to PEAC with ROS</description>
+  <description>Doing stuff with zones in maps</description>
 
   <maintainer email="lazewatd@engr.oregonstate.edu">Dan Lazewatsky</maintainer>
 
@@ -42,6 +42,7 @@
   <run_depend>geometry_msgs</run_depend>
   <run_depend>message_runtime</run_depend>
   <run_depend>rospy</run_depend>
+  <run_depend>python-shapely</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
