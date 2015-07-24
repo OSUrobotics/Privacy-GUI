@@ -12,9 +12,4 @@
 	</include>
 	<include file="$(find peac_bridge)/launch/peac_bridge.launch"/>
 	<include file="$(find contextual_interfaces)/launch/web_interface.launch"/>
-	<include file="$(find wheelchair_bringup)/launch/basic_localization.launch">
-		<arg name="map_yaml" value="$(arg map_yaml)"/>
-	</include>
-
-	<node pkg="peac_bridge" type="actuation_logging_server.py" name="actuation_logging_server"/>
 </launch>
